@@ -1,0 +1,38 @@
+apply plugin: 'java'
+
+group = 'org.radarbase'
+version = '0.1-SNAPSHOT'
+
+description = 'kafka-connect-rest'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+    maven { url "http://packages.confluent.io/maven/" }
+    maven { url "http://repo.maven.apache.org/maven2" }
+}
+
+dependencies {
+    implementation group: 'org.apache.commons', name: 'commons-compress', version:'1.15'
+    implementation group: 'org.apache.velocity', name: 'velocity-engine-core', version:'2.0'
+
+    // Included in connector runtime
+    compileOnly group: 'org.apache.kafka', name: 'connect-api', version:'1.1.0'
+    compileOnly group: 'org.apache.kafka', name: 'connect-json', version:'1.1.0'
+    compileOnly group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version:'2.9.5'
+
+    testImplementation group: 'ch.qos.logback', name: 'logback-classic', version:'1.2.3'
+    testImplementation group: 'junit', name: 'junit', version:'4.12'
+    testImplementation group: 'org.mockito', name: 'mockito-core', version:'1.10.19'
+    testImplementation group: 'com.github.tomakehurst', name: 'wiremock', version:'2.14.0'
+
+    testImplementation group: 'org.apache.kafka', name: 'connect-api', version:'1.1.0'
+    testImplementation group: 'org.apache.kafka', name: 'connect-json', version:'1.1.0'
+    testImplementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version:'2.9.5'
+}
+
+wrapper {
+    gradleVersion '4.9'
+}

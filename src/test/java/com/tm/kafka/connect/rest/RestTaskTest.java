@@ -8,6 +8,10 @@ import org.apache.kafka.connect.sink.SinkTaskContext;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.junit.Rule;
 import org.junit.Test;
+import org.radarbase.connect.rest.RestSinkConnectorConfig;
+import org.radarbase.connect.rest.RestSinkTask;
+import org.radarbase.connect.rest.RestSourceConnectorConfig;
+import org.radarbase.connect.rest.RestSourceTask;
 
 import java.net.ServerSocket;
 import java.util.ArrayList;
@@ -44,9 +48,9 @@ public class RestTaskTest {
   private static final String PROPERTIES_LIST = "" +
     CONTENT_TYPE + ":" + APPLICATION_JSON + ", " +
     ACCEPT + ":" + APPLICATION_JSON;
-  private static final String TOPIC_SELECTOR = "com.tm.kafka.connect.rest.selector.SimpleTopicSelector";
-  private static final String BYTES_PAYLOAD_CONVERTER = "com.tm.kafka.connect.rest.converter.BytesPayloadConverter";
-  private static final String STRING_PAYLOAD_CONVERTER = "com.tm.kafka.connect.rest.converter.StringPayloadConverter";
+  private static final String TOPIC_SELECTOR = "org.radarbase.connect.rest.selector.SimpleTopicSelector";
+  private static final String BYTES_PAYLOAD_CONVERTER = "org.radarbase.connect.rest.converter.BytesPayloadConverter";
+  private static final String STRING_PAYLOAD_CONVERTER = "org.radarbase.connect.rest.converter.StringPayloadConverter";
   private static final String DATA = "{\"A\":\"B\"}";
   private static final String RESPONSE_BODY = "{\"B\":\"A\"}";
   private static final int PORT = getPort();

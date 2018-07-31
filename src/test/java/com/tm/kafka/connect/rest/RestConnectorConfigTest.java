@@ -1,6 +1,8 @@
 package com.tm.kafka.connect.rest;
 
 import org.junit.Test;
+import org.radarbase.connect.rest.RestSinkConnectorConfig;
+import org.radarbase.connect.rest.RestSourceConnectorConfig;
 
 public class RestConnectorConfigTest {
   @Test
