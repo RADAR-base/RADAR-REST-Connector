@@ -1,69 +1,76 @@
 package org.radarbase.connect.rest;
 
-import org.radarbase.connect.rest.converter.PayloadToSourceRecordConverter;
-import org.apache.commons.compress.utils.IOUtils;
+import okhttp3.OkHttpClient;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.apache.kafka.connect.source.SourceTask;
+import org.radarbase.connect.rest.converter.PayloadToSourceRecordConverter;
+import org.radarbase.connect.rest.request.RequestGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.atomic.LongAdder;
+import java.util.stream.Collectors;
+
+import static org.radarbase.connect.rest.ThrowingFunction.tryOrNull;
 
 public class RestSourceTask extends SourceTask {
   private static Logger log = LoggerFactory.getLogger(RestSourceTask.class);
 
-  private Long pollInterval;
-  private String method;
-  private Map<String, String> requestProperties;
-  private String url;
-  private String data;
   private PayloadToSourceRecordConverter converter;
 
-  private Long lastPollTime = 0L;
+  private OkHttpClient client;
+  private RequestGenerator requestGenerator;
 
   @Override
   public void start(Map<String, String> map) {
     RestSourceConnectorConfig connectorConfig = new RestSourceConnectorConfig(map);
-    pollInterval = connectorConfig.getPollInterval();
-    method = connectorConfig.getMethod();
-    requestProperties = connectorConfig.getRequestProperties();
-    url = connectorConfig.getUrl();
-    data = connectorConfig.getData();
     converter = connectorConfig.getPayloadToSourceRecordConverter();
     converter.start(connectorConfig);
+    client = new OkHttpClient();
+    requestGenerator = connectorConfig.getRequestGenerator();
+    requestGenerator.setOffsetStorageReader(context.offsetStorageReader());
+    requestGenerator.start(connectorConfig);
   }
 
   @Override
   public List<SourceRecord> poll() throws InterruptedException {
-    long millis = pollInterval - (System.currentTimeMillis() - lastPollTime);
-    if (millis > 0) {
-      Thread.sleep(millis);
-    }
-    try {
-      HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
-      requestProperties.forEach(conn::setRequestProperty);
-      conn.setRequestMethod(method);
-      if (data != null) {
-        conn.setDoOutput(true);
-        OutputStream os = conn.getOutputStream();
-        os.write(data.getBytes());
-        os.flush();
-      }
-      if (log.isTraceEnabled()) {
-        log.trace("Response code: {}, Request data: {}", conn.getResponseCode(), data);
-      }
-      return converter.convert(IOUtils.toByteArray(conn.getInputStream()));
-    } catch (Exception e) {
-      log.error("REST source connector poll() failed", e);
-      return Collections.emptyList();
-    } finally {
-      lastPollTime = System.currentTimeMillis();
-    }
+    LongAdder requestsGenerated = new LongAdder();
+
+    List<SourceRecord> requests = requestGenerator.requests()
+        .peek(r -> requestsGenerated.increment())
+        .map(tryOrNull(r -> r.withResponse(client.newCall(r.getRequest()).execute()),
+          (r, ex) -> log.warn("Failed to make request: {}", ex.toString())))
+        .filter(r -> {
+          if (r == null) {
+            return false;
+          } else if (!r.getResponse().isSuccessful()) {
+            log.warn("Failed to read data from {}", r);
+            r.close();
+            return false;
+          } else {
+            return true;
+          }
+        })
+        .flatMap(tryOrNull(converter::convert,
+            (r, ex) -> {
+              r.close();
+              log.warn("Failed to read incoming bytes of {}: {}", r, ex.toString());
+            }))
+        .filter(Objects::nonNull)
+        .map(r -> {
+          SourceRecord sourceRecord = r.getRecord();
+          r.close();
+          requestGenerator.requestSucceeded(r);
+          return sourceRecord;
+        })
+        .collect(Collectors.toList());
+
+    log.info("Processed {} records from {} URLs", requests.size(), requestsGenerated.sum());
+
+    return requests;
   }
 
   @Override

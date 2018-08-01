@@ -1,60 +1,36 @@
 package org.radarbase.connect.rest.converter;
 
-import org.radarbase.connect.rest.RestSinkConnectorConfig;
-import org.radarbase.connect.rest.RestSourceConnectorConfig;
-import org.radarbase.connect.rest.selector.TopicSelector;
+import okhttp3.ResponseBody;
 import org.apache.kafka.connect.data.Schema;
-import org.apache.kafka.connect.sink.SinkRecord;
 import org.apache.kafka.connect.source.SourceRecord;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.radarbase.connect.rest.RestSourceConnectorConfig;
+import org.radarbase.connect.rest.request.RestProcessedResponse;
+import org.radarbase.connect.rest.request.RestResponse;
+import org.radarbase.connect.rest.selector.TopicSelector;
 
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static java.lang.System.currentTimeMillis;
 
-public class StringPayloadConverter
-  implements SinkRecordToPayloadConverter, PayloadToSourceRecordConverter {
-  private Logger log = LoggerFactory.getLogger(StringPayloadConverter.class);
-
-  private String url;
+public class StringPayloadConverter implements PayloadToSourceRecordConverter {
   private TopicSelector topicSelector;
 
-  public String convert(SinkRecord record) {
-    if (log.isTraceEnabled()) {
-      log.trace("SinkRecord: {}", record.toString());
-    }
-
-    return record.value().toString();
-  }
-
-  public List<SourceRecord> convert(byte[] bytes) {
-    ArrayList<SourceRecord> records = new ArrayList<>();
-    Map<String, String> sourcePartition = Collections.singletonMap("URL", url);
-    Map<String, Long> sourceOffset = Collections.singletonMap("timestamp", currentTimeMillis());
-    String topic = topicSelector.getTopic(bytes);
-    String value = new String(bytes);
-    SourceRecord sourceRecord = new SourceRecord(sourcePartition, sourceOffset, topic,
-      Schema.STRING_SCHEMA, value);
-    if (log.isTraceEnabled()) {
-      log.trace("SourceRecord: {}", sourceRecord);
-    }
-    records.add(sourceRecord);
-    return records;
+  @Override
+  public Stream<RestProcessedResponse> convert(RestResponse request) throws IOException {
+    Map<String, Long> sourceOffset = Collections.singletonMap(TIMESTAMP_OFFSET_KEY, currentTimeMillis());
+    String topic = topicSelector.getTopic(request);
+    ResponseBody body = request.getResponse().body();
+    return Stream.of(request.withRecord(
+        new SourceRecord(request.getPartition(), sourceOffset, topic,
+            Schema.STRING_SCHEMA, body == null ? null : body.string())));
   }
 
   @Override
   public void start(RestSourceConnectorConfig config) {
-    url = config.getUrl();
     topicSelector = config.getTopicSelector();
     topicSelector.start(config);
-  }
-
-  @Override
-  public void start(RestSinkConnectorConfig config) {
-    url = config.getUrl();
   }
 }

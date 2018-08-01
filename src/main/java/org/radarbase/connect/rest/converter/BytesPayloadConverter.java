@@ -1,49 +1,37 @@
 package org.radarbase.connect.rest.converter;
 
-import org.radarbase.connect.rest.RestSinkConnectorConfig;
-import org.radarbase.connect.rest.RestSourceConnectorConfig;
-import org.radarbase.connect.rest.selector.TopicSelector;
+import okhttp3.ResponseBody;
 import org.apache.kafka.connect.data.Schema;
-import org.apache.kafka.connect.sink.SinkRecord;
 import org.apache.kafka.connect.source.SourceRecord;
+import org.radarbase.connect.rest.RestSourceConnectorConfig;
+import org.radarbase.connect.rest.request.RestProcessedResponse;
+import org.radarbase.connect.rest.request.RestResponse;
+import org.radarbase.connect.rest.selector.TopicSelector;
 
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static java.lang.System.currentTimeMillis;
 
-public class BytesPayloadConverter
-  implements SinkRecordToPayloadConverter, PayloadToSourceRecordConverter {
-
+public class BytesPayloadConverter implements PayloadToSourceRecordConverter {
   private TopicSelector topicSelector;
-  private String url;
-
-  // Convert to String for outgoing REST calls
-  public String convert(SinkRecord record) {
-    return record.value().toString();
-  }
 
   // Just bytes for incoming messages
-  public List<SourceRecord> convert(byte[] bytes) {
-    ArrayList<SourceRecord> records = new ArrayList<>();
-    Map<String, String> sourcePartition = Collections.singletonMap("URL", url);
-    Map<String, Long> sourceOffset = Collections.singletonMap("timestamp", currentTimeMillis());
-    records.add(new SourceRecord(sourcePartition, sourceOffset, topicSelector.getTopic(bytes),
-      Schema.BYTES_SCHEMA, bytes));
-    return records;
+  @Override
+  public Stream<RestProcessedResponse> convert(RestResponse request) throws IOException {
+    Map<String, Long> sourceOffset = Collections.singletonMap(
+        TIMESTAMP_OFFSET_KEY, currentTimeMillis());
+    ResponseBody body = request.getResponse().body();
+    return Stream.of(request.withRecord(
+        new SourceRecord(request.getPartition(), sourceOffset, topicSelector.getTopic(request),
+            Schema.BYTES_SCHEMA, body != null ? body.bytes() : null)));
   }
 
   @Override
   public void start(RestSourceConnectorConfig config) {
-    url = config.getUrl();
     topicSelector = config.getTopicSelector();
     topicSelector.start(config);
-  }
-
-  @Override
-  public void start(RestSinkConnectorConfig config) {
-    url = config.getUrl();
   }
 }

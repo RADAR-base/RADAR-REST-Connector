@@ -1,12 +1,13 @@
 package org.radarbase.connect.rest.selector;
 
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
+import org.radarbase.connect.rest.request.RestResponse;
 
 public class SimpleTopicSelector implements TopicSelector {
   private String topic;
 
   @Override
-  public String getTopic(Object data) {
+  public String getTopic(RestResponse response) {
     return topic;
   }
 

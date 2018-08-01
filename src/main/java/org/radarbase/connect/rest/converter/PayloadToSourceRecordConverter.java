@@ -1,12 +1,14 @@
 package org.radarbase.connect.rest.converter;
 
-import org.radarbase.connect.rest.RestSourceConnectorConfig;
-import org.apache.kafka.connect.source.SourceRecord;
+import org.radarbase.connect.rest.config.RestSourceTool;
+import org.radarbase.connect.rest.request.RestProcessedResponse;
+import org.radarbase.connect.rest.request.RestResponse;
 
-import java.util.List;
+import java.io.IOException;
+import java.util.stream.Stream;
 
-public interface PayloadToSourceRecordConverter {
-  List<SourceRecord> convert(final byte[] bytes) throws Exception;
+public interface PayloadToSourceRecordConverter extends RestSourceTool {
+  String TIMESTAMP_OFFSET_KEY = "timestamp";
 
-  void start(RestSourceConnectorConfig config);
+  Stream<RestProcessedResponse> convert(RestResponse restRequest) throws IOException;
 }

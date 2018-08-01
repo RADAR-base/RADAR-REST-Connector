@@ -11,8 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@SuppressWarnings("unused")
 public class RestSourceConnector extends SourceConnector {
-  private static final Logger log = LoggerFactory.getLogger(RestSourceConnector.class);
   private RestSourceConnectorConfig config;
 
   @Override
