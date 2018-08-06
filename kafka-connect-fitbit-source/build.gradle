@@ -1,0 +1,9 @@
+dependencies {
+    implementation project(':kafka-connect-rest-source')
+    implementation group: 'org.radarcns', name: 'radar-schemas-commons', version: '0.3.4'
+
+    // Included in connector runtime
+    compileOnly group: 'org.apache.kafka', name: 'connect-api', version: kafkaVersion
+    compileOnly group: 'io.confluent', name: 'kafka-connect-avro-converter', version: confluentVersion
+    compileOnly group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.6'
+}

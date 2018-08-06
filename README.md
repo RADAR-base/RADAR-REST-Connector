@@ -25,7 +25,7 @@ Change CONNECT_VALUE_CONVERTER in the docker-compose.yml to org.apache.kafka.con
     docker exec -it spring_connect_1 bash -c \
      "kafka-avro-console-consumer --bootstrap-server kafka:9092 \
       --topic restSourceDestinationTopic --from-beginning \
-      --property schema.registry.url=http://schema_registry:8081/"
+      --property schema.registry.route=http://schema_registry:8081/"
 
     docker logs -f spring_webservice_1
 
