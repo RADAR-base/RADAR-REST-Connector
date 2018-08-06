@@ -1,4 +1,4 @@
-Kafka Connect REST Cnnector
+Kafka Connect REST Connector
 ===
 
 
