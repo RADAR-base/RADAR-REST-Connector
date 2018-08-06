@@ -13,6 +13,7 @@ import org.radarbase.connect.rest.request.RestProcessedResponse;
 import org.radarbase.connect.rest.request.RestRequest;
 import org.radarbase.connect.rest.request.RequestRoute;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Stream;

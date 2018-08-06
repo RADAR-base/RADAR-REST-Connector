@@ -25,7 +25,7 @@ public class BytesPayloadConverter implements PayloadToSourceRecordConverter {
         TIMESTAMP_OFFSET_KEY, currentTimeMillis());
     ResponseBody body = request.getResponse().body();
     return Stream.of(request.withRecord(
-        new SourceRecord(request.getPartition(), sourceOffset, topicSelector.getTopic(request),
+        new SourceRecord(request.getRequest().getPartition(), sourceOffset, topicSelector.getTopic(request),
             Schema.BYTES_SCHEMA, body != null ? body.bytes() : null)));
   }
 

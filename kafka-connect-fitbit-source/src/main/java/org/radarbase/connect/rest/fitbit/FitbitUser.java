@@ -1,34 +1,37 @@
 package org.radarbase.connect.rest.fitbit;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import org.apache.kafka.connect.data.SchemaAndValue;
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.radarbase.connect.rest.fitbit.converter.AvroDataSingleton;
 import org.radarcns.kafka.ObservationKey;
 
 import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 
-import static org.radarbase.connect.rest.single.SingleRestSourceConnectorConfig.COLON_PATTERN;
-
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class FitbitUser {
-  private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-      .withZone(ZoneId.systemDefault());
-
-  private final String fitbitUserId;
-  private final String key;
+  private String fitbitUserId;
+  private String key;
   private String refreshToken;
-  private final String projectId;
-  private final String userId;
-  private final String sourceId;
-  private final Instant startDate;
-  private final Instant endDate;
+  private String projectId;
+  private String userId;
+  private String sourceId;
+  private Instant startDate = Instant.parse("2017-01-01T00:00:00Z");
+  private Instant endDate = Instant.MAX;
   private String accessToken;
+
+  @JsonIgnore
   private SchemaAndValue observationKey;
 
-  public FitbitUser(String fitbitUserId, String refreshToken, String projectId, String userId, String sourceId, Instant startDate, Instant endDate) {
+  public FitbitUser() {
+    // JSON create
+  }
+
+  public FitbitUser(String key, String fitbitUserId, String refreshToken, String projectId, String userId, String sourceId, Instant startDate, Instant endDate) {
     this.sourceId = sourceId;
-    this.key = fitbitUserId + ":" + userId;
+    this.key = key;
     this.fitbitUserId = fitbitUserId;
     this.refreshToken = refreshToken;
     this.projectId = projectId;
@@ -75,26 +78,6 @@ public class FitbitUser {
 
   public void setRefreshToken(String refreshToken) {
     this.refreshToken = refreshToken;
-  }
-
-  public static FitbitUser parse(String str) {
-    String[] split = COLON_PATTERN.split(str);
-
-    Instant startDate, endDate;
-
-    try {
-      startDate = Instant.from(DATE_FORMATTER.parse(split[5]));
-    } catch (DateTimeParseException ex) {
-      startDate = Instant.EPOCH;
-    }
-
-    try {
-      endDate = Instant.from(DATE_FORMATTER.parse(split[6]));
-    } catch (DateTimeParseException ex) {
-      endDate = Instant.MAX;
-    }
-
-    return new FitbitUser(split[0], split[1], split[2], split[3], split[4], startDate, endDate);
   }
 
   public String getKey() {

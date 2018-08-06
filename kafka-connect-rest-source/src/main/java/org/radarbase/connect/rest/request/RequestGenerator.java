@@ -3,6 +3,7 @@ package org.radarbase.connect.rest.request;
 import org.apache.kafka.connect.storage.OffsetStorageReader;
 import org.radarbase.connect.rest.config.RestSourceTool;
 
+import java.io.Closeable;
 import java.util.stream.Stream;
 
 /**

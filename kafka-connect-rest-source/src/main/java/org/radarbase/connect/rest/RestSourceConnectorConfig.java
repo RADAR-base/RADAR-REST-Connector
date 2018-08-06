@@ -17,6 +17,8 @@ import org.radarbase.connect.rest.single.SingleRequestGenerator;
 import org.radarbase.connect.rest.util.VersionUtil;
 
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Path;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -81,6 +83,7 @@ public class RestSourceConnectorConfig extends AbstractConfig {
   private final PayloadToSourceRecordConverter payloadToSourceRecordConverter;
   private final RequestGenerator requestGenerator;
   private final TaskWorkDivision taskWorkDivision;
+  private Path userFilePath;
 
   @SuppressWarnings("unchecked")
   public RestSourceConnectorConfig(ConfigDef config, Map<String, String> parsedConfig) {
@@ -239,5 +242,9 @@ public class RestSourceConnectorConfig extends AbstractConfig {
   public TaskWorkDivision getTaskWorkDivision() {
     taskWorkDivision.initialize(this);
     return taskWorkDivision;
+  }
+
+  public Path getUserFilePath() {
+    return userFilePath;
   }
 }

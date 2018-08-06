@@ -6,9 +6,12 @@ public interface PollingRequestRoute extends RequestRoute {
   long getPollInterval();
   LongStream nextPolls();
 
+  default long getMaxPollInterval() {
+    return Long.MAX_VALUE - getPollInterval();
+  }
   default long getTimeOfNextRequest() {
     return getPollInterval() + nextPolls()
         .min()
-        .orElse(Long.MAX_VALUE - getPollInterval());
+        .orElse(getMaxPollInterval());
   }
 }

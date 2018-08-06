@@ -33,7 +33,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
   private final FitbitRequestGenerator generator;
   private final FitbitUserRepository userRepository;
   private final String routeName;
-  private Long pollInterval;
+  private long pollInterval;
 
   public FitbitPollingRoute(FitbitRequestGenerator generator, FitbitUserRepository userRepository, String routeName) {
     this.generator = generator;
@@ -106,10 +106,15 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
   }
 
   protected long getOffset(FitbitUser user) {
-    return offsets.getOrDefault(user.getKey(), 0L);
+    return offsets.getOrDefault(user.getKey(), user.getStartDate().toEpochMilli());
   }
 
   protected long nextPoll(FitbitUser user) {
-    return getOffset(user) + LOOKBACK_TIME + pollInterval;
+    long offset = getOffset(user);
+    if (offset > user.getEndDate().toEpochMilli()) {
+      return getMaxPollInterval();
+    } else {
+      return offset + LOOKBACK_TIME;
+    }
   }
 }

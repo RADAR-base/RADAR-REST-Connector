@@ -8,7 +8,6 @@ import org.radarbase.connect.rest.config.ValidClass;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static org.apache.kafka.common.config.ConfigDef.NO_DEFAULT_VALUE;
 
@@ -37,9 +36,15 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
   private static final String FITBIT_USER_REPOSITORY_FILE_DISPLAY = "User repository file";
 
   private static final String FITBIT_INTRADAY_STEPS_TOPIC_CONFIG = "fitbit.intraday.steps.topic";
+  private static final String FITBIT_INTRADAY_STEPS_TOPIC_DOC = "Topic for Fitbit intraday steps";
+  private static final String FITBIT_INTRADAY_STEPS_TOPIC_DISPLAY = "Intraday steps topic";
+
+
+  private static final String FITBIT_SLEEP_STATE_TOPIC_CONFIG = "fitbit.sleep.state.topic";
+  private static final String FITBIT_SLEEP_STATE_TOPIC_DOC = "Topic for Fitbit sleep state";
+  private static final String FITBIT_SLEEP_STATE_TOPIC_DISPLAY = "Sleep state topic";
 
   private final FitbitUserRepository fitbitUserRepository;
-  private String fitbitSleepStageTopic;
 
   @SuppressWarnings("unchecked")
   public FitbitRestSourceConnectorConfig(ConfigDef config, Map<String, String> parsedConfig) {
@@ -116,17 +121,33 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
             ++orderInGroup,
             ConfigDef.Width.SHORT,
             FITBIT_USER_REPOSITORY_FILE_DISPLAY)
+
+        .define(FITBIT_INTRADAY_STEPS_TOPIC_CONFIG,
+            ConfigDef.Type.STRING,
+            "connect_fitbit_intraday_steps",
+            new ConfigDef.NonEmptyStringWithoutControlChars(),
+            ConfigDef.Importance.LOW,
+            FITBIT_INTRADAY_STEPS_TOPIC_DOC,
+            group,
+            ++orderInGroup,
+            ConfigDef.Width.SHORT,
+            FITBIT_INTRADAY_STEPS_TOPIC_DISPLAY)
+
+        .define(FITBIT_SLEEP_STATE_TOPIC_CONFIG,
+            ConfigDef.Type.STRING,
+            "connect_fitbit_sleep_state",
+            new ConfigDef.NonEmptyStringWithoutControlChars(),
+            ConfigDef.Importance.LOW,
+            FITBIT_SLEEP_STATE_TOPIC_DOC,
+            group,
+            ++orderInGroup,
+            ConfigDef.Width.SHORT,
+            FITBIT_SLEEP_STATE_TOPIC_DISPLAY)
         ;
   }
 
-  public List<String> getRawFitbitUsers() {
+  public List<String> getFitbitUsers() {
     return getList(FITBIT_USERS_CONFIG);
-  }
-
-  public List<FitbitUser> getFitbitUsers() {
-    return getRawFitbitUsers().stream()
-        .map(FitbitUser::parse)
-        .collect(Collectors.toList());
   }
 
   public String getFitbitClient() {
@@ -146,6 +167,6 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
   }
 
   public String getFitbitSleepStageTopic() {
-    return fitbitSleepStageTopic;
+    return getString(FITBIT_SLEEP_STATE_TOPIC_CONFIG);
   }
 }

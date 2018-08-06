@@ -24,7 +24,7 @@ public class StringPayloadConverter implements PayloadToSourceRecordConverter {
     String topic = topicSelector.getTopic(request);
     ResponseBody body = request.getResponse().body();
     return Stream.of(request.withRecord(
-        new SourceRecord(request.getPartition(), sourceOffset, topic,
+        new SourceRecord(request.getRequest().getPartition(), sourceOffset, topic,
             Schema.STRING_SCHEMA, body == null ? null : body.string())));
   }
 

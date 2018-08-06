@@ -4,6 +4,7 @@ subprojects {
     ext {
         kafkaVersion = '2.0.0'
         confluentVersion = '5.0.0'
+        jacksonVersion = '2.8.9'
     }
 
     apply plugin: 'java'
