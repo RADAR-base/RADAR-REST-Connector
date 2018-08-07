@@ -1,18 +1,21 @@
 package org.radarbase.connect.rest.fitbit.route;
 
 import okhttp3.Request;
+import org.apache.kafka.connect.source.SourceRecord;
 import org.apache.kafka.connect.storage.OffsetStorageReader;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
-import org.radarbase.connect.rest.fitbit.FitbitRequestGenerator;
+import org.radarbase.connect.rest.fitbit.request.FitbitRequestGenerator;
+import org.radarbase.connect.rest.fitbit.request.FitbitRestRequest;
 import org.radarbase.connect.rest.fitbit.user.FitbitUser;
 import org.radarbase.connect.rest.fitbit.user.FitbitUserRepository;
-import org.radarbase.connect.rest.fitbit.request.FitbitRestRequest;
 import org.radarbase.connect.rest.request.PollingRequestRoute;
-import org.radarbase.connect.rest.request.RestProcessedResponse;
+import org.radarbase.connect.rest.request.RestRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,23 +27,32 @@ import static org.radarbase.connect.rest.converter.PayloadToSourceRecordConverte
 
 public abstract class FitbitPollingRoute implements PollingRequestRoute {
   protected static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE;
-  protected static final long LOOKBACK_TIME = 86400; // 1 day
+  protected static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
+  protected static final Duration LOOKBACK_TIME = Duration.ofDays(1); // 1 day
+  protected static final Duration HISTORICAL_TIME = Duration.ofDays(14);
 
   private static final Logger logger = LoggerFactory.getLogger(FitbitSleepRoute.class);
 
-  private final Map<String, Long> offsets;
+  /** Committed committedOffsets. */
+  private final Map<String, Instant> committedOffsets;
+
+  /** Offsets that are scanned but are currently empty. */
+  private final Map<String, Instant> scannedOffsets;
   private final Map<String, Map<String, Object>> partitions;
   private final FitbitRequestGenerator generator;
   private final FitbitUserRepository userRepository;
   private final String routeName;
   private long pollInterval;
+  private long lastPoll;
 
   public FitbitPollingRoute(FitbitRequestGenerator generator, FitbitUserRepository userRepository, String routeName) {
     this.generator = generator;
     this.userRepository = userRepository;
-    this.offsets = new HashMap<>();
+    this.committedOffsets = new HashMap<>();
+    this.scannedOffsets = new HashMap<>();
     this.partitions = new HashMap<>(generator.getPartitions(routeName));
     this.routeName = routeName;
+    this.lastPoll = 0L;
   }
 
   @Override
@@ -48,12 +60,29 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
     this.pollInterval = config.getPollInterval();
   }
 
+  @Override
+  public void requestSucceeded(RestRequest request, SourceRecord record) {
+    String userKey = ((FitbitRestRequest) request).getUser().getKey();
+    Instant offset = (Instant) record.sourceOffset().get(TIMESTAMP_OFFSET_KEY);
+    committedOffsets.put(userKey, offset);
+    scannedOffsets.put(userKey, offset);
+  }
 
   @Override
-  public void requestSucceeded(RestProcessedResponse processedResponse) {
-    FitbitUser user = ((FitbitRestRequest) processedResponse.getRequest()).getUser();
-    offsets.put(user.getKey(), (Long)processedResponse.getRecord().sourceOffset()
-        .get(TIMESTAMP_OFFSET_KEY));
+  public void requestEmpty(RestRequest request) {
+    FitbitRestRequest fitbitRequest = (FitbitRestRequest) request;
+    Instant endOffset = fitbitRequest.getEndOffset();
+    String key = fitbitRequest.getUser().getKey();
+    scannedOffsets.put(key, endOffset);
+
+    if (passedInterval(endOffset, HISTORICAL_TIME)) {
+      committedOffsets.put(key, endOffset);
+    }
+  }
+
+  @Override
+  public void requestFailed(RestRequest request) {
+    logger.warn("Failed to make request {}", request);
   }
 
   /**
@@ -61,15 +90,15 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
    * @param user Fitbit user
    * @return request to make
    */
-  protected abstract Request makeRequest(FitbitUser user);
+  protected abstract FitbitRestRequest makeRequest(FitbitUser user);
 
   @Override
   public Stream<FitbitRestRequest> requests() {
+    lastPoll = System.currentTimeMillis();
     try {
       return userRepository.stream()
-          .filter(u -> nextPoll(u) >= System.currentTimeMillis())
-          .map(u -> new FitbitRestRequest(this, makeRequest(u), u, getPartition(u),
-              generator.getClient(u)));
+          .filter(u -> !nextPoll(u).isAfter(Instant.now()))
+          .map(this::makeRequest);
     } catch (IOException e) {
       logger.warn("Cannot read users");
       return Stream.empty();
@@ -81,12 +110,19 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
         k -> generator.getPartition(routeName, user));
   }
 
+  protected FitbitRestRequest newRequest(Request request, FitbitUser user, Instant startDate, Instant endDate) {
+    return new FitbitRestRequest(this, request, user, getPartition(user), generator.getClient(user), startDate, endDate);
+  }
+
   @Override
   public void setOffsetStorageReader(OffsetStorageReader offsetStorageReader) {
-    offsets.putAll(offsetStorageReader.offsets(partitions.values()).entrySet().stream()
+    committedOffsets.putAll(offsetStorageReader.offsets(partitions.values()).entrySet().stream()
+        .filter(e -> e.getValue() != null && e.getValue().containsKey(TIMESTAMP_OFFSET_KEY))
         .collect(Collectors.toMap(
             e -> (String) e.getKey().get("user"),
-            e -> (Long) e.getValue().get(TIMESTAMP_OFFSET_KEY))));
+            e -> (Instant) e.getValue().get(TIMESTAMP_OFFSET_KEY))));
+
+    scannedOffsets.putAll(committedOffsets);
   }
 
   @Override
@@ -98,23 +134,46 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
   public LongStream nextPolls() {
     try {
       return userRepository.stream()
-          .mapToLong(this::nextPoll);
+          .map(this::nextPoll)
+          .mapToLong(Instant::toEpochMilli);
     } catch (IOException e) {
       logger.warn("Failed to read users for polling interval: {}", e.toString());
       return LongStream.of(getPollInterval());
     }
   }
 
-  protected long getOffset(FitbitUser user) {
-    return offsets.getOrDefault(user.getKey(), user.getStartDate().toEpochMilli());
+  public long getLastPoll() {
+    return lastPoll;
   }
 
-  protected long nextPoll(FitbitUser user) {
-    long offset = getOffset(user);
-    if (offset > user.getEndDate().toEpochMilli()) {
-      return getMaxPollInterval();
+  protected Instant getOffset(FitbitUser user) {
+    String key = user.getKey();
+    Instant scannedOffset = scannedOffsets.computeIfAbsent(key, k -> getStartOffset(user));
+
+    if (passedInterval(scannedOffset, LOOKBACK_TIME)) {
+      Instant committedOffset = committedOffsets.getOrDefault(key, getStartOffset(user));
+      if (!passedInterval(committedOffset, LOOKBACK_TIME)) {
+        scannedOffset = committedOffset;
+      }
+    }
+
+    return scannedOffset;
+  }
+
+  private static Instant getStartOffset(FitbitUser user) {
+    return user.getStartDate().minus(Duration.ofSeconds(1));
+  }
+
+  private static boolean passedInterval(Instant pastInstant, Duration duration) {
+    return pastInstant.plus(duration).isAfter(Instant.now());
+  }
+
+  protected Instant nextPoll(FitbitUser user) {
+    Instant offset = getOffset(user);
+    if (offset.isAfter(user.getEndDate())) {
+      return Instant.MAX;
     } else {
-      return offset + LOOKBACK_TIME;
+      return offset.plus(LOOKBACK_TIME);
     }
   }
 }

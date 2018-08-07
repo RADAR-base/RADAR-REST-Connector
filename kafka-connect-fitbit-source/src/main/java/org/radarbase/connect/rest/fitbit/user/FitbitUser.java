@@ -2,9 +2,9 @@ package org.radarbase.connect.rest.fitbit.user;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.confluent.connect.avro.AvroData;
 import org.apache.kafka.connect.data.SchemaAndValue;
 import org.codehaus.jackson.annotate.JsonIgnore;
-import org.radarbase.connect.rest.fitbit.converter.AvroDataSingleton;
 import org.radarcns.kafka.ObservationKey;
 
 import java.time.Instant;
@@ -84,9 +84,10 @@ public class FitbitUser {
     return key;
   }
 
-  public synchronized SchemaAndValue getObservationKey() {
+  public synchronized SchemaAndValue getObservationKey(AvroData avroData) {
     if (observationKey == null) {
-      observationKey = AvroDataSingleton.getInstance().toConnectData(
+      observationKey = avroData.toConnectData(
+          ObservationKey.getClassSchema(),
           new ObservationKey(projectId, userId, sourceId));
     }
     return observationKey;

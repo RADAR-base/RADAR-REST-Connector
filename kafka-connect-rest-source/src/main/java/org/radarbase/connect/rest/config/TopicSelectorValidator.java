@@ -1,8 +1,8 @@
 package org.radarbase.connect.rest.config;
 
-import org.radarbase.connect.rest.selector.TopicSelector;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.config.ConfigException;
+import org.radarbase.connect.rest.selector.TopicSelector;
 
 public class TopicSelectorValidator implements ConfigDef.Validator {
   @Override

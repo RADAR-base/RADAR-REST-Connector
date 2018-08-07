@@ -4,3 +4,5 @@ build/
 *.iml
 out/
 .gradle/
+docker/fitbit-users.yml
+docker/source-fitbit.properties

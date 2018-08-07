@@ -4,6 +4,7 @@ import org.apache.kafka.connect.errors.ConnectException;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.apache.kafka.connect.source.SourceTask;
 import org.radarbase.connect.rest.request.RequestGenerator;
+import org.radarbase.connect.rest.request.RestRequest;
 import org.radarbase.connect.rest.util.VersionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,40 +40,22 @@ public class RestSourceTask extends SourceTask {
 
   @Override
   public List<SourceRecord> poll() throws InterruptedException {
-    long timeout = requestGenerator.getTimeOfNextRequest();
+    long timeout = requestGenerator.getTimeOfNextRequest() - System.currentTimeMillis();
     if (timeout > 0) {
+      logger.info("Waiting {} milliseconds for next available request", timeout);
       Thread.sleep(timeout);
     }
 
     LongAdder requestsGenerated = new LongAdder();
 
     List<SourceRecord> requests = requestGenerator.requests()
-        .peek(r -> requestsGenerated.increment())
-        .map(tryOrNull(r -> r.withResponse(r.getClient().newCall(r.getRequest()).execute()),
-          (r, ex) -> logger.warn("Failed to make request: {}", ex.toString())))
-        .filter(r -> {
-          if (r == null) {
-            return false;
-          } else if (!r.getResponse().isSuccessful()) {
-            logger.warn("Failed to read data from {}", r);
-            r.close();
-            return false;
-          } else {
-            return true;
-          }
+        .peek(r -> {
+          logger.info("Requesting {}", r.getRequest().url());
+          requestsGenerated.increment();
         })
-        .flatMap(tryOrNull(r -> r.getRequest().getRoute().converter().convert(r),
-            (r, ex) -> {
-              r.close();
-              logger.warn("Failed to read incoming bytes of {}: {}", r, ex.toString());
-            }))
+        .flatMap(tryOrNull(RestRequest::handleRequest,
+            (r, ex) -> logger.warn("Failed to make request: {}", ex.toString())))
         .filter(Objects::nonNull)
-        .map(r -> {
-          SourceRecord sourceRecord = r.getRecord();
-          r.getResponse().close();
-          r.getRequest().getRoute().requestSucceeded(r);
-          return sourceRecord;
-        })
         .collect(Collectors.toList());
 
     logger.info("Processed {} records from {} URLs", requests.size(), requestsGenerated.sum());

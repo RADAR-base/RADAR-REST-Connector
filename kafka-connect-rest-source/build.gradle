@@ -13,3 +13,8 @@ dependencies {
 
     testImplementation group: 'org.apache.kafka', name: 'connect-api', version:'2.0.0'
 }
+
+task copyDependencies(type: Copy) {
+    from configurations.runtimeClasspath.files
+    into "${buildDir}/third-party/"
+}

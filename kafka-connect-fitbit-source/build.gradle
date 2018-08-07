@@ -8,4 +8,17 @@ dependencies {
     compileOnly group: 'org.apache.kafka', name: 'connect-api', version: kafkaVersion
     compileOnly group: 'io.confluent', name: 'kafka-connect-avro-converter', version: confluentVersion
     compileOnly group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: jacksonVersion
+
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.2.0'
+    testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.2.0'
+    testRuntimeOnly group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.25'
+}
+
+task copyDependencies(type: Copy) {
+    from configurations.runtimeClasspath.files
+    into "${buildDir}/third-party/"
+}
+
+test {
+    useJUnitPlatform()
 }

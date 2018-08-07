@@ -1,8 +1,8 @@
 package org.radarbase.connect.rest.config;
 
-import org.radarbase.connect.rest.converter.PayloadToSourceRecordConverter;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.config.ConfigException;
+import org.radarbase.connect.rest.converter.PayloadToSourceRecordConverter;
 
 public class PayloadToSourceRecordConverterValidator implements ConfigDef.Validator {
   @Override

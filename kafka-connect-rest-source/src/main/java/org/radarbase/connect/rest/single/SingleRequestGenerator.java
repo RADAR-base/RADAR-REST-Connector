@@ -6,14 +6,13 @@ import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import org.apache.kafka.connect.source.SourceRecord;
 import org.apache.kafka.connect.storage.OffsetStorageReader;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
 import org.radarbase.connect.rest.converter.PayloadToSourceRecordConverter;
-import org.radarbase.connect.rest.request.RestProcessedResponse;
-import org.radarbase.connect.rest.request.RestRequest;
 import org.radarbase.connect.rest.request.RequestRoute;
+import org.radarbase.connect.rest.request.RestRequest;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -27,6 +26,7 @@ public class SingleRequestGenerator implements RequestRoute {
   private String method;
   private RequestBody body;
   private long pollInterval;
+  private long lastPoll;
   private Map<String, Object> key;
   private Headers headers;
   private PayloadToSourceRecordConverter converter;
@@ -36,6 +36,7 @@ public class SingleRequestGenerator implements RequestRoute {
   public void initialize(RestSourceConnectorConfig config) {
     SingleRestSourceConnectorConfig singleConfig = (SingleRestSourceConnectorConfig) config;
     this.pollInterval = config.getPollInterval();
+    lastPoll = 0L;
 
     this.url = HttpUrl.parse(config.getUrl());
     this.key = Collections.singletonMap("URL", config.getUrl());
@@ -64,7 +65,7 @@ public class SingleRequestGenerator implements RequestRoute {
 
   @Override
   public long getTimeOfNextRequest() {
-    return pollInterval - (System.currentTimeMillis() - lastTimestamp);
+    return Math.max(lastTimestamp, lastPoll) + pollInterval;
   }
 
   @Override
@@ -77,8 +78,19 @@ public class SingleRequestGenerator implements RequestRoute {
   }
 
   @Override
-  public void requestSucceeded(RestProcessedResponse processedResponse) {
-    lastTimestamp = (Long)processedResponse.getRecord().sourceOffset().get(TIMESTAMP_OFFSET_KEY);
+  public void requestSucceeded(RestRequest processedResponse, SourceRecord record) {
+    lastTimestamp = (Long)record.sourceOffset().get(TIMESTAMP_OFFSET_KEY);
+    lastPoll = System.currentTimeMillis();
+  }
+
+  @Override
+  public void requestEmpty(RestRequest request) {
+    lastPoll = System.currentTimeMillis();
+  }
+
+  @Override
+  public void requestFailed(RestRequest request) {
+    lastPoll = System.currentTimeMillis();
   }
 
   @Override

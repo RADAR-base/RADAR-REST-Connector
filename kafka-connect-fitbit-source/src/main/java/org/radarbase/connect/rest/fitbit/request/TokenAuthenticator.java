@@ -1,4 +1,4 @@
-package org.radarbase.connect.rest.fitbit;
+package org.radarbase.connect.rest.fitbit.request;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import okhttp3.Authenticator;
@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
-import static org.radarbase.connect.rest.fitbit.FitbitRequestGenerator.JSON_READER;
+import static org.radarbase.connect.rest.fitbit.request.FitbitRequestGenerator.JSON_READER;
 
 public class TokenAuthenticator implements Authenticator {
   private static final MediaType X_WWW_FORM_URLENCODED = MediaType.parse(

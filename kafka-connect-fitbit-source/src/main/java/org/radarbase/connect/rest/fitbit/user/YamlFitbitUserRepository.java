@@ -10,6 +10,7 @@ import org.radarbase.connect.rest.fitbit.config.FitbitUserConfig;
 import org.radarbase.connect.rest.fitbit.util.SynchronizedFileAccess;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -25,8 +26,8 @@ public class YamlFitbitUserRepository implements FitbitUserRepository {
   private SynchronizedFileAccess<FitbitUserConfig> users;
 
   @Override
-  public FitbitUser get(String combinedName) {
-    return users.get().get(combinedName);
+  public FitbitUser get(String key) {
+    return users.get().get(key);
   }
 
   @Override
@@ -45,10 +46,11 @@ public class YamlFitbitUserRepository implements FitbitUserRepository {
 
   @Override
   public void initialize(RestSourceConnectorConfig config) {
+    Path path = ((FitbitRestSourceConnectorConfig)config).getFitbitUserRepositoryPath();
     try {
-      this.users = SynchronizedFileAccess.ofPath(config.getUserFilePath(), YAML_MAPPER, FitbitUserConfig.class);
+      this.users = SynchronizedFileAccess.ofPath(path, YAML_MAPPER, FitbitUserConfig.class);
     } catch (IOException ex) {
-      throw new ConfigException("Failed to read user repository " + config.getUserFilePath(), ex);
+      throw new ConfigException("Failed to read user repository " + path, ex);
     }
     FitbitRestSourceConnectorConfig fitbitConfig = (FitbitRestSourceConnectorConfig) config;
     configuredUsers = new HashSet<>(fitbitConfig.getFitbitUsers());

@@ -5,8 +5,6 @@ import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.config.ConfigDef.Importance;
 import org.apache.kafka.common.config.ConfigDef.Type;
 import org.apache.kafka.connect.errors.ConnectException;
-import org.radarbase.connect.rest.config.EqualTaskWorkDivision;
-import org.radarbase.connect.rest.config.TaskWorkDivision;
 import org.radarbase.connect.rest.config.ValidClass;
 import org.radarbase.connect.rest.converter.PayloadToSourceRecordConverter;
 import org.radarbase.connect.rest.converter.StringPayloadConverter;
@@ -17,8 +15,7 @@ import org.radarbase.connect.rest.single.SingleRequestGenerator;
 import org.radarbase.connect.rest.util.VersionUtil;
 
 import java.lang.reflect.InvocationTargetException;
-import java.nio.file.Path;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,25 +62,9 @@ public class RestSourceConnectorConfig extends AbstractConfig {
       "Class to be used to generate REST requests";
   private static final String REQUEST_GENERATOR_DISPLAY = "Request generator class";
 
-  private static final String SOURCE_REQUEST_GENERATOR_CONFIG_CONFIG =
-      "rest.source.request.generator.config";
-  private static final String REQUEST_GENERATOR_CONFIG_DEFAULT = "{}";
-  private static final String REQUEST_GENERATOR_CONFIG_DOC =
-      "Config to be used to generate REST requests";
-  private static final String REQUEST_GENERATOR_CONFIG_DISPLAY = "Request generator config";
-
-  private static final String TASK_DIVISION_CONFIG = "rest.source.task.division.class";
-  private static final Class<? extends TaskWorkDivision> TASK_DIVISION_DEFAULT =
-      EqualTaskWorkDivision.class;
-  private static final String TASK_DIVISION_DOC =
-      "Class to be used to divide work amongst tasks";
-  private static final String TASK_DIVISION_DISPLAY = "Task division class";
-
   private final TopicSelector topicSelector;
   private final PayloadToSourceRecordConverter payloadToSourceRecordConverter;
   private final RequestGenerator requestGenerator;
-  private final TaskWorkDivision taskWorkDivision;
-  private Path userFilePath;
 
   @SuppressWarnings("unchecked")
   public RestSourceConnectorConfig(ConfigDef config, Map<String, String> parsedConfig) {
@@ -95,8 +76,6 @@ public class RestSourceConnectorConfig extends AbstractConfig {
           getClass(SOURCE_PAYLOAD_CONVERTER_CONFIG)).getDeclaredConstructor().newInstance();
       requestGenerator = ((Class<? extends RequestGenerator>)
           getClass(SOURCE_REQUEST_GENERATOR_CONFIG)).getDeclaredConstructor().newInstance();
-      taskWorkDivision = ((Class<? extends TaskWorkDivision>)
-          getClass(TASK_DIVISION_CONFIG)).getDeclaredConstructor().newInstance();
     } catch (IllegalAccessException | InstantiationException
         | InvocationTargetException | NoSuchMethodException e) {
       throw new ConnectException("Invalid class for: " + SOURCE_PAYLOAD_CONVERTER_CONFIG, e);
@@ -133,7 +112,7 @@ public class RestSourceConnectorConfig extends AbstractConfig {
 
         .define(SOURCE_TOPIC_LIST_CONFIG,
             Type.LIST,
-            NO_DEFAULT_VALUE,
+            Collections.emptyList(),
             Importance.HIGH,
             SOURCE_TOPIC_LIST_DOC,
             group,
@@ -173,28 +152,6 @@ public class RestSourceConnectorConfig extends AbstractConfig {
             ++orderInGroup,
             ConfigDef.Width.SHORT,
             REQUEST_GENERATOR_DISPLAY)
-
-        .define(SOURCE_REQUEST_GENERATOR_CONFIG_CONFIG,
-            Type.STRING,
-            REQUEST_GENERATOR_CONFIG_DEFAULT,
-            Importance.LOW,
-            REQUEST_GENERATOR_CONFIG_DOC,
-            group,
-            ++orderInGroup,
-            ConfigDef.Width.SHORT,
-            REQUEST_GENERATOR_CONFIG_DISPLAY)
-
-        .define(TASK_DIVISION_CONFIG,
-            Type.CLASS,
-            TASK_DIVISION_DEFAULT,
-            ValidClass.isSubclassOf(TaskWorkDivision.class),
-            Importance.LOW,
-            TASK_DIVISION_DOC,
-            group,
-            ++orderInGroup,
-            ConfigDef.Width.SHORT,
-            TASK_DIVISION_DISPLAY)
-
         ;
   }
 
@@ -237,14 +194,5 @@ public class RestSourceConnectorConfig extends AbstractConfig {
   public RequestGenerator getRequestGenerator() {
     requestGenerator.initialize(this);
     return requestGenerator;
-  }
-
-  public TaskWorkDivision getTaskWorkDivision() {
-    taskWorkDivision.initialize(this);
-    return taskWorkDivision;
-  }
-
-  public Path getUserFilePath() {
-    return userFilePath;
   }
 }

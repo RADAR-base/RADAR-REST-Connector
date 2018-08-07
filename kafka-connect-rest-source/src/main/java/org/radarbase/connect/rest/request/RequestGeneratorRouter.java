@@ -1,6 +1,7 @@
 package org.radarbase.connect.rest.request;
 
 import org.apache.kafka.connect.storage.OffsetStorageReader;
+import org.radarbase.connect.rest.RestSourceConnectorConfig;
 
 import java.util.stream.Stream;
 
@@ -15,7 +16,7 @@ public abstract class RequestGeneratorRouter implements RequestGenerator {
   public long getTimeOfNextRequest() {
     return routes()
         .mapToLong(RequestRoute::getTimeOfNextRequest)
-        .max()
+        .min()
         .orElse(Long.MAX_VALUE);
   }
 
@@ -23,5 +24,10 @@ public abstract class RequestGeneratorRouter implements RequestGenerator {
 
   public void setOffsetStorageReader(OffsetStorageReader offsetStorageReader) {
     routes().forEach(r -> r.setOffsetStorageReader(offsetStorageReader));
+  }
+
+  @Override
+  public void initialize(RestSourceConnectorConfig config) {
+    routes().forEach(r -> r.initialize(config));
   }
 }

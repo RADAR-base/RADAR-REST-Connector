@@ -1,8 +1,8 @@
 package org.radarbase.connect.rest.config;
 
+import org.apache.kafka.common.config.ConfigDef;
 import org.radarbase.connect.rest.converter.BytesPayloadConverter;
 import org.radarbase.connect.rest.converter.StringPayloadConverter;
-import org.apache.kafka.common.config.ConfigDef;
 
 import java.util.Arrays;
 import java.util.List;

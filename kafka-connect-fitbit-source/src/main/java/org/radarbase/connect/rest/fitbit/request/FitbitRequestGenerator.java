@@ -1,11 +1,13 @@
-package org.radarbase.connect.rest.fitbit;
+package org.radarbase.connect.rest.fitbit.request;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
+import io.confluent.connect.avro.AvroData;
 import okhttp3.Headers;
 import okhttp3.OkHttpClient;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
+import org.radarbase.connect.rest.fitbit.FitbitRestSourceConnectorConfig;
 import org.radarbase.connect.rest.fitbit.route.FitbitIntradayStepsRoute;
 import org.radarbase.connect.rest.fitbit.route.FitbitSleepRoute;
 import org.radarbase.connect.rest.fitbit.user.FitbitUser;
@@ -56,12 +58,15 @@ public class FitbitRequestGenerator extends RequestGeneratorRouter {
     String credentialsBase64 = Base64.getEncoder().encodeToString(
         credentialString.getBytes(StandardCharsets.UTF_8));
 
+    AvroData avroData = new AvroData(20);
     this.clientCredentials = Headers.of("Authorization", "Basic " + credentialsBase64);
     this.userRepository = config1.getFitbitUserRepository();
     this.routes = Arrays.asList(
-        new FitbitIntradayStepsRoute(this, userRepository),
-        new FitbitSleepRoute(this, userRepository)
+        new FitbitIntradayStepsRoute(this, userRepository, avroData),
+        new FitbitSleepRoute(this, userRepository, avroData)
     );
+
+    super.initialize(config);
   }
 
   public OkHttpClient getClient(FitbitUser user) {

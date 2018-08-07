@@ -4,11 +4,13 @@ import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.connect.errors.ConnectException;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
 import org.radarbase.connect.rest.config.ValidClass;
-import org.radarbase.connect.rest.fitbit.config.ValidFitbitUsers;
 import org.radarbase.connect.rest.fitbit.user.FitbitUserRepository;
 import org.radarbase.connect.rest.fitbit.user.YamlFitbitUserRepository;
 
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -73,8 +75,7 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
 
         .define(FITBIT_USERS_CONFIG,
             ConfigDef.Type.LIST,
-            NO_DEFAULT_VALUE,
-            new ValidFitbitUsers(),
+            Collections.emptyList(),
             ConfigDef.Importance.HIGH,
             FITBIT_USERS_DOC,
             group,
@@ -117,7 +118,7 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
 
         .define(FITBIT_USER_REPOSITORY_FILE_CONFIG,
             ConfigDef.Type.STRING,
-            "/etc/kafka-connect/fitbit-users.yml",
+            "/etc/kafka-connect-fitbit-source/fitbit-users.yml",
             ConfigDef.Importance.LOW,
             FITBIT_USER_REPOSITORY_FILE_DOC,
             group,
@@ -162,6 +163,7 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
   }
 
   public FitbitUserRepository getFitbitUserRepository() {
+    fitbitUserRepository.initialize(this);
     return fitbitUserRepository;
   }
 
@@ -171,5 +173,9 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
 
   public String getFitbitSleepStageTopic() {
     return getString(FITBIT_SLEEP_STATE_TOPIC_CONFIG);
+  }
+
+  public Path getFitbitUserRepositoryPath() {
+    return Paths.get(getString(FITBIT_USER_REPOSITORY_FILE_CONFIG));
   }
 }

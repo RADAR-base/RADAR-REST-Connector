@@ -21,8 +21,23 @@ subprojects {
         maven { url "http://repo.maven.apache.org/maven2" }
         jcenter()
     }
+
+
 }
 
 wrapper {
     gradleVersion '4.9'
+}
+
+evaluationDependsOnChildren()
+
+task downloadDependencies {
+    subprojects.collect {
+        it.configurations.runtimeClasspath.files
+        it.configurations.compileClasspath.files
+    }
+
+    doLast {
+        println 'Downloaded REST code dependencies'
+    }
 }

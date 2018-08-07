@@ -1,7 +1,7 @@
 package org.radarbase.connect.rest.config;
 
-import org.radarbase.connect.rest.selector.SimpleTopicSelector;
 import org.apache.kafka.common.config.ConfigDef;
+import org.radarbase.connect.rest.selector.SimpleTopicSelector;
 
 import java.util.Collections;
 import java.util.List;
