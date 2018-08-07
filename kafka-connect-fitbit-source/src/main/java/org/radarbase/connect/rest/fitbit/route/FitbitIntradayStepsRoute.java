@@ -3,8 +3,8 @@ package org.radarbase.connect.rest.fitbit.route;
 import okhttp3.Request;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
 import org.radarbase.connect.rest.fitbit.FitbitRequestGenerator;
-import org.radarbase.connect.rest.fitbit.FitbitUser;
-import org.radarbase.connect.rest.fitbit.FitbitUserRepository;
+import org.radarbase.connect.rest.fitbit.user.FitbitUser;
+import org.radarbase.connect.rest.fitbit.user.FitbitUserRepository;
 import org.radarbase.connect.rest.fitbit.converter.FitbitIntradayStepsAvroConverter;
 
 import java.time.Instant;

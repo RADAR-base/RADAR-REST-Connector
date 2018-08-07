@@ -8,6 +8,8 @@ import okhttp3.OkHttpClient;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
 import org.radarbase.connect.rest.fitbit.route.FitbitIntradayStepsRoute;
 import org.radarbase.connect.rest.fitbit.route.FitbitSleepRoute;
+import org.radarbase.connect.rest.fitbit.user.FitbitUser;
+import org.radarbase.connect.rest.fitbit.user.FitbitUserRepository;
 import org.radarbase.connect.rest.request.RequestGeneratorRouter;
 import org.radarbase.connect.rest.request.RequestRoute;
 import org.slf4j.Logger;

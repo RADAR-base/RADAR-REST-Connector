@@ -7,7 +7,7 @@ import org.apache.kafka.connect.source.SourceRecord;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
 import org.radarbase.connect.rest.converter.PayloadToSourceRecordConverter;
 import org.radarbase.connect.rest.fitbit.FitbitRestSourceConnectorConfig;
-import org.radarbase.connect.rest.fitbit.FitbitUser;
+import org.radarbase.connect.rest.fitbit.user.FitbitUser;
 import org.radarbase.connect.rest.fitbit.request.FitbitRestRequest;
 import org.radarbase.connect.rest.request.RestProcessedResponse;
 import org.radarbase.connect.rest.request.RestResponse;

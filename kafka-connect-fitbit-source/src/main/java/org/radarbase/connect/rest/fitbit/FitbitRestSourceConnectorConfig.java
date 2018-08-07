@@ -4,6 +4,9 @@ import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.connect.errors.ConnectException;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
 import org.radarbase.connect.rest.config.ValidClass;
+import org.radarbase.connect.rest.fitbit.config.ValidFitbitUsers;
+import org.radarbase.connect.rest.fitbit.user.FitbitUserRepository;
+import org.radarbase.connect.rest.fitbit.user.YamlFitbitUserRepository;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;

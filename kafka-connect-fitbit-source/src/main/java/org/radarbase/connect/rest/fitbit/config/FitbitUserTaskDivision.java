@@ -1,12 +1,11 @@
 package org.radarbase.connect.rest.fitbit.config;
 
 import org.apache.kafka.common.config.ConfigException;
-import org.apache.kafka.connect.util.ConnectorUtils;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
 import org.radarbase.connect.rest.config.TaskWorkDivision;
 import org.radarbase.connect.rest.fitbit.FitbitRestSourceConnectorConfig;
-import org.radarbase.connect.rest.fitbit.FitbitUser;
-import org.radarbase.connect.rest.fitbit.FitbitUserRepository;
+import org.radarbase.connect.rest.fitbit.user.FitbitUser;
+import org.radarbase.connect.rest.fitbit.user.FitbitUserRepository;
 
 import java.io.IOException;
 import java.util.HashMap;

@@ -1,4 +1,4 @@
-package org.radarbase.connect.rest.fitbit;
+package org.radarbase.connect.rest.fitbit.user;
 
 import org.radarbase.connect.rest.config.RestSourceTool;
 

@@ -2,7 +2,7 @@ package org.radarbase.connect.rest.fitbit.request;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import org.radarbase.connect.rest.fitbit.FitbitUser;
+import org.radarbase.connect.rest.fitbit.user.FitbitUser;
 import org.radarbase.connect.rest.request.RequestRoute;
 import org.radarbase.connect.rest.request.RestRequest;
 

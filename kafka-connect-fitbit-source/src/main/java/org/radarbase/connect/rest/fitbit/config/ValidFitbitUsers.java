@@ -1,4 +1,4 @@
-package org.radarbase.connect.rest.fitbit;
+package org.radarbase.connect.rest.fitbit.config;
 
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.config.ConfigException;

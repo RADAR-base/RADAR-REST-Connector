@@ -1,4 +1,4 @@
-package org.radarbase.connect.rest.fitbit;
+package org.radarbase.connect.rest.fitbit.user;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
