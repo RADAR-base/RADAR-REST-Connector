@@ -14,13 +14,13 @@ import java.time.Instant;
 public class FitbitUser {
   private String fitbitUserId;
   private String key;
-  private String refreshToken;
   private String projectId;
   private String userId;
   private String sourceId;
   private Instant startDate = Instant.parse("2017-01-01T00:00:00Z");
   private Instant endDate = Instant.MAX;
   private String accessToken;
+  private String refreshToken;
 
   @JsonIgnore
   private SchemaAndValue observationKey;

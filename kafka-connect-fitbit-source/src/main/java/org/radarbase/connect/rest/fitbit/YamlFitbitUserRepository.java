@@ -8,8 +8,8 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
 import org.radarbase.connect.rest.fitbit.config.FitbitUserConfig;
 
-import java.io.BufferedOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -30,13 +30,17 @@ public class YamlFitbitUserRepository implements FitbitUserRepository {
 
   private Path path;
   private Set<String> configuredUsers;
-  private FitbitUserConfig users;
+  private static FitbitUserConfig users;
 
   private FitbitUserConfig readUsers() throws IOException {
-    if (users == null) {
-      users = userReader.readValue(path.toFile());
+    synchronized (YamlFitbitUserRepository.class) {
+      if (users == null) {
+        try (InputStream in = Files.newInputStream(path)) {
+          users = userReader.readValue(in);
+        }
+      }
+      return users;
     }
-    return users;
   }
 
   @Override
@@ -57,9 +61,10 @@ public class YamlFitbitUserRepository implements FitbitUserRepository {
   public void update(FitbitUser user) throws IOException {
     Path temp = Files.createTempFile("users", "yml");
     try {
-      try (OutputStream out = Files.newOutputStream(temp);
-           BufferedOutputStream bufOut = new BufferedOutputStream(out)) {
-        userWriter.writeValue(bufOut, users);
+      try (OutputStream out = Files.newOutputStream(temp)) {
+        synchronized (YamlFitbitUserRepository.class) {
+          userWriter.writeValue(out, users);
+        }
       }
       Files.move(temp, path, REPLACE_EXISTING);
     } catch (IOException ex) {
