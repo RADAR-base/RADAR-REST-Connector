@@ -28,7 +28,7 @@ public class FitbitIntradayStepsRoute extends FitbitPollingRoute {
   @Override
   public void initialize(RestSourceConnectorConfig config) {
     super.initialize(config);
-    this.urlFormat = config.getUrl() + "/1/user/%s/activities/steps/date/%s/1min/time/%s/%s.json";
+    this.urlFormat = config.getUrl() + "/1/user/%s/activities/steps/date/%s/1d/1min/time/%s/%s.json";
   }
 
   protected FitbitRestRequest makeRequest(FitbitUser user) {
