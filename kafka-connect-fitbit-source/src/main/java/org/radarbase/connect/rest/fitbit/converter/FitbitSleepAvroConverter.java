@@ -1,7 +1,12 @@
 package org.radarbase.connect.rest.fitbit.converter;
 
+import static org.radarbase.connect.rest.fitbit.request.FitbitRequestGenerator.JSON_READER;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import io.confluent.connect.avro.AvroData;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.apache.kafka.connect.source.SourceRecord;
@@ -11,12 +16,6 @@ import org.radarbase.connect.rest.fitbit.FitbitRestSourceConnectorConfig;
 import org.radarbase.connect.rest.request.RestRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
-
-import static org.radarbase.connect.rest.fitbit.request.FitbitRequestGenerator.JSON_READER;
 
 public class FitbitSleepAvroConverter implements PayloadToSourceRecordConverter {
   private static final Logger logger = LoggerFactory.getLogger(FitbitSleepAvroConverter.class);

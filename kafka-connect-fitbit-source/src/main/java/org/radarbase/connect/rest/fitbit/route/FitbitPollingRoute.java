@@ -1,5 +1,17 @@
 package org.radarbase.connect.rest.fitbit.route;
 
+import static org.radarbase.connect.rest.converter.PayloadToSourceRecordConverter.TIMESTAMP_OFFSET_KEY;
+
+import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.LongStream;
+import java.util.stream.Stream;
 import okhttp3.Request;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.apache.kafka.connect.storage.OffsetStorageReader;
@@ -12,18 +24,6 @@ import org.radarbase.connect.rest.request.PollingRequestRoute;
 import org.radarbase.connect.rest.request.RestRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.LongStream;
-import java.util.stream.Stream;
-
-import static org.radarbase.connect.rest.converter.PayloadToSourceRecordConverter.TIMESTAMP_OFFSET_KEY;
 
 public abstract class FitbitPollingRoute implements PollingRequestRoute {
   protected static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE;
@@ -62,7 +62,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
 
   @Override
   public void requestSucceeded(RestRequest request, SourceRecord record) {
-    String userKey = ((FitbitRestRequest) request).getUser().getKey();
+    String userKey = ((FitbitRestRequest) request).getUser().getId();
     Instant offset = (Instant) record.sourceOffset().get(TIMESTAMP_OFFSET_KEY);
     committedOffsets.put(userKey, offset);
     scannedOffsets.put(userKey, offset);
@@ -72,7 +72,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
   public void requestEmpty(RestRequest request) {
     FitbitRestRequest fitbitRequest = (FitbitRestRequest) request;
     Instant endOffset = fitbitRequest.getEndOffset();
-    String key = fitbitRequest.getUser().getKey();
+    String key = fitbitRequest.getUser().getId();
     scannedOffsets.put(key, endOffset);
 
     if (passedInterval(endOffset, HISTORICAL_TIME)) {
@@ -98,7 +98,8 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
     try {
       return userRepository.stream()
           .filter(u -> !nextPoll(u).isAfter(Instant.now()))
-          .map(this::makeRequest);
+          .map(this::makeRequest)
+          .filter(Objects::nonNull);
     } catch (IOException e) {
       logger.warn("Cannot read users");
       return Stream.empty();
@@ -106,11 +107,18 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
   }
 
   private Map<String, Object> getPartition(FitbitUser user) {
-    return partitions.computeIfAbsent(user.getKey(),
+    return partitions.computeIfAbsent(user.getId(),
         k -> generator.getPartition(routeName, user));
   }
 
-  protected FitbitRestRequest newRequest(Request request, FitbitUser user, Instant startDate, Instant endDate) {
+  protected FitbitRestRequest newRequest(Request.Builder requestBuilder, FitbitUser user, Instant startDate, Instant endDate) {
+    if (user.getAccessToken() == null || user.getAccessToken().isEmpty()) {
+      logger.warn("User {} does not have a configured access token. Skipping.");
+      return null;
+    }
+    Request request = requestBuilder
+        .header("Authorization", "Bearer " + user.getAccessToken())
+        .build();
     return new FitbitRestRequest(this, request, user, getPartition(user), generator.getClient(user), startDate, endDate);
   }
 
@@ -147,7 +155,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
   }
 
   protected Instant getOffset(FitbitUser user) {
-    String key = user.getKey();
+    String key = user.getId();
     Instant scannedOffset = scannedOffsets.computeIfAbsent(key, k -> getStartOffset(user));
 
     if (passedInterval(scannedOffset, LOOKBACK_TIME)) {

@@ -1,20 +1,22 @@
 package org.radarbase.connect.rest.fitbit;
 
+import static org.apache.kafka.common.config.ConfigDef.NO_DEFAULT_VALUE;
+
+import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import okhttp3.Headers;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.connect.errors.ConnectException;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
 import org.radarbase.connect.rest.config.ValidClass;
 import org.radarbase.connect.rest.fitbit.user.FitbitUserRepository;
 import org.radarbase.connect.rest.fitbit.user.YamlFitbitUserRepository;
-
-import java.lang.reflect.InvocationTargetException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
-import static org.apache.kafka.common.config.ConfigDef.NO_DEFAULT_VALUE;
 
 public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
   public static final String FITBIT_USERS_CONFIG = "fitbit.users";
@@ -50,6 +52,7 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
   private static final String FITBIT_SLEEP_STATE_TOPIC_DISPLAY = "Sleep state topic";
 
   private final FitbitUserRepository fitbitUserRepository;
+  private final Headers clientCredentials;
 
   @SuppressWarnings("unchecked")
   public FitbitRestSourceConnectorConfig(ConfigDef config, Map<String, String> parsedConfig) {
@@ -62,6 +65,11 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
         | InvocationTargetException | NoSuchMethodException e) {
       throw new ConnectException("Invalid class for: " + SOURCE_PAYLOAD_CONVERTER_CONFIG, e);
     }
+
+    String credentialString = getString(FITBIT_API_CLIENT_CONFIG) + ":" + getString(FITBIT_API_SECRET_CONFIG);
+    String credentialsBase64 = Base64.getEncoder().encodeToString(
+        credentialString.getBytes(StandardCharsets.UTF_8));
+    this.clientCredentials = Headers.of("Authorization", "Basic " + credentialsBase64);
   }
 
   public FitbitRestSourceConnectorConfig(Map<String, String> parsedConfig) {
@@ -177,5 +185,9 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
 
   public Path getFitbitUserRepositoryPath() {
     return Paths.get(getString(FITBIT_USER_REPOSITORY_FILE_CONFIG));
+  }
+
+  public Headers getClientCredentials() {
+    return clientCredentials;
   }
 }

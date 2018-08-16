@@ -1,15 +1,14 @@
 package org.radarbase.connect.rest.fitbit.route;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.radarbase.connect.rest.fitbit.route.FitbitPollingRoute.DATE_FORMAT;
+import static org.radarbase.connect.rest.fitbit.route.FitbitPollingRoute.TIME_FORMAT;
 
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.radarbase.connect.rest.fitbit.route.FitbitPollingRoute.DATE_FORMAT;
-import static org.radarbase.connect.rest.fitbit.route.FitbitPollingRoute.TIME_FORMAT;
+import org.junit.jupiter.api.Test;
 
 class FitbitPollingRouteTest {
 

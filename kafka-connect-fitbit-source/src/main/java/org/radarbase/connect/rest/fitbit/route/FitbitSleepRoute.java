@@ -1,6 +1,11 @@
 package org.radarbase.connect.rest.fitbit.route;
 
 import io.confluent.connect.avro.AvroData;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import okhttp3.Request;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
 import org.radarbase.connect.rest.fitbit.converter.FitbitSleepAvroConverter;
@@ -8,14 +13,12 @@ import org.radarbase.connect.rest.fitbit.request.FitbitRequestGenerator;
 import org.radarbase.connect.rest.fitbit.request.FitbitRestRequest;
 import org.radarbase.connect.rest.fitbit.user.FitbitUser;
 import org.radarbase.connect.rest.fitbit.user.FitbitUserRepository;
-
-import java.time.Duration;
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FitbitSleepRoute extends FitbitPollingRoute {
+  private static final Logger logger = LoggerFactory.getLogger(FitbitSleepRoute.class);
+
   private static final String ROUTE_NAME = "sleep";
   private final FitbitSleepAvroConverter converter;
   private String urlFormat;
@@ -29,7 +32,7 @@ public class FitbitSleepRoute extends FitbitPollingRoute {
   @Override
   public void initialize(RestSourceConnectorConfig config) {
     super.initialize(config);
-    this.urlFormat = config.getUrl() + "/1.2/user/%s/sleep/date/%s/%s.json";
+    this.urlFormat = config.getUrl() + "/1.2/user/%s/sleep/date/%s/%s.json?timezone=UTC";
   }
 
   /**
@@ -47,14 +50,13 @@ public class FitbitSleepRoute extends FitbitPollingRoute {
         .truncatedTo(ChronoUnit.DAYS);
 
     // encode
-    Request request = new Request.Builder()
-        .header("Authorization", "Bearer " + user.getAccessToken())
-        .header("x-li-format", "json")
+    Request.Builder requestBuilder = new Request.Builder()
         .url(String.format(this.urlFormat, user.getFitbitUserId(),
-            DATE_FORMAT.format(startDate), DATE_FORMAT.format(endDate)))
-        .build();
+            DATE_FORMAT.format(startDate), DATE_FORMAT.format(endDate)));
 
-    return newRequest(request, user, startDate.toInstant(),
+    logger.info("Requesting");
+
+    return newRequest(requestBuilder, user, startDate.toInstant(),
         endDate.toInstant().plus(Duration.ofDays(1)));
   }
 

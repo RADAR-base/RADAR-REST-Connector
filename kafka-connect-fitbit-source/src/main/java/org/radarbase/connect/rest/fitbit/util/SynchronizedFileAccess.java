@@ -1,8 +1,10 @@
 package org.radarbase.connect.rest.fitbit.util;
 
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static org.radarbase.connect.rest.util.ThrowingFunction.tryOrRethrow;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -11,9 +13,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-import static org.radarbase.connect.rest.util.ThrowingFunction.tryOrRethrow;
 
 public class SynchronizedFileAccess<T> {
   private static final Map<Path, SynchronizedFileAccess<?>> instances = new ConcurrentHashMap<>();

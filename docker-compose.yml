@@ -42,6 +42,8 @@ services:
     image: confluentinc/cp-kafka:5.0.0
     depends_on:
       - zookeeper-1
+      - zookeeper-2
+      - zookeeper-3
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-1:9092
@@ -59,6 +61,8 @@ services:
     image: confluentinc/cp-kafka:5.0.0
     depends_on:
       - zookeeper-1
+      - zookeeper-2
+      - zookeeper-3
     environment:
       KAFKA_BROKER_ID: 2
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-2:9092
@@ -76,6 +80,8 @@ services:
     image: confluentinc/cp-kafka:5.0.0
     depends_on:
       - zookeeper-1
+      - zookeeper-2
+      - zookeeper-3
     environment:
       KAFKA_BROKER_ID: 3
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-3:9092
@@ -96,6 +102,8 @@ services:
     image: confluentinc/cp-schema-registry:5.0.0
     depends_on:
       - zookeeper-1
+      - zookeeper-2
+      - zookeeper-3
       - kafka-1
       - kafka-2
       - kafka-3
@@ -115,6 +123,9 @@ services:
   rest-proxy-1:
     image: confluentinc/cp-kafka-rest:5.0.0
     depends_on:
+      - zookeeper-1
+      - zookeeper-2
+      - zookeeper-3
       - kafka-1
       - kafka-2
       - kafka-3
@@ -142,6 +153,8 @@ services:
       - ./docker/fitbit-users.yml:/etc/kafka-connect-fitbit-source/fitbit-users.yml
     depends_on:
       - zookeeper-1
+      - zookeeper-2
+      - zookeeper-3
       - kafka-1
       - kafka-2
       - kafka-3
