@@ -1,16 +1,21 @@
 package org.radarbase.connect.rest.fitbit.config;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import io.confluent.connect.avro.AvroData;
 import java.time.Instant;
+import java.util.regex.Pattern;
 import org.apache.kafka.connect.data.SchemaAndValue;
-import org.codehaus.jackson.annotate.JsonIgnore;
 import org.radarbase.connect.rest.fitbit.user.FitbitUser;
+import org.radarbase.connect.rest.fitbit.user.OAuth2UserCredentials;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(Include.NON_EMPTY)
+//@JsonIgnoreProperties(ignoreUnknown = true)
 public class LocalFitbitUser implements FitbitUser {
+  private static final Pattern ILLEGAL_CHARACTERS_PATTERN = Pattern.compile("[^a-zA-Z0-9_-]");
   private String id;
   private String fitbitUserId;
   private String projectId;
@@ -18,38 +23,25 @@ public class LocalFitbitUser implements FitbitUser {
   private String sourceId;
   private Instant startDate = Instant.parse("2017-01-01T00:00:00Z");
   private Instant endDate = Instant.MAX;
-  private String accessToken;
-  private String refreshToken;
+
+  @JsonProperty("oauth2")
+  private OAuth2UserCredentials oauth2Credentials = new OAuth2UserCredentials();
 
   @JsonIgnore
   private SchemaAndValue observationKey;
-
-  public LocalFitbitUser() {
-    // JSON create
-  }
-
-  public LocalFitbitUser(String id, String fitbitUserId, String refreshToken, String projectId, String userId, String sourceId, Instant startDate, Instant endDate) {
-    this.sourceId = sourceId;
-    this.id = id;
-    this.fitbitUserId = fitbitUserId;
-    this.refreshToken = refreshToken;
-    this.projectId = projectId;
-    this.userId = userId;
-    this.startDate = startDate;
-    this.endDate = endDate;
-  }
 
   @Override
   public String getId() {
     return id;
   }
 
-  public String getFitbitUserId() {
-    return fitbitUserId;
+  @JsonSetter
+  public void setId(String id) {
+    this.id = ILLEGAL_CHARACTERS_PATTERN.matcher(id).replaceAll("-");
   }
 
-  public String getRefreshToken() {
-    return refreshToken;
+  public String getFitbitUserId() {
+    return fitbitUserId;
   }
 
   public String getProjectId() {
@@ -72,16 +64,12 @@ public class LocalFitbitUser implements FitbitUser {
     return sourceId;
   }
 
-  public String getAccessToken() {
-    return accessToken;
+  public OAuth2UserCredentials getOAuth2Credentials() {
+    return this.oauth2Credentials;
   }
 
-  public void setAccessToken(String accessToken) {
-    this.accessToken = accessToken;
-  }
-
-  public void setRefreshToken(String refreshToken) {
-    this.refreshToken = refreshToken;
+  public void setOauth2Credentials(OAuth2UserCredentials oauth2Credentials) {
+    this.oauth2Credentials = oauth2Credentials;
   }
 
   public synchronized SchemaAndValue getObservationKey(AvroData avroData) {

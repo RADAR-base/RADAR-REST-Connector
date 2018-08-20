@@ -38,9 +38,10 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
   private static final String FITBIT_USER_REPOSITORY_DOC = "Class for managing users and authentication.";
   private static final String FITBIT_USER_REPOSITORY_DISPLAY = "User repository class";
 
-  public static final String FITBIT_USER_REPOSITORY_FILE_CONFIG = "fitbit.user.repository.file";
-  private static final String FITBIT_USER_REPOSITORY_FILE_DOC = "File containing Fitbit users users and authentication. Only used if a file-based user repository is configured.";
-  private static final String FITBIT_USER_REPOSITORY_FILE_DISPLAY = "User repository file";
+  public static final String FITBIT_USER_CREDENTIALS_DIR_CONFIG = "fitbit.user.dir";
+  private static final String FITBIT_USER_CREDENTIALS_DIR_DOC = "Directory containing Fitbit user information and credentials. Only used if a file-based user repository is configured.";
+  private static final String FITBIT_USER_CREDENTIALS_DIR_DISPLAY = "User directory";
+  private static final String FITBIT_USER_CREDENTIALS_DIR_DEFAULT = "/var/lib/kafka-connect-fitbit-source/users";
 
   private static final String FITBIT_INTRADAY_STEPS_TOPIC_CONFIG = "fitbit.intraday.steps.topic";
   private static final String FITBIT_INTRADAY_STEPS_TOPIC_DOC = "Topic for Fitbit intraday steps";
@@ -66,7 +67,8 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
       throw new ConnectException("Invalid class for: " + SOURCE_PAYLOAD_CONVERTER_CONFIG, e);
     }
 
-    String credentialString = getString(FITBIT_API_CLIENT_CONFIG) + ":" + getString(FITBIT_API_SECRET_CONFIG);
+    String credentialString = getString(FITBIT_API_CLIENT_CONFIG) + ":"
+        + getPassword(FITBIT_API_SECRET_CONFIG).value();
     String credentialsBase64 = Base64.getEncoder().encodeToString(
         credentialString.getBytes(StandardCharsets.UTF_8));
     this.clientCredentials = Headers.of("Authorization", "Basic " + credentialsBase64);
@@ -103,9 +105,8 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
             FITBIT_API_CLIENT_DISPLAY)
 
         .define(FITBIT_API_SECRET_CONFIG,
-            ConfigDef.Type.STRING,
+            ConfigDef.Type.PASSWORD,
             NO_DEFAULT_VALUE,
-            new ConfigDef.NonEmptyString(),
             ConfigDef.Importance.HIGH,
             FITBIT_API_SECRET_DOC,
             group,
@@ -124,15 +125,15 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
             ConfigDef.Width.SHORT,
             FITBIT_USER_REPOSITORY_DISPLAY)
 
-        .define(FITBIT_USER_REPOSITORY_FILE_CONFIG,
+        .define(FITBIT_USER_CREDENTIALS_DIR_CONFIG,
             ConfigDef.Type.STRING,
-            "/etc/kafka-connect-fitbit-source/fitbit-users.yml",
+            FITBIT_USER_CREDENTIALS_DIR_DEFAULT,
             ConfigDef.Importance.LOW,
-            FITBIT_USER_REPOSITORY_FILE_DOC,
+            FITBIT_USER_CREDENTIALS_DIR_DOC,
             group,
             ++orderInGroup,
             ConfigDef.Width.SHORT,
-            FITBIT_USER_REPOSITORY_FILE_DISPLAY)
+            FITBIT_USER_CREDENTIALS_DIR_DISPLAY)
 
         .define(FITBIT_INTRADAY_STEPS_TOPIC_CONFIG,
             ConfigDef.Type.STRING,
@@ -183,8 +184,8 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
     return getString(FITBIT_SLEEP_STATE_TOPIC_CONFIG);
   }
 
-  public Path getFitbitUserRepositoryPath() {
-    return Paths.get(getString(FITBIT_USER_REPOSITORY_FILE_CONFIG));
+  public Path getFitbitUserCredentialsPath() {
+    return Paths.get(getString(FITBIT_USER_CREDENTIALS_DIR_CONFIG));
   }
 
   public Headers getClientCredentials() {

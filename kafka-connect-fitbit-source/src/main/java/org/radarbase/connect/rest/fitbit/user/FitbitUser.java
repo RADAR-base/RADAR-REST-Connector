@@ -13,7 +13,6 @@ public interface FitbitUser {
   Instant getStartDate();
   Instant getEndDate();
   String getSourceId();
-  String getAccessToken();
   SchemaAndValue getObservationKey(AvroData avroData);
 
   static SchemaAndValue computeObservationKey(AvroData avroData, FitbitUser user) {

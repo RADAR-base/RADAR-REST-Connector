@@ -22,10 +22,23 @@ public interface FitbitUserRepository extends RestSourceTool {
   Stream<? extends FitbitUser> stream() throws IOException;
 
   /**
+   * Get the current access token of given user. If it has expired, a new access token will
+   * be requested. If the server indicates the token is invalid, call
+   * {@link #refreshAccessToken(FitbitUser)} instead.
+   *
+   * @throws IOException if the new access token cannot be retrieved from the repository.
+   * @throws NotAuthorizedException if the refresh token is no longer valid. Manual action
+   *                                should be taken to get a new refresh token.
+   * @throws java.util.NoSuchElementException if the user does not exists in this repository.
+   */
+  String getAccessToken(FitbitUser user) throws IOException, NotAuthorizedException;
+
+  /**
    * Refresh the access token of given user.
    * @throws IOException if the new access token cannot be retrieved from the repository.
    * @throws NotAuthorizedException if the refresh token is no longer valid. Manual action
    *                                should be taken to get a new refresh token.
+   * @throws java.util.NoSuchElementException if the user does not exists in this repository.
    */
   String refreshAccessToken(FitbitUser user) throws IOException, NotAuthorizedException;
 }

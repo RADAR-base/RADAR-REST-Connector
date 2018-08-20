@@ -1,5 +1,7 @@
 package org.radarbase.connect.rest.util;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -27,5 +29,17 @@ public interface ThrowingFunction<T, R> {
         throw catchClause.apply(t, e);
       }
     };
+  }
+
+  static <T, R> Function<T, R> tryOrRethrow(ThrowingFunction<T, R> tryClause) {
+    return tryOrRethrow(tryClause, (t, ex) -> {
+      if (ex instanceof IOException) {
+        throw new UncheckedIOException((IOException) ex);
+      } else if (ex instanceof RuntimeException) {
+        throw (RuntimeException) ex;
+      } else {
+        throw new RuntimeException(ex);
+      }
+    });
   }
 }

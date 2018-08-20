@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
+import javax.ws.rs.NotAuthorizedException;
 import okhttp3.Request;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.apache.kafka.connect.storage.OffsetStorageReader;
@@ -111,15 +112,19 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
         k -> generator.getPartition(routeName, user));
   }
 
-  protected FitbitRestRequest newRequest(Request.Builder requestBuilder, FitbitUser user, Instant startDate, Instant endDate) {
-    if (user.getAccessToken() == null || user.getAccessToken().isEmpty()) {
-      logger.warn("User {} does not have a configured access token. Skipping.");
+  protected FitbitRestRequest newRequest(Request.Builder requestBuilder, FitbitUser user,
+      Instant startDate, Instant endDate) {
+    try {
+      Request request = requestBuilder
+          .header("Authorization", "Bearer " + userRepository.getAccessToken(user))
+          .build();
+      return new FitbitRestRequest(this, request, user, getPartition(user),
+          generator.getClient(user), startDate, endDate);
+    } catch (NotAuthorizedException | IOException ex) {
+      logger.warn("User {} does not have a configured access token: {}. Skipping.",
+          user, ex.toString());
       return null;
     }
-    Request request = requestBuilder
-        .header("Authorization", "Bearer " + user.getAccessToken())
-        .build();
-    return new FitbitRestRequest(this, request, user, getPartition(user), generator.getClient(user), startDate, endDate);
   }
 
   @Override

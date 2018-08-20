@@ -150,7 +150,7 @@ services:
     restart: on-failure
     volumes:
       - ./docker/source-fitbit.properties:/etc/kafka-connect/source-fitbit.properties
-      - ./docker/fitbit-users.yml:/etc/kafka-connect-fitbit-source/fitbit-users.yml
+      - ./docker/users:/var/lib/kafka-connect-fitbit-source/users
     depends_on:
       - zookeeper-1
       - zookeeper-2

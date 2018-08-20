@@ -25,11 +25,17 @@ RUN ./gradlew --version
 
 COPY ./build.gradle ./settings.gradle /code/
 COPY kafka-connect-rest-source/build.gradle /code/kafka-connect-rest-source/
+
+RUN ./gradlew downloadDependencies copyDependencies
+
 COPY kafka-connect-fitbit-source/build.gradle /code/kafka-connect-fitbit-source/
 
 RUN ./gradlew downloadDependencies copyDependencies
 
 COPY ./kafka-connect-rest-source/src/ /code/kafka-connect-rest-source/src
+
+RUN ./gradlew jar
+
 COPY ./kafka-connect-fitbit-source/src/ /code/kafka-connect-fitbit-source/src
 
 RUN ./gradlew jar

@@ -1,0 +1,12 @@
+---
+id: test
+projectId: radar-test
+userId: test
+sourceId: charge-2
+startDate: 2018-08-06T00:00:00Z
+endDate: 2019-01-01T00:00:00Z
+fitbitUserId: ?
+oauth2:
+  accessToken: ?
+  refreshToken: ?
+  expiresAt: 2018-08-06T00:00:00Z
