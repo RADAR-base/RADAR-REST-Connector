@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -14,6 +15,7 @@ import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import javax.ws.rs.NotAuthorizedException;
 import okhttp3.Request;
+import okhttp3.Response;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.apache.kafka.connect.storage.OffsetStorageReader;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
@@ -31,20 +33,24 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
   protected static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
   protected static final Duration LOOKBACK_TIME = Duration.ofDays(1); // 1 day
   protected static final Duration HISTORICAL_TIME = Duration.ofDays(14);
+  protected static final Duration TOO_MANY_REQUESTS_COOLDOWN = Duration.ofHours(1);
+  protected static final Duration ONE_DAY = Duration.ofDays(1);
 
   private static final Logger logger = LoggerFactory.getLogger(FitbitSleepRoute.class);
 
   /** Committed committedOffsets. */
-  private final Map<String, Instant> committedOffsets;
+  private final Map<String, Long> committedOffsets;
 
   /** Offsets that are scanned but are currently empty. */
-  private final Map<String, Instant> scannedOffsets;
+  private final Map<String, Long> scannedOffsets;
   private final Map<String, Map<String, Object>> partitions;
   private final FitbitRequestGenerator generator;
   private final FitbitUserRepository userRepository;
   private final String routeName;
+  private Instant tooManyRequestsUntil;
   private long pollInterval;
   private long lastPoll;
+  private String baseUrl;
 
   public FitbitPollingRoute(FitbitRequestGenerator generator, FitbitUserRepository userRepository, String routeName) {
     this.generator = generator;
@@ -54,17 +60,20 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
     this.partitions = new HashMap<>(generator.getPartitions(routeName));
     this.routeName = routeName;
     this.lastPoll = 0L;
+    this.tooManyRequestsUntil = Instant.MIN;
   }
 
   @Override
   public void initialize(RestSourceConnectorConfig config) {
     this.pollInterval = config.getPollInterval();
+    this.baseUrl = config.getUrl();
+    this.converter().initialize(config);
   }
 
   @Override
   public void requestSucceeded(RestRequest request, SourceRecord record) {
     String userKey = ((FitbitRestRequest) request).getUser().getId();
-    Instant offset = (Instant) record.sourceOffset().get(TIMESTAMP_OFFSET_KEY);
+    long offset = (Long) record.sourceOffset().get(TIMESTAMP_OFFSET_KEY);
     committedOffsets.put(userKey, offset);
     scannedOffsets.put(userKey, offset);
   }
@@ -74,16 +83,22 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
     FitbitRestRequest fitbitRequest = (FitbitRestRequest) request;
     Instant endOffset = fitbitRequest.getEndOffset();
     String key = fitbitRequest.getUser().getId();
-    scannedOffsets.put(key, endOffset);
+    scannedOffsets.put(key, endOffset.toEpochMilli());
 
     if (passedInterval(endOffset, HISTORICAL_TIME)) {
-      committedOffsets.put(key, endOffset);
+      committedOffsets.put(key, endOffset.toEpochMilli());
     }
   }
 
   @Override
-  public void requestFailed(RestRequest request) {
-    logger.warn("Failed to make request {}", request);
+  public void requestFailed(RestRequest request, Response response) {
+    if (response != null && response.code() == 429) {
+      logger.info("Too many requests for user {}. Backing off for {}",
+          ((FitbitRestRequest)request).getUser(), TOO_MANY_REQUESTS_COOLDOWN);
+      tooManyRequestsUntil = Instant.now().plus(TOO_MANY_REQUESTS_COOLDOWN);
+    } else {
+      logger.warn("Failed to make request {}", request);
+    }
   }
 
   /**
@@ -112,10 +127,12 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
         k -> generator.getPartition(routeName, user));
   }
 
-  protected FitbitRestRequest newRequest(Request.Builder requestBuilder, FitbitUser user,
-      Instant startDate, Instant endDate) {
+  protected FitbitRestRequest newRequest(FitbitUser user,
+      Instant startDate, Instant endDate, Object... urlFormatArgs) {
+    Request.Builder builder = new Request.Builder()
+        .url(String.format(getUrlFormat(baseUrl), urlFormatArgs));
     try {
-      Request request = requestBuilder
+      Request request = builder
           .header("Authorization", "Bearer " + userRepository.getAccessToken(user))
           .build();
       return new FitbitRestRequest(this, request, user, getPartition(user),
@@ -133,7 +150,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
         .filter(e -> e.getValue() != null && e.getValue().containsKey(TIMESTAMP_OFFSET_KEY))
         .collect(Collectors.toMap(
             e -> (String) e.getKey().get("user"),
-            e -> (Instant) e.getValue().get(TIMESTAMP_OFFSET_KEY))));
+            e -> (Long) e.getValue().get(TIMESTAMP_OFFSET_KEY))));
 
     scannedOffsets.putAll(committedOffsets);
   }
@@ -161,17 +178,21 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
 
   protected Instant getOffset(FitbitUser user) {
     String key = user.getId();
-    Instant scannedOffset = scannedOffsets.computeIfAbsent(key, k -> getStartOffset(user));
+    Instant scannedOffset = Instant.ofEpochMilli(
+        scannedOffsets.computeIfAbsent(key, k -> getStartOffset(user).toEpochMilli()));
 
-    if (passedInterval(scannedOffset, LOOKBACK_TIME)) {
-      Instant committedOffset = committedOffsets.getOrDefault(key, getStartOffset(user));
-      if (!passedInterval(committedOffset, LOOKBACK_TIME)) {
+    if (passedInterval(scannedOffset, getLookbackTime())) {
+      Instant committedOffset = Instant.ofEpochMilli(
+          committedOffsets.getOrDefault(key, getStartOffset(user).toEpochMilli()));
+      if (!passedInterval(committedOffset, getLookbackTime())) {
         scannedOffset = committedOffset;
       }
     }
 
     return scannedOffset;
   }
+
+  protected abstract String getUrlFormat(String baseUrl);
 
   private static Instant getStartOffset(FitbitUser user) {
     return user.getStartDate().minus(Duration.ofSeconds(1));
@@ -181,12 +202,24 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
     return pastInstant.plus(duration).isAfter(Instant.now());
   }
 
+  protected Duration getLookbackTime() {
+    return LOOKBACK_TIME;
+  }
+
   protected Instant nextPoll(FitbitUser user) {
     Instant offset = getOffset(user);
     if (offset.isAfter(user.getEndDate())) {
       return Instant.MAX;
     } else {
-      return offset.plus(LOOKBACK_TIME);
+      return max(offset.plus(getLookbackTime()), tooManyRequestsUntil);
+    }
+  }
+
+  public static <T extends Comparable<? super T>> T max(T a, T b) {
+    if (a != null && (b == null || a.compareTo(b) >= 0)) {
+      return a;
+    } else {
+      return b;
     }
   }
 }

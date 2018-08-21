@@ -15,8 +15,10 @@ import java.util.stream.Stream;
 import okhttp3.OkHttpClient;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
 import org.radarbase.connect.rest.fitbit.FitbitRestSourceConnectorConfig;
+import org.radarbase.connect.rest.fitbit.route.FitbitIntradayHeartRateRoute;
 import org.radarbase.connect.rest.fitbit.route.FitbitIntradayStepsRoute;
 import org.radarbase.connect.rest.fitbit.route.FitbitSleepRoute;
+import org.radarbase.connect.rest.fitbit.route.FitbitTimeZoneRoute;
 import org.radarbase.connect.rest.fitbit.user.FitbitUser;
 import org.radarbase.connect.rest.fitbit.user.FitbitUserRepository;
 import org.radarbase.connect.rest.request.RequestGeneratorRouter;
@@ -52,7 +54,9 @@ public class FitbitRequestGenerator extends RequestGeneratorRouter {
     this.userRepository = config1.getFitbitUserRepository();
     this.routes = Arrays.asList(
         new FitbitIntradayStepsRoute(this, userRepository, avroData),
-        new FitbitSleepRoute(this, userRepository, avroData)
+        new FitbitSleepRoute(this, userRepository, avroData),
+        new FitbitIntradayHeartRateRoute(this, userRepository, avroData),
+        new FitbitTimeZoneRoute(this, userRepository, avroData)
     );
 
     super.initialize(config);

@@ -1,66 +1,116 @@
 package org.radarbase.connect.rest.fitbit.converter;
 
-import static org.radarbase.connect.rest.fitbit.request.FitbitRequestGenerator.JSON_READER;
+import static org.radarbase.connect.rest.fitbit.route.FitbitSleepRoute.DATE_TIME_FORMAT;
+import static org.radarbase.connect.rest.util.ThrowingFunction.tryOrNull;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.confluent.connect.avro.AvroData;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
-import org.apache.kafka.connect.source.SourceRecord;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.apache.avro.generic.IndexedRecord;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
-import org.radarbase.connect.rest.converter.PayloadToSourceRecordConverter;
 import org.radarbase.connect.rest.fitbit.FitbitRestSourceConnectorConfig;
-import org.radarbase.connect.rest.request.RestRequest;
+import org.radarbase.connect.rest.fitbit.request.FitbitRestRequest;
+import org.radarcns.connector.fitbit.FitbitSleepClassic;
+import org.radarcns.connector.fitbit.FitbitSleepClassicLevel;
+import org.radarcns.connector.fitbit.FitbitSleepStage;
+import org.radarcns.connector.fitbit.FitbitSleepStageLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class FitbitSleepAvroConverter implements PayloadToSourceRecordConverter {
+public class FitbitSleepAvroConverter extends FitbitAvroConverter {
   private static final Logger logger = LoggerFactory.getLogger(FitbitSleepAvroConverter.class);
 
-  private String sleepStageTopic;
-  private final AvroData avroData;
+  private static final Map<String, FitbitSleepClassicLevel> CLASSIC_MAP = new HashMap<>();
+  private static final Map<String, FitbitSleepStageLevel> STAGES_MAP = new HashMap<>();
+  static {
+    CLASSIC_MAP.put("awake", FitbitSleepClassicLevel.AWAKE);
+    CLASSIC_MAP.put("asleep", FitbitSleepClassicLevel.ASLEEP);
+    CLASSIC_MAP.put("restless", FitbitSleepClassicLevel.RESTLESS);
+
+    STAGES_MAP.put("awake", FitbitSleepStageLevel.AWAKE);
+    STAGES_MAP.put("rem", FitbitSleepStageLevel.REM);
+    STAGES_MAP.put("deep", FitbitSleepStageLevel.DEEP);
+    STAGES_MAP.put("light", FitbitSleepStageLevel.LIGHT);
+  }
+
+  private String sleepStagesTopic;
+  private String sleepClassicTopic;
 
   public FitbitSleepAvroConverter(AvroData avroData) {
-    this.avroData = avroData;
+    super(avroData);
   }
 
   @Override
   public void initialize(RestSourceConnectorConfig config) {
-    sleepStageTopic = ((FitbitRestSourceConnectorConfig)config).getFitbitSleepStageTopic();
+    sleepStagesTopic = ((FitbitRestSourceConnectorConfig)config).getFitbitSleepStagesTopic();
+    sleepClassicTopic = ((FitbitRestSourceConnectorConfig)config).getFitbitSleepClassicTopic();
+
+    logger.info("Using sleep topic {} and {}", sleepStagesTopic, sleepClassicTopic);
   }
 
   @Override
-  public Collection<SourceRecord> convert(RestRequest restRequest, Response response) throws IOException {
-    ResponseBody body = response.body();
-    if (body == null) {
-      throw new IOException("Failed to read body");
+  protected Stream<TopicData> processRecords(FitbitRestRequest request, JsonNode root,
+      double timeReceived) {
+    JsonNode meta = root.get("meta");
+    if (meta != null) {
+      JsonNode state = meta.get("state");
+      if (state != null && meta.get("state").asText().equals("pending")) {
+        return Stream.empty();
+      }
     }
-    JsonNode sleep = JSON_READER.readTree(body.charStream());
-    logger.info("Sleep: {}", sleep);
-    return Collections.emptyList();
-//
-//    JsonNode sleepArray = sleep.get("sleep");
-//
-//    FitbitUser user = ((FitbitRestRequest) restRequest.getRequest()).getUser();
-//    SchemaAndValue key = user.getObservationKey();
-//
-//    return StreamSupport.stream(sleepArray.spliterator(), false)
-//        .map(tryOrRethrow(s -> {
-//          // TODO: put correct data in here
-//          FitbitSleepStage.Builder sleepStageBuilder = FitbitSleepStage.newBuilder();
-//
-//          SchemaAndValue sleepStage = avroData.toConnectData(sleepStageBuilder.build());
-//
-//          // TODO: compute correct offset
-//          Map<String, Long> offset = Collections.singletonMap(
-//              TIMESTAMP_OFFSET_KEY, s.get("time???").asLong());
-//
-//          return restRequest.withRecord(new SourceRecord(
-//              restRequest.getRequest().getPartition(), offset, sleepStageTopic,
-//              key.schema(), key.value(), sleepStage.schema(), sleepStage.value()));
-//        }, (a, ex) -> new RuntimeException("Failed to parse response", ex)));
+    JsonNode sleepArray = root.get("sleep");
+    if (sleepArray == null) {
+      return Stream.empty();
+    }
+
+    return iterableToStream(sleepArray)
+        .sorted(Comparator.comparing(s -> s.get("startTime").asText()))
+        .flatMap(tryOrNull(s -> {
+          Instant startTime = Instant.from(DATE_TIME_FORMAT.parse(s.get("startTime").asText()));
+          boolean isStages = s.get("type") == null || s.get("type").asText().equals("stages");
+          Instant intermediateOffset = startTime.minus(Duration.ofSeconds(1));
+
+          List<TopicData> allRecords = iterableToStream(s.get("levels").get("data"))
+              .map(d -> {
+                IndexedRecord sleep;
+                String topic;
+
+                String dateTime = d.get("dateTime").asText();
+                int duration = d.get("seconds").asInt();
+                String level = d.get("level").asText();
+
+                if (isStages) {
+                  sleep = new FitbitSleepStage(
+                      dateTime,
+                      timeReceived,
+                      duration,
+                      STAGES_MAP.getOrDefault(level, FitbitSleepStageLevel.UNKNOWN));
+                  topic = sleepStagesTopic;
+                } else {
+                  sleep = new FitbitSleepClassic(
+                      dateTime,
+                      timeReceived,
+                      duration,
+                      CLASSIC_MAP.getOrDefault(level, FitbitSleepClassicLevel.UNKNOWN));
+                  topic = sleepClassicTopic;
+                }
+
+                return new TopicData(intermediateOffset, topic, sleep);
+              })
+              .collect(Collectors.toList());
+
+          allRecords.get(allRecords.size() - 1).sourceOffset = startTime;
+
+          return allRecords.stream();
+        }, (s, ex) -> logger.warn(
+            "Failed to convert sleep patterns from request {} of user {}, {}",
+            request.getRequest().url(), request.getUser(), s, ex)));
   }
 }

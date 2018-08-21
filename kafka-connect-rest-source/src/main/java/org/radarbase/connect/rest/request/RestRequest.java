@@ -35,7 +35,7 @@ public class RestRequest {
   public Stream<SourceRecord> handleRequest() throws IOException {
     try (Response response = client.newCall(request).execute()) {
       if (!response.isSuccessful()) {
-        route.requestFailed(this);
+        route.requestFailed(this, response);
         return null;
       }
 
@@ -47,7 +47,7 @@ public class RestRequest {
       }
       return records.stream();
     } catch (IOException ex) {
-      route.requestFailed(this);
+      route.requestFailed(this, null);
       throw ex;
     }
   }

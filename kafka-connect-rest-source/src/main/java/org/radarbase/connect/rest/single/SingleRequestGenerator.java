@@ -6,6 +6,7 @@ import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import okhttp3.Response;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.apache.kafka.connect.storage.OffsetStorageReader;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
@@ -89,7 +90,7 @@ public class SingleRequestGenerator implements RequestRoute {
   }
 
   @Override
-  public void requestFailed(RestRequest request) {
+  public void requestFailed(RestRequest request, Response response) {
     lastPoll = System.currentTimeMillis();
   }
 

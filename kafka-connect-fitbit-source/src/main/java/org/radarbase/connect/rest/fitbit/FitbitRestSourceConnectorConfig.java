@@ -46,11 +46,28 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
   private static final String FITBIT_INTRADAY_STEPS_TOPIC_CONFIG = "fitbit.intraday.steps.topic";
   private static final String FITBIT_INTRADAY_STEPS_TOPIC_DOC = "Topic for Fitbit intraday steps";
   private static final String FITBIT_INTRADAY_STEPS_TOPIC_DISPLAY = "Intraday steps topic";
+  private static final String FITBIT_INTRADAY_STEPS_TOPIC_DEFAULT = "connect_fitbit_intraday_steps";
 
+  private static final String FITBIT_INTRADAY_HEART_RATE_TOPIC_CONFIG = "fitbit.intraday.heart.rate.topic";
+  private static final String FITBIT_INTRADAY_HEART_RATE_TOPIC_DOC = "Topic for Fitbit intraday heart_rate";
+  private static final String FITBIT_INTRADAY_HEART_RATE_TOPIC_DISPLAY = "Intraday heartrate topic";
+  private static final String FITBIT_INTRADAY_HEART_RATE_TOPIC_DEFAULT = "connect_fitbit_intraday_heart_rate";
 
-  private static final String FITBIT_SLEEP_STATE_TOPIC_CONFIG = "fitbit.sleep.state.topic";
-  private static final String FITBIT_SLEEP_STATE_TOPIC_DOC = "Topic for Fitbit sleep state";
-  private static final String FITBIT_SLEEP_STATE_TOPIC_DISPLAY = "Sleep state topic";
+  private static final String FITBIT_SLEEP_STAGES_TOPIC_CONFIG = "fitbit.sleep.stages.topic";
+  private static final String FITBIT_SLEEP_STAGES_TOPIC_DOC = "Topic for Fitbit sleep stages";
+  private static final String FITBIT_SLEEP_STAGES_TOPIC_DEFAULT = "connect_fitbit_sleep_stages";
+  private static final String FITBIT_SLEEP_STAGES_TOPIC_DISPLAY = "Sleep stages topic";
+
+  private static final String FITBIT_SLEEP_CLASSIC_TOPIC_CONFIG = "fitbit.sleep.classic.topic";
+  private static final String FITBIT_SLEEP_CLASSIC_TOPIC_DOC = "Topic for Fitbit sleep classic data";
+  private static final String FITBIT_SLEEP_CLASSIC_TOPIC_DEFAULT = "connect_fitbit_sleep_classic";
+  private static final String FITBIT_SLEEP_CLASSIC_TOPIC_DISPLAY = "Classic sleep topic";
+
+  private static final String FITBIT_TIME_ZONE_TOPIC_CONFIG = "fitbit.time.zone.topic";
+  private static final String FITBIT_TIME_ZONE_TOPIC_DOC = "Topic for Fitbit profile timezone";
+  private static final String FITBIT_TIME_ZONE_TOPIC_DEFAULT = "connect_fitbit_time_zone";
+  private static final String FITBIT_TIME_ZONE_TOPIC_DISPLAY = "Timezone topic";
+
 
   private final FitbitUserRepository fitbitUserRepository;
   private final Headers clientCredentials;
@@ -67,8 +84,7 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
       throw new ConnectException("Invalid class for: " + SOURCE_PAYLOAD_CONVERTER_CONFIG, e);
     }
 
-    String credentialString = getString(FITBIT_API_CLIENT_CONFIG) + ":"
-        + getPassword(FITBIT_API_SECRET_CONFIG).value();
+    String credentialString = getFitbitClient() + ":" + getFitbitClientSecret();
     String credentialsBase64 = Base64.getEncoder().encodeToString(
         credentialString.getBytes(StandardCharsets.UTF_8));
     this.clientCredentials = Headers.of("Authorization", "Basic " + credentialsBase64);
@@ -137,7 +153,7 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
 
         .define(FITBIT_INTRADAY_STEPS_TOPIC_CONFIG,
             ConfigDef.Type.STRING,
-            "connect_fitbit_intraday_steps",
+            FITBIT_INTRADAY_STEPS_TOPIC_DEFAULT,
             new ConfigDef.NonEmptyStringWithoutControlChars(),
             ConfigDef.Importance.LOW,
             FITBIT_INTRADAY_STEPS_TOPIC_DOC,
@@ -146,16 +162,49 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
             ConfigDef.Width.SHORT,
             FITBIT_INTRADAY_STEPS_TOPIC_DISPLAY)
 
-        .define(FITBIT_SLEEP_STATE_TOPIC_CONFIG,
+        .define(FITBIT_INTRADAY_HEART_RATE_TOPIC_CONFIG,
             ConfigDef.Type.STRING,
-            "connect_fitbit_sleep_state",
+            FITBIT_INTRADAY_HEART_RATE_TOPIC_DEFAULT,
             new ConfigDef.NonEmptyStringWithoutControlChars(),
             ConfigDef.Importance.LOW,
-            FITBIT_SLEEP_STATE_TOPIC_DOC,
+            FITBIT_INTRADAY_HEART_RATE_TOPIC_DOC,
             group,
             ++orderInGroup,
             ConfigDef.Width.SHORT,
-            FITBIT_SLEEP_STATE_TOPIC_DISPLAY)
+            FITBIT_INTRADAY_HEART_RATE_TOPIC_DISPLAY)
+
+        .define(FITBIT_SLEEP_STAGES_TOPIC_CONFIG,
+            ConfigDef.Type.STRING,
+            FITBIT_SLEEP_STAGES_TOPIC_DEFAULT,
+            new ConfigDef.NonEmptyStringWithoutControlChars(),
+            ConfigDef.Importance.LOW,
+            FITBIT_SLEEP_STAGES_TOPIC_DOC,
+            group,
+            ++orderInGroup,
+            ConfigDef.Width.SHORT,
+            FITBIT_SLEEP_STAGES_TOPIC_DISPLAY)
+
+        .define(FITBIT_SLEEP_CLASSIC_TOPIC_CONFIG,
+            ConfigDef.Type.STRING,
+            FITBIT_SLEEP_CLASSIC_TOPIC_DEFAULT,
+            new ConfigDef.NonEmptyStringWithoutControlChars(),
+            ConfigDef.Importance.LOW,
+            FITBIT_SLEEP_CLASSIC_TOPIC_DOC,
+            group,
+            ++orderInGroup,
+            ConfigDef.Width.SHORT,
+            FITBIT_SLEEP_CLASSIC_TOPIC_DISPLAY)
+
+        .define(FITBIT_TIME_ZONE_TOPIC_CONFIG,
+            ConfigDef.Type.STRING,
+            FITBIT_TIME_ZONE_TOPIC_DEFAULT,
+            new ConfigDef.NonEmptyStringWithoutControlChars(),
+            ConfigDef.Importance.LOW,
+            FITBIT_TIME_ZONE_TOPIC_DOC,
+            group,
+            ++orderInGroup,
+            ConfigDef.Width.SHORT,
+            FITBIT_TIME_ZONE_TOPIC_DISPLAY)
         ;
   }
 
@@ -168,7 +217,7 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
   }
 
   public String getFitbitClientSecret() {
-    return getString(FITBIT_API_SECRET_CONFIG);
+    return getPassword(FITBIT_API_SECRET_CONFIG).value();
   }
 
   public FitbitUserRepository getFitbitUserRepository() {
@@ -180,8 +229,19 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
     return getString(FITBIT_INTRADAY_STEPS_TOPIC_CONFIG);
   }
 
-  public String getFitbitSleepStageTopic() {
-    return getString(FITBIT_SLEEP_STATE_TOPIC_CONFIG);
+  public String getFitbitSleepStagesTopic() {
+    return getString(FITBIT_SLEEP_STAGES_TOPIC_CONFIG);
+  }
+
+  public String getFitbitTimeZoneTopic() {
+    return getString(FITBIT_TIME_ZONE_TOPIC_CONFIG);
+  }
+
+  public String getFitbitIntradayHeartRateTopic() {
+    return getString(FITBIT_INTRADAY_HEART_RATE_TOPIC_CONFIG);
+  }
+  public String getFitbitSleepClassicTopic() {
+    return getString(FITBIT_SLEEP_CLASSIC_TOPIC_CONFIG);
   }
 
   public Path getFitbitUserCredentialsPath() {

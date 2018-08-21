@@ -12,30 +12,29 @@ import java.util.stream.Stream;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
 import org.radarbase.connect.rest.fitbit.FitbitRestSourceConnectorConfig;
 import org.radarbase.connect.rest.fitbit.request.FitbitRestRequest;
-import org.radarcns.connector.fitbit.FitbitIntradaySteps;
+import org.radarcns.connector.fitbit.FitbitIntradayHeartRate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class FitbitIntradayStepsAvroConverter extends FitbitAvroConverter {
+public class FitbitIntradayHeartRateAvroConverter extends FitbitAvroConverter {
   private static final Logger logger = LoggerFactory.getLogger(
-      FitbitIntradayStepsAvroConverter.class);
+      FitbitIntradayHeartRateAvroConverter.class);
+  private String heartRateTopic;
 
-  private String stepTopic;
-
-  public FitbitIntradayStepsAvroConverter(AvroData avroData) {
+  public FitbitIntradayHeartRateAvroConverter(AvroData avroData) {
     super(avroData);
   }
 
   @Override
   public void initialize(RestSourceConnectorConfig config) {
-    stepTopic = ((FitbitRestSourceConnectorConfig) config).getFitbitIntradayStepsTopic();
-    logger.info("Using step topic {}", stepTopic);
+    heartRateTopic = ((FitbitRestSourceConnectorConfig) config).getFitbitIntradayHeartRateTopic();
+    logger.info("Using heart rate topic {}", heartRateTopic);
   }
 
   @Override
   protected Stream<TopicData> processRecords(FitbitRestRequest request, JsonNode root,
       double timeReceived) {
-    JsonNode intraday = root.get("activities-steps-intraday");
+    JsonNode intraday = root.get("activities-heart-intraday");
     if (intraday == null) {
       return Stream.empty();
     }
@@ -45,25 +44,23 @@ public class FitbitIntradayStepsAvroConverter extends FitbitAvroConverter {
       return Stream.empty();
     }
 
-    int interval = getRecordInterval(intraday, 60);
+    int interval = getRecordInterval(intraday, 1);
     ZonedDateTime startDate = request.getStartOffset().atZone(UTC);
 
     return iterableToStream(dataset)
         .map(tryOrNull(activity -> {
-
-          Instant time = startDate
-              .with(LocalTime.parse(activity.get("time").asText()))
+          Instant time = startDate.with(LocalTime.parse(activity.get("time").asText()))
               .toInstant();
 
-          FitbitIntradaySteps steps = new FitbitIntradaySteps(
+          FitbitIntradayHeartRate heartRate = new FitbitIntradayHeartRate(
               time.toEpochMilli() / 1000d,
               timeReceived,
               interval,
               activity.get("value").asInt());
 
-          return new TopicData(time, stepTopic, steps);
+          return new TopicData(time, heartRateTopic, heartRate);
         }, (a, ex) -> logger.warn(
-            "Failed to convert steps from request {} of user {}, {}",
+            "Failed to convert heart rate from request {} of user {}, {}",
             request.getRequest().url(), request.getUser(), a, ex)));
   }
 }
