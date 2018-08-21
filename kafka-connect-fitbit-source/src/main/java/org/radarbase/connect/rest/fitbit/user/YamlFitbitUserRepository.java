@@ -45,6 +45,11 @@ import org.radarbase.connect.rest.fitbit.config.LocalFitbitUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * User repository that reads and writes configuration of YAML files in a local directory. The
+ * directory will be recursively scanned for all YAML files. Those should all contain
+ * {@link LocalFitbitUser} serializations.
+ */
 public class YamlFitbitUserRepository implements FitbitUserRepository {
   private static final Logger logger = LoggerFactory.getLogger(YamlFitbitUserRepository.class);
   private static final YAMLFactory YAML_FACTORY = new YAMLFactory();
@@ -79,7 +84,7 @@ public class YamlFitbitUserRepository implements FitbitUserRepository {
     if (user == null) {
       return null;
     } else {
-      return user.apply(Function.identity());
+      return user.apply(LocalFitbitUser::copy);
     }
   }
 
@@ -113,7 +118,7 @@ public class YamlFitbitUserRepository implements FitbitUserRepository {
     if (!configuredUsers.isEmpty()) {
       users = users.filter(lockedTest(u -> configuredUsers.contains(u.getId())));
     }
-    return users.map(lockedApply(Function.identity()));
+    return users.map(lockedApply(LocalFitbitUser::copy));
   }
 
   @Override
@@ -270,6 +275,10 @@ public class YamlFitbitUserRepository implements FitbitUserRepository {
     }
   }
 
+  /**
+   * Local user that is protected by a multi-threading lock to avoid simultaneous IO
+   * and modifications.
+   */
   private final class LockedUser {
     final Lock lock = new ReentrantLock();
     final LocalFitbitUser user;

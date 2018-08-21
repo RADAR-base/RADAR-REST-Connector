@@ -75,6 +75,10 @@ public class FitbitSleepAvroConverter extends FitbitAvroConverter {
         .flatMap(tryOrNull(s -> {
           Instant startTime = Instant.from(DATE_TIME_FORMAT.parse(s.get("startTime").asText()));
           boolean isStages = s.get("type") == null || s.get("type").asText().equals("stages");
+
+          // use an intermediate offset for all records but the last. Since the query time
+          // depends only on the start time of a sleep stages group, this will reprocess the entire
+          // sleep stages group if something goes wrong while processing.
           Instant intermediateOffset = startTime.minus(Duration.ofSeconds(1));
 
           List<TopicData> allRecords = iterableToStream(s.get("levels").get("data"))
@@ -106,6 +110,8 @@ public class FitbitSleepAvroConverter extends FitbitAvroConverter {
               })
               .collect(Collectors.toList());
 
+          // The final group gets the actual offset, to ensure that the group does not get queried
+          // again.
           allRecords.get(allRecords.size() - 1).sourceOffset = startTime;
 
           return allRecords.stream();

@@ -1,6 +1,7 @@
 package org.radarbase.connect.rest.fitbit.config;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -13,7 +14,7 @@ import org.radarbase.connect.rest.fitbit.user.FitbitUser;
 import org.radarbase.connect.rest.fitbit.user.OAuth2UserCredentials;
 
 @JsonInclude(Include.NON_EMPTY)
-//@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class LocalFitbitUser implements FitbitUser {
   private static final Pattern ILLEGAL_CHARACTERS_PATTERN = Pattern.compile("[^a-zA-Z0-9_-]");
   private String id;
@@ -70,6 +71,19 @@ public class LocalFitbitUser implements FitbitUser {
 
   public void setOauth2Credentials(OAuth2UserCredentials oauth2Credentials) {
     this.oauth2Credentials = oauth2Credentials;
+  }
+
+  public LocalFitbitUser copy() {
+    LocalFitbitUser copy = new LocalFitbitUser();
+    copy.id = id;
+    copy.fitbitUserId = fitbitUserId;
+    copy.projectId = projectId;
+    copy.userId = userId;
+    copy.startDate = startDate;
+    copy.endDate = endDate;
+    copy.sourceId = sourceId;
+    copy.oauth2Credentials = oauth2Credentials;
+    return copy;
   }
 
   public synchronized SchemaAndValue getObservationKey(AvroData avroData) {

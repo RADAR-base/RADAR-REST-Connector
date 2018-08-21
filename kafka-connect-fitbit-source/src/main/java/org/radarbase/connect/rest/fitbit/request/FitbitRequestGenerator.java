@@ -26,6 +26,9 @@ import org.radarbase.connect.rest.request.RequestRoute;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Generate all requests for Fitbit API.
+ */
 public class FitbitRequestGenerator extends RequestGeneratorRouter {
   public static final JsonFactory JSON_FACTORY = new JsonFactory();
   public static final ObjectReader JSON_READER = new ObjectMapper(JSON_FACTORY).reader();

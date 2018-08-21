@@ -27,9 +27,13 @@ public class FitbitSourceConnector extends AbstractRestSourceConnector {
   public List<Map<String, String>> taskConfigs(int maxTasks) {
     Map<String, String> baseConfig = config.originalsStrings();
     FitbitRestSourceConnectorConfig fitbitConfig = getConfig(baseConfig);
+    // Divide the users over tasks
     try {
       return fitbitConfig.getFitbitUserRepository().stream()
           .map(FitbitUser::getId)
+          // group users based on their hashCode
+          // in principle this allows for more efficient reconfigurations for a fixed number of tasks,
+          // since that allows existing tasks to only handle small modifications users to handle.
           .collect(Collectors.groupingBy(
               u -> Math.abs(u.hashCode()) % maxTasks,
               Collectors.joining(",")))

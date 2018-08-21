@@ -46,6 +46,8 @@ public class FitbitIntradayStepsAvroConverter extends FitbitAvroConverter {
     }
 
     int interval = getRecordInterval(intraday, 60);
+
+    // Used as the date to convert the local times in the dataset to absolute times.
     ZonedDateTime startDate = request.getStartOffset().atZone(UTC);
 
     return iterableToStream(dataset)

@@ -11,6 +11,9 @@ import org.radarbase.connect.rest.fitbit.user.FitbitUserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Authenticator for Fitbit, which tries to refresh the access token if a request is unauthorized.
+ */
 public class TokenAuthenticator implements Authenticator {
   private static final Logger logger = LoggerFactory.getLogger(TokenAuthenticator.class);
 

@@ -8,6 +8,10 @@ import org.radarbase.connect.rest.fitbit.user.FitbitUser;
 import org.radarbase.connect.rest.request.RequestRoute;
 import org.radarbase.connect.rest.request.RestRequest;
 
+/**
+ * REST request taking into account the user and offsets queried. The offsets are useful for
+ * defining what dates to poll (again).
+ */
 public class FitbitRestRequest extends RestRequest {
   private final FitbitUser user;
   private final Instant startOffset;

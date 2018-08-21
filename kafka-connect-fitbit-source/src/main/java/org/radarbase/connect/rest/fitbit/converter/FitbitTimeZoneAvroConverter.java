@@ -28,7 +28,12 @@ public class FitbitTimeZoneAvroConverter extends FitbitAvroConverter {
   @Override
   protected Stream<TopicData> processRecords(FitbitRestRequest request, JsonNode root,
       double timeReceived) {
-    JsonNode offsetNode = root.get("user").get("offsetFromUTCMillis");
+    JsonNode user = root.get("user");
+    if (user == null) {
+      logger.warn("Failed to get timezone from {}, {}", request.getRequest().url(), root);
+      return Stream.empty();
+    }
+    JsonNode offsetNode = user.get("offsetFromUTCMillis");
     Integer offset = offsetNode == null ? null : (int) (offsetNode.asLong() / 1000L);
 
     FitbitTimeZone timeZone = new FitbitTimeZone(timeReceived, offset);
