@@ -1,9 +1,12 @@
 package org.radarbase.connect.rest;
 
+import java.time.Duration;
 import org.apache.kafka.common.config.AbstractConfig;
 import org.apache.kafka.common.config.ConfigDef;
+import org.apache.kafka.common.config.ConfigDef.ConfigKey;
 import org.apache.kafka.common.config.ConfigDef.Importance;
 import org.apache.kafka.common.config.ConfigDef.Type;
+import org.apache.kafka.common.config.ConfigDef.Width;
 import org.apache.kafka.connect.errors.ConnectException;
 import org.radarbase.connect.rest.config.ValidClass;
 import org.radarbase.connect.rest.converter.PayloadToSourceRecordConverter;
@@ -97,7 +100,7 @@ public class RestSourceConnectorConfig extends AbstractConfig {
             SOURCE_POLL_INTERVAL_DOC,
             group,
             ++orderInGroup,
-            ConfigDef.Width.SHORT,
+            Width.SHORT,
             SOURCE_POLL_INTERVAL_DISPLAY)
 
         .define(SOURCE_URL_CONFIG,
@@ -107,7 +110,7 @@ public class RestSourceConnectorConfig extends AbstractConfig {
             SOURCE_URL_DOC,
             group,
             ++orderInGroup,
-            ConfigDef.Width.SHORT,
+            Width.SHORT,
             SOURCE_URL_DISPLAY)
 
         .define(SOURCE_TOPIC_LIST_CONFIG,
@@ -117,7 +120,7 @@ public class RestSourceConnectorConfig extends AbstractConfig {
             SOURCE_TOPIC_LIST_DOC,
             group,
             ++orderInGroup,
-            ConfigDef.Width.SHORT,
+            Width.SHORT,
             SOURCE_TOPIC_LIST_DISPLAY)
 
         .define(SOURCE_TOPIC_SELECTOR_CONFIG,
@@ -128,7 +131,7 @@ public class RestSourceConnectorConfig extends AbstractConfig {
             SOURCE_TOPIC_SELECTOR_DOC,
             group,
             ++orderInGroup,
-            ConfigDef.Width.SHORT,
+            Width.SHORT,
             SOURCE_TOPIC_SELECTOR_DISPLAY)
 
         .define(SOURCE_PAYLOAD_CONVERTER_CONFIG,
@@ -139,7 +142,7 @@ public class RestSourceConnectorConfig extends AbstractConfig {
             SOURCE_PAYLOAD_CONVERTER_DOC_CONFIG,
             group,
             ++orderInGroup,
-            ConfigDef.Width.SHORT,
+            Width.SHORT,
             SOURCE_PAYLOAD_CONVERTER_DISPLAY_CONFIG)
 
         .define(SOURCE_REQUEST_GENERATOR_CONFIG,
@@ -150,13 +153,13 @@ public class RestSourceConnectorConfig extends AbstractConfig {
             REQUEST_GENERATOR_DOC,
             group,
             ++orderInGroup,
-            ConfigDef.Width.SHORT,
+            Width.SHORT,
             REQUEST_GENERATOR_DISPLAY)
         ;
   }
 
-  public Long getPollInterval() {
-    return this.getLong(SOURCE_POLL_INTERVAL_CONFIG);
+  public Duration getPollInterval() {
+    return Duration.ofMillis(this.getLong(SOURCE_POLL_INTERVAL_CONFIG));
   }
 
   public String getUrl() {
@@ -178,9 +181,9 @@ public class RestSourceConnectorConfig extends AbstractConfig {
   }
 
   private static ConfigDef getConfig() {
-    Map<String, ConfigDef.ConfigKey> everything = new HashMap<>(conf().configKeys());
+    Map<String, ConfigKey> everything = new HashMap<>(conf().configKeys());
     ConfigDef visible = new ConfigDef();
-    for (ConfigDef.ConfigKey key : everything.values()) {
+    for (ConfigKey key : everything.values()) {
       visible.define(key);
     }
     return visible;
@@ -194,5 +197,13 @@ public class RestSourceConnectorConfig extends AbstractConfig {
   public RequestGenerator getRequestGenerator() {
     requestGenerator.initialize(this);
     return requestGenerator;
+  }
+
+  public long getMaxUsersPerPoll() {
+    return 100L;
+  }
+
+  public Duration getPollIntervalPerUser() {
+    return Duration.ofMinutes(30);
   }
 }

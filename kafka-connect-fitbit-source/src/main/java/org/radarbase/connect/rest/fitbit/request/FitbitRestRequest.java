@@ -1,6 +1,7 @@
 package org.radarbase.connect.rest.fitbit.request;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -17,8 +18,10 @@ public class FitbitRestRequest extends RestRequest {
   private final Instant startOffset;
   private final Instant endOffset;
 
-  public FitbitRestRequest(RequestRoute requestRoute, Request request, FitbitUser user, Map<String, Object> partition, OkHttpClient client, Instant startOffset, Instant endOffset) {
-    super(requestRoute, request, partition, client);
+  public FitbitRestRequest(
+      RequestRoute requestRoute, Request request, FitbitUser user,
+      Map<String, Object> partition, OkHttpClient client, Instant startOffset, Instant endOffset) {
+    super(requestRoute, client, request, partition);
     this.user = user;
     this.startOffset = startOffset;
     this.endOffset = endOffset;

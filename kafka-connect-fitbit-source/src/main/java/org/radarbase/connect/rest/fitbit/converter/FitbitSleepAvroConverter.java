@@ -56,8 +56,8 @@ public class FitbitSleepAvroConverter extends FitbitAvroConverter {
   }
 
   @Override
-  protected Stream<TopicData> processRecords(FitbitRestRequest request, JsonNode root,
-      double timeReceived) {
+  protected Stream<TopicData> processRecords(
+      FitbitRestRequest request, JsonNode root, double timeReceived) {
     JsonNode meta = root.get("meta");
     if (meta != null) {
       JsonNode state = meta.get("state");

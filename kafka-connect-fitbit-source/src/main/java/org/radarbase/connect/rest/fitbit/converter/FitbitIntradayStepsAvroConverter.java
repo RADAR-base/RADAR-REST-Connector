@@ -33,8 +33,8 @@ public class FitbitIntradayStepsAvroConverter extends FitbitAvroConverter {
   }
 
   @Override
-  protected Stream<TopicData> processRecords(FitbitRestRequest request, JsonNode root,
-      double timeReceived) {
+  protected Stream<TopicData> processRecords(
+      FitbitRestRequest request, JsonNode root, double timeReceived) {
     JsonNode intraday = root.get("activities-steps-intraday");
     if (intraday == null) {
       return Stream.empty();

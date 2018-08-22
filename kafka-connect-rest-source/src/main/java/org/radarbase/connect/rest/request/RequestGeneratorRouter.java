@@ -1,5 +1,7 @@
 package org.radarbase.connect.rest.request;
 
+import java.time.Instant;
+import java.util.Comparator;
 import org.apache.kafka.connect.storage.OffsetStorageReader;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
 
@@ -13,11 +15,11 @@ public abstract class RequestGeneratorRouter implements RequestGenerator {
   }
 
   @Override
-  public long getTimeOfNextRequest() {
+  public Instant getTimeOfNextRequest() {
     return routes()
-        .mapToLong(RequestRoute::getTimeOfNextRequest)
-        .min()
-        .orElse(Long.MAX_VALUE);
+        .map(RequestRoute::getTimeOfNextRequest)
+        .min(Comparator.naturalOrder())
+        .orElse(Instant.MAX);
   }
 
   public abstract Stream<RequestRoute> routes();

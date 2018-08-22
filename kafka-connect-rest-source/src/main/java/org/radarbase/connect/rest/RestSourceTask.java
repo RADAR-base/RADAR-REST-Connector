@@ -1,5 +1,14 @@
 package org.radarbase.connect.rest;
 
+import static java.time.temporal.ChronoUnit.MILLIS;
+import static org.radarbase.connect.rest.util.ThrowingFunction.tryOrNull;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.atomic.LongAdder;
+import java.util.stream.Collectors;
 import org.apache.kafka.connect.errors.ConnectException;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.apache.kafka.connect.source.SourceTask;
@@ -8,14 +17,6 @@ import org.radarbase.connect.rest.request.RestRequest;
 import org.radarbase.connect.rest.util.VersionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.atomic.LongAdder;
-import java.util.stream.Collectors;
-
-import static org.radarbase.connect.rest.util.ThrowingFunction.tryOrNull;
 
 public class RestSourceTask extends SourceTask {
   private static Logger logger = LoggerFactory.getLogger(RestSourceTask.class);
@@ -40,7 +41,7 @@ public class RestSourceTask extends SourceTask {
 
   @Override
   public List<SourceRecord> poll() throws InterruptedException {
-    long timeout = requestGenerator.getTimeOfNextRequest() - System.currentTimeMillis();
+    long timeout = MILLIS.between(Instant.now(), requestGenerator.getTimeOfNextRequest());
     if (timeout > 0) {
       logger.info("Waiting {} milliseconds for next available request", timeout);
       Thread.sleep(timeout);

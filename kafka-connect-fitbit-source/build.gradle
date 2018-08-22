@@ -1,9 +1,10 @@
 dependencies {
-    implementation project(':kafka-connect-rest-source')
-    implementation group: 'org.radarcns', name: 'radar-schemas-commons', version: '0.3.7-SNAPSHOT'
+    api project(':kafka-connect-rest-source')
+    api group: 'io.confluent', name: 'kafka-connect-avro-converter', version: confluentVersion
+    api group: 'org.radarcns', name: 'radar-schemas-commons', version: '0.3.7-SNAPSHOT'
+
     implementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: jacksonVersion
     implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: jacksonVersion
-    implementation group: 'io.confluent', name: 'kafka-connect-avro-converter', version: confluentVersion
 
     // Included in connector runtime
     compileOnly group: 'org.apache.kafka', name: 'connect-api', version: kafkaVersion

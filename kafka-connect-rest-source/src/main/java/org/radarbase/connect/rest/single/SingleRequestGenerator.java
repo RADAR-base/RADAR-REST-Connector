@@ -1,5 +1,7 @@
 package org.radarbase.connect.rest.single;
 
+import java.time.Duration;
+import java.time.Instant;
 import okhttp3.Headers;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
@@ -17,17 +19,22 @@ import org.radarbase.connect.rest.request.RestRequest;
 import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Stream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.radarbase.connect.rest.converter.PayloadToSourceRecordConverter.TIMESTAMP_OFFSET_KEY;
+import static org.radarbase.connect.rest.request.PollingRequestRoute.max;
 
 /** Loads a single URL. */
 public class SingleRequestGenerator implements RequestRoute {
-  private long lastTimestamp;
+  private static final Logger logger = LoggerFactory.getLogger(SingleRequestGenerator.class);
+
+  private Instant lastTimestamp;
   private HttpUrl url;
   private String method;
   private RequestBody body;
-  private long pollInterval;
-  private long lastPoll;
+  private Duration pollInterval;
+  private Instant lastPoll;
   private Map<String, Object> key;
   private Headers headers;
   private PayloadToSourceRecordConverter converter;
@@ -37,7 +44,7 @@ public class SingleRequestGenerator implements RequestRoute {
   public void initialize(RestSourceConnectorConfig config) {
     SingleRestSourceConnectorConfig singleConfig = (SingleRestSourceConnectorConfig) config;
     this.pollInterval = config.getPollInterval();
-    lastPoll = 0L;
+    lastPoll = Instant.MIN;
 
     this.url = HttpUrl.parse(config.getUrl());
     this.key = Collections.singletonMap("URL", config.getUrl());
@@ -65,44 +72,46 @@ public class SingleRequestGenerator implements RequestRoute {
   }
 
   @Override
-  public long getTimeOfNextRequest() {
-    return Math.max(lastTimestamp, lastPoll) + pollInterval;
+  public Instant getTimeOfNextRequest() {
+    return max(lastTimestamp, lastPoll).plus(pollInterval);
   }
 
   @Override
   public Stream<RestRequest> requests() {
-    return Stream.of(new RestRequest(this, new Request.Builder()
+    return Stream.of(new RestRequest(this, client, new Request.Builder()
         .method(method, body)
         .url(url)
         .headers(headers)
-        .build(), key, client));
+        .build(), key));
   }
 
   @Override
   public void requestSucceeded(RestRequest processedResponse, SourceRecord record) {
-    lastTimestamp = (Long)record.sourceOffset().get(TIMESTAMP_OFFSET_KEY);
-    lastPoll = System.currentTimeMillis();
+    lastTimestamp = Instant.ofEpochMilli((Long)record.sourceOffset().get(TIMESTAMP_OFFSET_KEY));
+    lastPoll = Instant.now();
   }
 
   @Override
   public void requestEmpty(RestRequest request) {
-    lastPoll = System.currentTimeMillis();
+    lastPoll = Instant.now();
   }
 
   @Override
   public void requestFailed(RestRequest request, Response response) {
-    lastPoll = System.currentTimeMillis();
+    lastPoll = Instant.now();
   }
 
   @Override
   public void setOffsetStorageReader(OffsetStorageReader offsetStorageReader) {
-    lastTimestamp = 0L;
+    lastTimestamp = Instant.MIN;
 
     if (offsetStorageReader != null) {
       Map<String, Object> offset = offsetStorageReader.offset(key);
       if (offset != null) {
-        lastTimestamp = (Long) offset.getOrDefault(TIMESTAMP_OFFSET_KEY, 0L);
+        lastTimestamp = Instant.ofEpochMilli((Long) offset.getOrDefault(TIMESTAMP_OFFSET_KEY, 0L));
       }
+    } else {
+      logger.warn("Offset storage reader is not provided. Cannot restart from previous timestamp.");
     }
   }
 

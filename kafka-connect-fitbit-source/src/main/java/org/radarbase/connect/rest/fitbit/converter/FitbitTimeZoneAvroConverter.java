@@ -26,7 +26,9 @@ public class FitbitTimeZoneAvroConverter extends FitbitAvroConverter {
   }
 
   @Override
-  protected Stream<TopicData> processRecords(FitbitRestRequest request, JsonNode root,
+  protected Stream<TopicData> processRecords(
+      FitbitRestRequest request,
+      JsonNode root,
       double timeReceived) {
     JsonNode user = root.get("user");
     if (user == null) {

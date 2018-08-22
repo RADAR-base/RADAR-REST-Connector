@@ -1,5 +1,6 @@
 package org.radarbase.connect.rest.request;
 
+import java.time.Instant;
 import org.apache.kafka.connect.storage.OffsetStorageReader;
 import org.radarbase.connect.rest.config.RestSourceTool;
 
@@ -10,7 +11,16 @@ import java.util.stream.Stream;
  * the response SourceRecord.
  */
 public interface RequestGenerator extends RestSourceTool {
-  long getTimeOfNextRequest();
+  Instant getTimeOfNextRequest();
+
+  /**
+   * Requests that should be queried next.
+   */
   Stream<? extends RestRequest> requests();
+
+  /**
+   * Set the Kafka offset storage reader. This allows for resetting the request intervals.
+   * @param offsetStorageReader possibly null offset storage reader.
+   */
   void setOffsetStorageReader(OffsetStorageReader offsetStorageReader);
 }

@@ -3,6 +3,8 @@ package org.radarbase.connect.rest.fitbit.route;
 import io.confluent.connect.avro.AvroData;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.TemporalAmount;
+import java.util.stream.Stream;
 import org.radarbase.connect.rest.fitbit.converter.FitbitTimeZoneAvroConverter;
 import org.radarbase.connect.rest.fitbit.request.FitbitRequestGenerator;
 import org.radarbase.connect.rest.fitbit.request.FitbitRestRequest;
@@ -10,6 +12,8 @@ import org.radarbase.connect.rest.fitbit.user.FitbitUser;
 import org.radarbase.connect.rest.fitbit.user.FitbitUserRepository;
 
 public class FitbitTimeZoneRoute extends FitbitPollingRoute {
+  protected static final Duration TIME_ZONE_POLL_INTERVAL = Duration.ofHours(1);
+
   private final FitbitTimeZoneAvroConverter converter;
 
   public FitbitTimeZoneRoute(FitbitRequestGenerator generator,
@@ -23,9 +27,9 @@ public class FitbitTimeZoneRoute extends FitbitPollingRoute {
     return baseUrl + "/1/user/%s/profile.json";
   }
 
-  protected FitbitRestRequest makeRequest(FitbitUser user) {
+  protected Stream<FitbitRestRequest> createRequests(FitbitUser user) {
     Instant now = Instant.now();
-    return newRequest(user, now, now, user.getFitbitUserId());
+    return Stream.of(newRequest(user, now, now, user.getFitbitUserId()));
   }
 
   @Override
@@ -34,7 +38,12 @@ public class FitbitTimeZoneRoute extends FitbitPollingRoute {
   }
 
   @Override
+  protected Duration getPollIntervalPerUser() {
+    return TIME_ZONE_POLL_INTERVAL;
+  }
+
+  @Override
   protected Duration getLookbackTime() {
-    return Duration.ofHours(1);
+    return Duration.ZERO;
   }
 }

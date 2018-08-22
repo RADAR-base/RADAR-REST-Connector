@@ -1,11 +1,14 @@
 package org.radarbase.connect.rest.fitbit.route;
 
+import static java.time.temporal.ChronoUnit.DAYS;
+import static java.time.temporal.ChronoUnit.MINUTES;
+import static java.time.temporal.ChronoUnit.SECONDS;
+
 import io.confluent.connect.avro.AvroData;
-import java.time.Duration;
 import java.time.Instant;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAmount;
+import java.util.stream.Stream;
 import org.radarbase.connect.rest.fitbit.converter.FitbitIntradayStepsAvroConverter;
 import org.radarbase.connect.rest.fitbit.request.FitbitRequestGenerator;
 import org.radarbase.connect.rest.fitbit.request.FitbitRestRequest;
@@ -13,6 +16,8 @@ import org.radarbase.connect.rest.fitbit.user.FitbitUser;
 import org.radarbase.connect.rest.fitbit.user.FitbitUserRepository;
 
 public class FitbitIntradayStepsRoute extends FitbitPollingRoute {
+  private static final TemporalAmount ONE_MINUTE = MINUTES.getDuration();
+
   private final FitbitIntradayStepsAvroConverter converter;
 
   public FitbitIntradayStepsRoute(FitbitRequestGenerator generator,
@@ -26,19 +31,11 @@ public class FitbitIntradayStepsRoute extends FitbitPollingRoute {
     return baseUrl + "/1/user/%s/activities/steps/date/%s/1d/1min/time/%s/%s.json?timezone=UTC";
   }
 
-  protected FitbitRestRequest makeRequest(FitbitUser user) {
-    ZonedDateTime startDate = this.getOffset(user)
-        .atZone(ZoneOffset.UTC)
-        .plus(Duration.ofMinutes(1))
-        .truncatedTo(ChronoUnit.MINUTES);
-
-    ZonedDateTime endDate = startDate.withHour(23).withMinute(59);
-
-    Instant startInstant = startDate.toInstant();
-
-    return newRequest(user, startInstant, startInstant.plus(ONE_DAY),
-        user.getFitbitUserId(), DATE_FORMAT.format(startDate),
-        TIME_FORMAT.format(startDate), TIME_FORMAT.format(endDate));
+  protected Stream<FitbitRestRequest> createRequests(FitbitUser user) {
+    return startDateGenerator(this.getOffset(user).plus(ONE_MINUTE).truncatedTo(MINUTES))
+        .map(dateRange -> newRequest(user, dateRange.from().toInstant(), dateRange.to().toInstant(),
+            user.getFitbitUserId(), DATE_FORMAT.format(dateRange.from()),
+            TIME_FORMAT.format(dateRange.from()), TIME_FORMAT.format(dateRange.to())));
   }
 
   @Override

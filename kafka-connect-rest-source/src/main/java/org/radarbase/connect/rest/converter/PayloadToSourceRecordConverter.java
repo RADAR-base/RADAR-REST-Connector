@@ -11,5 +11,6 @@ import java.util.Collection;
 public interface PayloadToSourceRecordConverter extends RestSourceTool {
   String TIMESTAMP_OFFSET_KEY = "timestamp";
 
-  Collection<SourceRecord> convert(RestRequest request, Response response) throws IOException;
+  Collection<SourceRecord> convert(
+      RestRequest request, Response response) throws IOException;
 }
