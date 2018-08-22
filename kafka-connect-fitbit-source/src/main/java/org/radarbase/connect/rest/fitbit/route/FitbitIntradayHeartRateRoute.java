@@ -1,14 +1,9 @@
 package org.radarbase.connect.rest.fitbit.route;
 
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_TIME;
-import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.SECONDS;
 
 import io.confluent.connect.avro.AvroData;
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.stream.Stream;
 import org.radarbase.connect.rest.fitbit.converter.FitbitIntradayHeartRateAvroConverter;
 import org.radarbase.connect.rest.fitbit.request.FitbitRequestGenerator;
@@ -33,10 +28,10 @@ public class FitbitIntradayHeartRateRoute extends FitbitPollingRoute {
 
   protected Stream<FitbitRestRequest> createRequests(FitbitUser user) {
     return startDateGenerator(getOffset(user).plus(ONE_SECOND).truncatedTo(SECONDS))
-        .map(dateRange -> newRequest(user, dateRange.from().toInstant(), dateRange.to().toInstant(),
-            user.getFitbitUserId(), DATE_FORMAT.format(dateRange.from()),
-            ISO_LOCAL_TIME.format(dateRange.from()),
-            ISO_LOCAL_TIME.format(dateRange.to().truncatedTo(SECONDS))));
+        .map(dateRange -> newRequest(user, dateRange,
+            user.getFitbitUserId(), DATE_FORMAT.format(dateRange.start()),
+            ISO_LOCAL_TIME.format(dateRange.start()),
+            ISO_LOCAL_TIME.format(dateRange.end().truncatedTo(SECONDS))));
   }
 
   @Override

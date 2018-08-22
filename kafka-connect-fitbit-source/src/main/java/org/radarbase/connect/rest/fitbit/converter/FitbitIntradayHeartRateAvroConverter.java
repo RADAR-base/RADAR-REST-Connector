@@ -1,6 +1,5 @@
 package org.radarbase.connect.rest.fitbit.converter;
 
-import static java.time.ZoneOffset.UTC;
 import static org.radarbase.connect.rest.util.ThrowingFunction.tryOrNull;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -47,7 +46,7 @@ public class FitbitIntradayHeartRateAvroConverter extends FitbitAvroConverter {
     int interval = getRecordInterval(intraday, 1);
 
     // Used as the date to convert the local times in the dataset to absolute times.
-    ZonedDateTime startDate = request.getStartOffset().atZone(UTC);
+    ZonedDateTime startDate = request.getDateRange().start();
 
     return iterableToStream(dataset)
         .map(tryOrNull(activity -> {

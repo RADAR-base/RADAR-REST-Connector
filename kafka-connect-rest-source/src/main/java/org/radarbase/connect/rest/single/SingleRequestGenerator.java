@@ -1,7 +1,13 @@
 package org.radarbase.connect.rest.single;
 
+import static org.radarbase.connect.rest.converter.PayloadToSourceRecordConverter.TIMESTAMP_OFFSET_KEY;
+import static org.radarbase.connect.rest.request.PollingRequestRoute.max;
+
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collections;
+import java.util.Map;
+import java.util.stream.Stream;
 import okhttp3.Headers;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
@@ -15,15 +21,8 @@ import org.radarbase.connect.rest.RestSourceConnectorConfig;
 import org.radarbase.connect.rest.converter.PayloadToSourceRecordConverter;
 import org.radarbase.connect.rest.request.RequestRoute;
 import org.radarbase.connect.rest.request.RestRequest;
-
-import java.util.Collections;
-import java.util.Map;
-import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static org.radarbase.connect.rest.converter.PayloadToSourceRecordConverter.TIMESTAMP_OFFSET_KEY;
-import static org.radarbase.connect.rest.request.PollingRequestRoute.max;
 
 /** Loads a single URL. */
 public class SingleRequestGenerator implements RequestRoute {

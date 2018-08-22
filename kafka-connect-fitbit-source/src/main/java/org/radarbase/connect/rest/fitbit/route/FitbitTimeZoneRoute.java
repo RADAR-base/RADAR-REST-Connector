@@ -1,15 +1,17 @@
 package org.radarbase.connect.rest.fitbit.route;
 
+import static java.time.ZoneOffset.UTC;
+
 import io.confluent.connect.avro.AvroData;
 import java.time.Duration;
-import java.time.Instant;
-import java.time.temporal.TemporalAmount;
+import java.time.ZonedDateTime;
 import java.util.stream.Stream;
 import org.radarbase.connect.rest.fitbit.converter.FitbitTimeZoneAvroConverter;
 import org.radarbase.connect.rest.fitbit.request.FitbitRequestGenerator;
 import org.radarbase.connect.rest.fitbit.request.FitbitRestRequest;
 import org.radarbase.connect.rest.fitbit.user.FitbitUser;
 import org.radarbase.connect.rest.fitbit.user.FitbitUserRepository;
+import org.radarbase.connect.rest.fitbit.util.DateRange;
 
 public class FitbitTimeZoneRoute extends FitbitPollingRoute {
   protected static final Duration TIME_ZONE_POLL_INTERVAL = Duration.ofHours(1);
@@ -28,8 +30,8 @@ public class FitbitTimeZoneRoute extends FitbitPollingRoute {
   }
 
   protected Stream<FitbitRestRequest> createRequests(FitbitUser user) {
-    Instant now = Instant.now();
-    return Stream.of(newRequest(user, now, now, user.getFitbitUserId()));
+    ZonedDateTime now = ZonedDateTime.now(UTC);
+    return Stream.of(newRequest(user, new DateRange(now, now), user.getFitbitUserId()));
   }
 
   @Override

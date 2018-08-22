@@ -1,14 +1,14 @@
 package org.radarbase.connect.rest.fitbit.converter;
 
-    import com.fasterxml.jackson.databind.JsonNode;
-    import io.confluent.connect.avro.AvroData;
-    import java.util.stream.Stream;
-    import org.radarbase.connect.rest.RestSourceConnectorConfig;
-    import org.radarbase.connect.rest.fitbit.FitbitRestSourceConnectorConfig;
-    import org.radarbase.connect.rest.fitbit.request.FitbitRestRequest;
-    import org.radarcns.connector.fitbit.FitbitTimeZone;
-    import org.slf4j.Logger;
-    import org.slf4j.LoggerFactory;
+import com.fasterxml.jackson.databind.JsonNode;
+import io.confluent.connect.avro.AvroData;
+import java.util.stream.Stream;
+import org.radarbase.connect.rest.RestSourceConnectorConfig;
+import org.radarbase.connect.rest.fitbit.FitbitRestSourceConnectorConfig;
+import org.radarbase.connect.rest.fitbit.request.FitbitRestRequest;
+import org.radarcns.connector.fitbit.FitbitTimeZone;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FitbitTimeZoneAvroConverter extends FitbitAvroConverter {
   private static final Logger logger = LoggerFactory.getLogger(FitbitTimeZoneAvroConverter.class);
@@ -40,6 +40,7 @@ public class FitbitTimeZoneAvroConverter extends FitbitAvroConverter {
 
     FitbitTimeZone timeZone = new FitbitTimeZone(timeReceived, offset);
 
-    return Stream.of(new TopicData(request.getStartOffset(), timeZoneTopic, timeZone));
+    return Stream.of(new TopicData(request.getDateRange().start().toInstant(),
+        timeZoneTopic, timeZone));
   }
 }

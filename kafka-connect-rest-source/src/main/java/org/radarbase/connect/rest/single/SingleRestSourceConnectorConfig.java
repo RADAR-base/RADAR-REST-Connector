@@ -1,17 +1,16 @@
 package org.radarbase.connect.rest.single;
 
+import static org.apache.kafka.common.config.ConfigDef.NO_DEFAULT_VALUE;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.config.ConfigDef.Importance;
 import org.apache.kafka.common.config.ConfigDef.Type;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
 import org.radarbase.connect.rest.config.MethodRecommender;
 import org.radarbase.connect.rest.config.MethodValidator;
-
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import static org.apache.kafka.common.config.ConfigDef.NO_DEFAULT_VALUE;
 
 public class SingleRestSourceConnectorConfig extends RestSourceConnectorConfig {
   public static final String SOURCE_METHOD_CONFIG = "rest.source.method";

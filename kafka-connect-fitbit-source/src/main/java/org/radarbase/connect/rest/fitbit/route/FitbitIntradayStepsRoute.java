@@ -1,12 +1,8 @@
 package org.radarbase.connect.rest.fitbit.route;
 
-import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.MINUTES;
-import static java.time.temporal.ChronoUnit.SECONDS;
 
 import io.confluent.connect.avro.AvroData;
-import java.time.Instant;
-import java.time.ZonedDateTime;
 import java.time.temporal.TemporalAmount;
 import java.util.stream.Stream;
 import org.radarbase.connect.rest.fitbit.converter.FitbitIntradayStepsAvroConverter;
@@ -33,9 +29,9 @@ public class FitbitIntradayStepsRoute extends FitbitPollingRoute {
 
   protected Stream<FitbitRestRequest> createRequests(FitbitUser user) {
     return startDateGenerator(this.getOffset(user).plus(ONE_MINUTE).truncatedTo(MINUTES))
-        .map(dateRange -> newRequest(user, dateRange.from().toInstant(), dateRange.to().toInstant(),
-            user.getFitbitUserId(), DATE_FORMAT.format(dateRange.from()),
-            TIME_FORMAT.format(dateRange.from()), TIME_FORMAT.format(dateRange.to())));
+        .map(dateRange -> newRequest(user, dateRange,
+            user.getFitbitUserId(), DATE_FORMAT.format(dateRange.start()),
+            TIME_FORMAT.format(dateRange.start()), TIME_FORMAT.format(dateRange.end())));
   }
 
   @Override

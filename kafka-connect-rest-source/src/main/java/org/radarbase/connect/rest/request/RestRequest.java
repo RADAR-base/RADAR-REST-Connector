@@ -1,14 +1,13 @@
 package org.radarbase.connect.rest.request;
 
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-import org.apache.kafka.connect.source.SourceRecord;
-
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Stream;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import org.apache.kafka.connect.source.SourceRecord;
 
 /**
  * Single request. This must originate from a RequestRoute and have a predefined source partition.

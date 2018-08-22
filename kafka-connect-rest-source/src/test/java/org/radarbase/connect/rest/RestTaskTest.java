@@ -1,22 +1,5 @@
 package org.radarbase.connect.rest;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import org.apache.kafka.connect.source.SourceRecord;
-import org.apache.kafka.connect.source.SourceTaskContext;
-import org.apache.kafka.connect.storage.OffsetStorageReader;
-import org.junit.Rule;
-import org.junit.Test;
-import org.radarbase.connect.rest.converter.BytesPayloadConverter;
-import org.radarbase.connect.rest.converter.StringPayloadConverter;
-import org.radarbase.connect.rest.selector.SimpleTopicSelector;
-import org.radarbase.connect.rest.single.SingleRestSourceConnector;
-import org.radarbase.connect.rest.single.SingleRestSourceConnectorConfig;
-
-import java.net.ServerSocket;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.matching;
@@ -27,6 +10,22 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.junit.Assert.assertEquals;
+
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import java.net.ServerSocket;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.apache.kafka.connect.source.SourceRecord;
+import org.apache.kafka.connect.source.SourceTaskContext;
+import org.apache.kafka.connect.storage.OffsetStorageReader;
+import org.junit.Rule;
+import org.junit.Test;
+import org.radarbase.connect.rest.converter.BytesPayloadConverter;
+import org.radarbase.connect.rest.converter.StringPayloadConverter;
+import org.radarbase.connect.rest.selector.SimpleTopicSelector;
+import org.radarbase.connect.rest.single.SingleRestSourceConnector;
+import org.radarbase.connect.rest.single.SingleRestSourceConnectorConfig;
 
 public class RestTaskTest {
 

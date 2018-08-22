@@ -2,27 +2,53 @@ package org.radarbase.connect.rest.fitbit.util;
 
 import java.time.ZonedDateTime;
 import java.time.temporal.TemporalAmount;
+import java.util.Objects;
 
 public class DateRange {
-  private final ZonedDateTime from;
-  private final ZonedDateTime to;
+  private final ZonedDateTime start;
+  private final ZonedDateTime end;
 
-  public DateRange(ZonedDateTime from, ZonedDateTime to) {
-    this.from = from;
-    this.to = to;
+  public DateRange(ZonedDateTime start, ZonedDateTime end) {
+    this.start = start;
+    this.end = end;
   }
 
-  public DateRange(ZonedDateTime from, TemporalAmount duration) {
-    this.from = from;
-    this.to = from.plus(duration);
+  public DateRange(ZonedDateTime start, TemporalAmount duration) {
+    this.start = start;
+    this.end = start.plus(duration);
   }
 
-
-  public ZonedDateTime from() {
-    return from;
+  public ZonedDateTime start() {
+    return start;
   }
 
-  public ZonedDateTime to() {
-    return to;
+  public ZonedDateTime end() {
+    return end;
+  }
+
+  @Override
+  public String toString() {
+    return "DateRange{"
+        + "start=" + start
+        + ", end=" + end
+        + '}';
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    DateRange dateRange = (DateRange) o;
+    return Objects.equals(start, dateRange.start) &&
+        Objects.equals(end, dateRange.end);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(start, end);
   }
 }

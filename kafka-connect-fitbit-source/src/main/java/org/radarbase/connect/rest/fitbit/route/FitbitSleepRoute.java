@@ -5,16 +5,15 @@ import static java.time.temporal.ChronoUnit.SECONDS;
 
 import io.confluent.connect.avro.AvroData;
 import java.time.Duration;
-import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.stream.Stream;
 import org.radarbase.connect.rest.fitbit.converter.FitbitSleepAvroConverter;
 import org.radarbase.connect.rest.fitbit.request.FitbitRequestGenerator;
 import org.radarbase.connect.rest.fitbit.request.FitbitRestRequest;
 import org.radarbase.connect.rest.fitbit.user.FitbitUser;
 import org.radarbase.connect.rest.fitbit.user.FitbitUserRepository;
+import org.radarbase.connect.rest.fitbit.util.DateRange;
 
 public class FitbitSleepRoute extends FitbitPollingRoute {
   public static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE_TIME
@@ -44,8 +43,8 @@ public class FitbitSleepRoute extends FitbitPollingRoute {
         .atZone(UTC)
         .truncatedTo(SECONDS);
 
-    return Stream.of(newRequest(user, startDate.toInstant(), Instant.now(), user.getFitbitUserId(),
-        DATE_TIME_FORMAT.format(startDate)));
+    return Stream.of(newRequest(user, new DateRange(startDate, ZonedDateTime.now(UTC)),
+        user.getFitbitUserId(), DATE_TIME_FORMAT.format(startDate)));
   }
 
 

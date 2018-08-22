@@ -1,6 +1,14 @@
 package org.radarbase.connect.rest;
 
+import static org.apache.kafka.common.config.ConfigDef.NO_DEFAULT_VALUE;
+
+import java.lang.reflect.InvocationTargetException;
 import java.time.Duration;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
 import org.apache.kafka.common.config.AbstractConfig;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.config.ConfigDef.ConfigKey;
@@ -16,15 +24,6 @@ import org.radarbase.connect.rest.selector.SimpleTopicSelector;
 import org.radarbase.connect.rest.selector.TopicSelector;
 import org.radarbase.connect.rest.single.SingleRequestGenerator;
 import org.radarbase.connect.rest.util.VersionUtil;
-
-import java.lang.reflect.InvocationTargetException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Pattern;
-
-import static org.apache.kafka.common.config.ConfigDef.NO_DEFAULT_VALUE;
 
 public class RestSourceConnectorConfig extends AbstractConfig {
   public static final Pattern COLON_PATTERN = Pattern.compile(":");

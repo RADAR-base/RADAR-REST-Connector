@@ -1,8 +1,7 @@
 package org.radarbase.connect.rest.config;
 
-import org.apache.kafka.common.config.ConfigDef;
-
 import java.util.HashMap;
+import org.apache.kafka.common.config.ConfigDef;
 
 public class MethodValidator implements ConfigDef.Validator {
   @Override

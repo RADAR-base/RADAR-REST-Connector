@@ -1,11 +1,10 @@
 package org.radarbase.connect.rest.fitbit.request;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import org.radarbase.connect.rest.fitbit.user.FitbitUser;
+import org.radarbase.connect.rest.fitbit.util.DateRange;
 import org.radarbase.connect.rest.request.RequestRoute;
 import org.radarbase.connect.rest.request.RestRequest;
 
@@ -15,28 +14,22 @@ import org.radarbase.connect.rest.request.RestRequest;
  */
 public class FitbitRestRequest extends RestRequest {
   private final FitbitUser user;
-  private final Instant startOffset;
-  private final Instant endOffset;
+  private final DateRange dateRange;
 
   public FitbitRestRequest(
       RequestRoute requestRoute, Request request, FitbitUser user,
-      Map<String, Object> partition, OkHttpClient client, Instant startOffset, Instant endOffset) {
+      Map<String, Object> partition, OkHttpClient client, DateRange dateRange) {
     super(requestRoute, client, request, partition);
     this.user = user;
-    this.startOffset = startOffset;
-    this.endOffset = endOffset;
+    this.dateRange = dateRange;
   }
 
   public FitbitUser getUser() {
     return user;
   }
 
-  public Instant getStartOffset() {
-    return startOffset;
-  }
-
-  public Instant getEndOffset() {
-    return endOffset;
+  public DateRange getDateRange() {
+    return dateRange;
   }
 
   @Override
@@ -44,8 +37,7 @@ public class FitbitRestRequest extends RestRequest {
     return "FitbitRestRequest{"
         + "url=" + getRequest().url()
         + ", user=" + user
-        + ", startOffset=" + startOffset
-        + ", endOffset=" + endOffset
+        + ", dateRange=" + dateRange
         + '}';
   }
 }

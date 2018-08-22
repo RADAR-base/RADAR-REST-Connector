@@ -1,10 +1,9 @@
 package org.radarbase.connect.rest.config;
 
-import org.apache.kafka.common.config.ConfigDef;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import org.apache.kafka.common.config.ConfigDef;
 
 public class MethodRecommender implements ConfigDef.Recommender {
   @Override

@@ -123,7 +123,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
   @Override
   public void requestEmpty(RestRequest request) {
     FitbitRestRequest fitbitRequest = (FitbitRestRequest) request;
-    Instant endOffset = fitbitRequest.getEndOffset();
+    Instant endOffset = fitbitRequest.getDateRange().end().toInstant();
     if (DAYS.between(endOffset, lastPoll) >= HISTORICAL_TIME_DAYS) {
       String key = fitbitRequest.getUser().getId();
       offsets.put(key, endOffset);
@@ -180,13 +180,12 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
   /**
    * Create a FitbitRestRequest for given arguments.
    * @param user Fitbit user
-   * @param startDate start date that may be queried in the request
-   * @param endDate end date that may be queried in the request, exclusive.
+   * @param dateRange dates that may be queried in the request
    * @param urlFormatArgs format arguments to {@link #getUrlFormat(String)}.
    * @return request or {@code null} if the authorization cannot be arranged.
    */
-  protected FitbitRestRequest newRequest(FitbitUser user,
-      Instant startDate, Instant endDate, Object... urlFormatArgs) {
+  protected FitbitRestRequest newRequest(FitbitUser user, DateRange dateRange,
+      Object... urlFormatArgs) {
     Request.Builder builder = new Request.Builder()
         .url(String.format(getUrlFormat(baseUrl), urlFormatArgs));
     try {
@@ -194,7 +193,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
           .header("Authorization", "Bearer " + userRepository.getAccessToken(user))
           .build();
       return new FitbitRestRequest(this, request, user, getPartition(user),
-          generator.getClient(user), startDate, endDate);
+          generator.getClient(user), dateRange);
     } catch (NotAuthorizedException | IOException ex) {
       logger.warn("User {} does not have a configured access token: {}. Skipping.",
           user, ex.toString());

@@ -1,13 +1,12 @@
 package org.radarbase.connect.rest;
 
-import org.apache.kafka.connect.connector.Task;
-import org.apache.kafka.connect.source.SourceConnector;
-import org.radarbase.connect.rest.util.VersionUtil;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.kafka.connect.connector.Task;
+import org.apache.kafka.connect.source.SourceConnector;
+import org.radarbase.connect.rest.util.VersionUtil;
 
 @SuppressWarnings("unused")
 public abstract class AbstractRestSourceConnector extends SourceConnector {
