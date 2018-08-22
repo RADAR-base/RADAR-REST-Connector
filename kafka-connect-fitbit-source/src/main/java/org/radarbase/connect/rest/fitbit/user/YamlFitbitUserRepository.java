@@ -98,7 +98,8 @@ public class YamlFitbitUserRepository implements FitbitUserRepository {
 
     try {
       Map<String, LockedUser> newMap = Files.walk(credentialsDir)
-          .filter(Files::isRegularFile)
+          .filter(p -> Files.isRegularFile(p)
+              && p.getFileName().toString().toLowerCase().endsWith(".yml"))
           .map(tryOrRethrow(p -> new LockedUser(USER_READER.readValue(p.toFile()), p)))
           .collect(Collectors.toMap(l -> l.user.getId(), Function.identity()));
 
