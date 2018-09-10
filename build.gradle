@@ -1,0 +1,43 @@
+description = 'kafka-connect-rest-source'
+
+subprojects {
+    ext {
+        kafkaVersion = '2.0.0'
+        confluentVersion = '5.0.0'
+        jacksonVersion = '2.8.9'
+    }
+
+    apply plugin: 'java'
+    apply plugin: 'java-library'
+
+    group = 'org.radarcns'
+    version = '0.1-SNAPSHOT'
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    repositories {
+        mavenCentral()
+        maven { url "http://packages.confluent.io/maven/" }
+        maven { url "http://repo.maven.apache.org/maven2" }
+        jcenter()
+        maven { url  'http://oss.jfrog.org/artifactory/oss-snapshot-local/' }
+    }
+}
+
+wrapper {
+    gradleVersion '4.9'
+}
+
+evaluationDependsOnChildren()
+
+task downloadDependencies {
+    subprojects.collect {
+        it.configurations.runtimeClasspath.files
+        it.configurations.compileClasspath.files
+    }
+
+    doLast {
+        println 'Downloaded REST code dependencies'
+    }
+}

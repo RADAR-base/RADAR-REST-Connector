@@ -1,0 +1,8 @@
+.gradletasknamecache
+build/
+.idea/
+*.iml
+out/
+.gradle/
+docker/users
+docker/source-fitbit.properties
