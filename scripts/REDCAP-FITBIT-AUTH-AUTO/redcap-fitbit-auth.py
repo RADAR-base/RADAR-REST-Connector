@@ -136,6 +136,7 @@ def formatFileName(name, extenstion):
     return "".join(['fitbit-user-', finalName, extenstion])
 
 outputDataDict = []
+# to generalize the storeage replace this getRedcapRecords with any datasource supplying Fitbit credentials & login
 dataList = getRedcapRecords(CONFIG['REDCAP']['REDCAP_API_URL'], CONFIG['REDCAP']['TOKEN'])
 for eachUser in dataList:
     try:
