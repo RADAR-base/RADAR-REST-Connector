@@ -20,6 +20,8 @@ For every Fitbit user you want access to, copy `docker/fitbit-user.yml.template`
 `docker/users/`. Get an access token and refresh token for the user using for example the
 [Fitbit OAuth 2.0 tutorial page](https://dev.fitbit.com/apps/oauthinteractivetutorial).
 
+For automatic configuration for multiple users, please take a look at `scripts/REDCAP-FITBIT-AUTH-AUTO/README.md`.
+
 Copy `docker/source-fitbit.properties.template` to `docker/source-fitbit.properties` and enter
 your Fitbit App client ID and client secret.
 
