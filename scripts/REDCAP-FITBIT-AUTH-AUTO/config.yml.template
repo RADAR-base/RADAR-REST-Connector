@@ -1,0 +1,30 @@
+# This program needs Chrome web driver. Download it first from http://chromedriver.chromium.org/downloads.
+# Then specify the path to the executable file here.
+CHROME_DRIVER_PATH: '/your/absolute/path/to/chromedriver'
+
+# These values are from REDCAP API.
+REDCAP:
+  REDCAP_API_URL: ''
+  TOKEN: ''
+  PROJECT_NAME: ''
+
+# The SELECTOR configs are fixed for the FITBIT OAuth page but may change in the future, hence configurable.
+# Or it may be used for any other OAuth page by changing these values.
+FITBIT_BOT:
+  # This will be used if password field is empty in Redcap
+  DEFAULT_FITBIT_PASSWORD: ''
+  EMAIL_SELECTOR: 'input.field.email'
+  PASSWORD_SELECTOR: 'input.field.password'
+  LOGIN_BUTTON_SELECTOR: 'button.common-btn.common-btn-submit.track-Auth-Login-ClickFitbit'
+
+# These values are from FITBIT API, The Auth URL can be generated at https://dev.fitbit.com/apps/oauthinteractivetutorial
+# by entering your fitbit app details. Basic auth header can be generated using the Fitbit client Id and Fitbit client secret
+# here - https://www.blitter.se/utils/basic-authentication-header-generator/
+FITBIT_AUTH:
+  FITBIT_BASIC_AUTH: ''
+  FITBIT_CLIENT_ID: ''
+  FITBIT_REDIRECT_URI: ''
+  FITBIT_AUTH_URL: ''
+DATES:
+  DATA_PULL_START_DATE_DEFAULT: '2017-11-01T00:00:00Z'
+  DATA_PULL_END_DATE_DEFAULT: '2021-01-01T00:00:00Z'
