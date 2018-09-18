@@ -1,0 +1,4 @@
+PyCap==1.0.2
+selenium==3.14.0
+Requests==2.19.1
+PyYAML==3.13

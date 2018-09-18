@@ -9,12 +9,9 @@ The output of this is in yaml formatted config files for each user which is dire
 
 2. This project needs the `ChromeDriver` to run. Please Download it from -- http://chromedriver.chromium.org/downloads and put the path of it in the `config.yml` file's `CHROME_DRIVER_PATH` parameter. This is required to open a chrome browser window for opening the fitbit OAuth page.
 
-3. Install all the dependencies of required by the python script. Make sure `python` and `pip` is installed and then run -
+3. Install all the dependencies of required by the python script. Make sure `python 2` and `pip` are installed and then run -
     ```sh
-      pip install PyCap
-      pip install pyyaml
-      pip install selenium
-      pip install codecs
+      pip install -r requirements.txt
     ```
 
 4. Run the program like -

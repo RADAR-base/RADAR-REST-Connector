@@ -1,3 +1,5 @@
+#!/usr/bin/env python2
+
 from redcap import Project, RedcapError
 from selenium import webdriver
 from selenium.webdriver.common.by import By
