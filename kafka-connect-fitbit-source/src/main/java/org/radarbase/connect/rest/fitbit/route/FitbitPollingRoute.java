@@ -42,6 +42,7 @@ import okhttp3.Response;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.apache.kafka.connect.storage.OffsetStorageReader;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
+import org.radarbase.connect.rest.fitbit.FitbitRestSourceConnectorConfig;
 import org.radarbase.connect.rest.fitbit.request.FitbitRequestGenerator;
 import org.radarbase.connect.rest.fitbit.request.FitbitRestRequest;
 import org.radarbase.connect.rest.fitbit.user.FitbitUser;
@@ -123,11 +124,12 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
 
   @Override
   public void initialize(RestSourceConnectorConfig config) {
-    this.pollInterval = config.getPollInterval();
-    this.baseUrl = config.getUrl();
-    this.maxUsersPerPoll = config.getMaxUsersPerPoll();
-    this.pollIntervalPerUser = config.getPollIntervalPerUser();
-    this.converter().initialize(config);
+    FitbitRestSourceConnectorConfig fitbitConfig = (FitbitRestSourceConnectorConfig) config;
+    this.pollInterval = fitbitConfig.getPollInterval();
+    this.baseUrl = fitbitConfig.getUrl();
+    this.maxUsersPerPoll = fitbitConfig.getMaxUsersPerPoll();
+    this.pollIntervalPerUser = fitbitConfig.getPollIntervalPerUser();
+    this.converter().initialize(fitbitConfig);
   }
 
   @Override

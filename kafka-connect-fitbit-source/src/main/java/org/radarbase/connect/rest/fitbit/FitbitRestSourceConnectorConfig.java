@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.Map;
 import okhttp3.Headers;
 import org.apache.kafka.common.config.ConfigDef;
+import org.apache.kafka.common.config.ConfigDef.Range;
+import org.apache.kafka.common.config.ConfigDef.Validator;
 import org.apache.kafka.connect.errors.ConnectException;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
 import org.radarbase.connect.rest.config.ValidClass;
@@ -38,8 +40,8 @@ import org.radarbase.connect.rest.fitbit.user.YamlFitbitUserRepository;
 public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
   public static final String FITBIT_USERS_CONFIG = "fitbit.users";
   private static final String FITBIT_USERS_DOC =
-      "Fitbit users with syntax fitbitUserName:refreshToken:projectId:userName:startDate:endDate"
-          + "separated by commas.";
+      "The user ID of Fitbit users to include in polling, separated by commas. "
+          + "Non existing user names will be ignored.";
   private static final String FITBIT_USERS_DISPLAY = "Fitbit users";
 
   public static final String FITBIT_API_CLIENT_CONFIG = "fitbit.api.client";
@@ -85,6 +87,10 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
   private static final String FITBIT_TIME_ZONE_TOPIC_DEFAULT = "connect_fitbit_time_zone";
   private static final String FITBIT_TIME_ZONE_TOPIC_DISPLAY = "Timezone topic";
 
+  private static final String FITBIT_MAX_USERS_PER_POLL_CONFIG = "fitbit.max.users.per.poll";
+  private static final String FITBIT_MAX_USERS_PER_POLL_DOC = "Maximum number of users to query in a single poll operation. Decrease this if memory constrains are pressing.";
+  private static final int FITBIT_MAX_USERS_PER_POLL_DEFAULT = 100;
+  private static final String FITBIT_MAX_USERS_PER_POLL_DISPLAY = "Maximum users per poll";
 
   private final FitbitUserRepository fitbitUserRepository;
   private final Headers clientCredentials;
@@ -114,6 +120,14 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
   public static ConfigDef conf() {
     int orderInGroup = 0;
     String group = "Fitbit";
+
+    Validator nonControlChar = new ConfigDef.NonEmptyStringWithoutControlChars() {
+      @Override
+      public String toString() {
+        return "non-empty string without control characters";
+      }
+    };
+
     return RestSourceConnectorConfig.conf()
 
         .define(FITBIT_USERS_CONFIG,
@@ -168,10 +182,21 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
             ConfigDef.Width.SHORT,
             FITBIT_USER_CREDENTIALS_DIR_DISPLAY)
 
+        .define(FITBIT_MAX_USERS_PER_POLL_CONFIG,
+            ConfigDef.Type.INT,
+            FITBIT_MAX_USERS_PER_POLL_DEFAULT,
+            Range.atLeast(1),
+            ConfigDef.Importance.LOW,
+            FITBIT_MAX_USERS_PER_POLL_DOC,
+            group,
+            ++orderInGroup,
+            ConfigDef.Width.SHORT,
+            FITBIT_MAX_USERS_PER_POLL_DISPLAY)
+
         .define(FITBIT_INTRADAY_STEPS_TOPIC_CONFIG,
             ConfigDef.Type.STRING,
             FITBIT_INTRADAY_STEPS_TOPIC_DEFAULT,
-            new ConfigDef.NonEmptyStringWithoutControlChars(),
+            nonControlChar,
             ConfigDef.Importance.LOW,
             FITBIT_INTRADAY_STEPS_TOPIC_DOC,
             group,
@@ -182,7 +207,7 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
         .define(FITBIT_INTRADAY_HEART_RATE_TOPIC_CONFIG,
             ConfigDef.Type.STRING,
             FITBIT_INTRADAY_HEART_RATE_TOPIC_DEFAULT,
-            new ConfigDef.NonEmptyStringWithoutControlChars(),
+            nonControlChar,
             ConfigDef.Importance.LOW,
             FITBIT_INTRADAY_HEART_RATE_TOPIC_DOC,
             group,
@@ -193,7 +218,7 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
         .define(FITBIT_SLEEP_STAGES_TOPIC_CONFIG,
             ConfigDef.Type.STRING,
             FITBIT_SLEEP_STAGES_TOPIC_DEFAULT,
-            new ConfigDef.NonEmptyStringWithoutControlChars(),
+            nonControlChar,
             ConfigDef.Importance.LOW,
             FITBIT_SLEEP_STAGES_TOPIC_DOC,
             group,
@@ -204,7 +229,7 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
         .define(FITBIT_SLEEP_CLASSIC_TOPIC_CONFIG,
             ConfigDef.Type.STRING,
             FITBIT_SLEEP_CLASSIC_TOPIC_DEFAULT,
-            new ConfigDef.NonEmptyStringWithoutControlChars(),
+            nonControlChar,
             ConfigDef.Importance.LOW,
             FITBIT_SLEEP_CLASSIC_TOPIC_DOC,
             group,
@@ -215,7 +240,7 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
         .define(FITBIT_TIME_ZONE_TOPIC_CONFIG,
             ConfigDef.Type.STRING,
             FITBIT_TIME_ZONE_TOPIC_DEFAULT,
-            new ConfigDef.NonEmptyStringWithoutControlChars(),
+            nonControlChar,
             ConfigDef.Importance.LOW,
             FITBIT_TIME_ZONE_TOPIC_DOC,
             group,
@@ -267,5 +292,9 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
 
   public Headers getClientCredentials() {
     return clientCredentials;
+  }
+
+  public long getMaxUsersPerPoll() {
+    return getInt(FITBIT_MAX_USERS_PER_POLL_CONFIG);
   }
 }

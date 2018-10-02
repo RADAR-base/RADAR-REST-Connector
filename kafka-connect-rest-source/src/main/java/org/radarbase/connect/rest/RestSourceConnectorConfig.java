@@ -215,10 +215,6 @@ public class RestSourceConnectorConfig extends AbstractConfig {
     return requestGenerator;
   }
 
-  public long getMaxUsersPerPoll() {
-    return 100L;
-  }
-
   public Duration getPollIntervalPerUser() {
     return Duration.ofMinutes(30);
   }
