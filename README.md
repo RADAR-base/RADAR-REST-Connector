@@ -41,7 +41,7 @@ your Fitbit App client ID and client secret. The following tables shows the poss
 <tr>
 <td>rest.source.request.generator.class</td></td><td>Class to be used to generate REST requests</td></td><td>class</td></td><td>org.radarbase.connect.rest.single.SingleRequestGenerator</td></td><td>Class extending org.radarbase.connect.rest.request.RequestGenerator</td></td><td>low</td></td></tr>
 <tr>
-<td>fitbit.users</td></td><td>The user ID of Fitbit users to include in polling, separated by commas. Non existing user names will be ignored.</td></td><td>list</td></td><td>""</td></td><td></td></td><td>high</td></td></tr>
+<td>fitbit.users</td></td><td>The user ID of Fitbit users to include in polling, separated by commas. Non existing user names will be ignored. If empty, all users in the user directory will be used.</td></td><td>list</td></td><td>""</td></td><td></td></td><td>high</td></td></tr>
 <tr>
 <td>fitbit.api.client</td></td><td>Client ID for the Fitbit API</td></td><td>string</td></td><td></td></td><td>non-empty string</td></td><td>high</td></td></tr>
 <tr>

@@ -41,7 +41,8 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
   public static final String FITBIT_USERS_CONFIG = "fitbit.users";
   private static final String FITBIT_USERS_DOC =
       "The user ID of Fitbit users to include in polling, separated by commas. "
-          + "Non existing user names will be ignored.";
+          + "Non existing user names will be ignored. "
+          + "If empty, all users in the user directory will be used.";
   private static final String FITBIT_USERS_DISPLAY = "Fitbit users";
 
   public static final String FITBIT_API_CLIENT_CONFIG = "fitbit.api.client";
