@@ -13,6 +13,7 @@ dependencies {
     testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.2.0'
     testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.2.0'
     testRuntimeOnly group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.25'
+    testImplementation group: 'org.apache.kafka', name: 'connect-api', version: kafkaVersion
 }
 
 task copyDependencies(type: Copy) {
