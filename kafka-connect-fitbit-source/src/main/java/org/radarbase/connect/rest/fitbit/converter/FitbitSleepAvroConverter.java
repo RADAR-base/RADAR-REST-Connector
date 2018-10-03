@@ -51,7 +51,7 @@ public class FitbitSleepAvroConverter extends FitbitAvroConverter {
     CLASSIC_MAP.put("asleep", FitbitSleepClassicLevel.ASLEEP);
     CLASSIC_MAP.put("restless", FitbitSleepClassicLevel.RESTLESS);
 
-    STAGES_MAP.put("awake", FitbitSleepStageLevel.AWAKE);
+    STAGES_MAP.put("wake", FitbitSleepStageLevel.AWAKE);
     STAGES_MAP.put("rem", FitbitSleepStageLevel.REM);
     STAGES_MAP.put("deep", FitbitSleepStageLevel.DEEP);
     STAGES_MAP.put("light", FitbitSleepStageLevel.LIGHT);
