@@ -28,9 +28,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import okhttp3.Headers;
+import okhttp3.HttpUrl;
 import org.apache.kafka.common.config.ConfigDef;
+import org.apache.kafka.common.config.ConfigDef.Importance;
+import org.apache.kafka.common.config.ConfigDef.NonEmptyString;
 import org.apache.kafka.common.config.ConfigDef.Range;
+import org.apache.kafka.common.config.ConfigDef.Type;
 import org.apache.kafka.common.config.ConfigDef.Validator;
+import org.apache.kafka.common.config.ConfigDef.Width;
+import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.connect.errors.ConnectException;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
 import org.radarbase.connect.rest.config.ValidClass;
@@ -62,6 +68,11 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
   private static final String FITBIT_USER_CREDENTIALS_DIR_DOC = "Directory containing Fitbit user information and credentials. Only used if a file-based user repository is configured.";
   private static final String FITBIT_USER_CREDENTIALS_DIR_DISPLAY = "User directory";
   private static final String FITBIT_USER_CREDENTIALS_DIR_DEFAULT = "/var/lib/kafka-connect-fitbit-source/users";
+
+  public static final String FITBIT_USER_REPOSITORY_URL_CONFIG = "fitbit.user.repository.url";
+  private static final String FITBIT_USER_REPOSITORY_URL_DOC = "URL for webservice containing user credentials. Only used if a webservice-based user repository is configured.";
+  private static final String FITBIT_USER_REPOSITORY_URL_DISPLAY = "User repository URL";
+  private static final String FITBIT_USER_REPOSITORY_URL_DEFAULT = "";
 
   private static final String FITBIT_INTRADAY_STEPS_TOPIC_CONFIG = "fitbit.intraday.steps.topic";
   private static final String FITBIT_INTRADAY_STEPS_TOPIC_DOC = "Topic for Fitbit intraday steps";
@@ -132,121 +143,131 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
     return RestSourceConnectorConfig.conf()
 
         .define(FITBIT_USERS_CONFIG,
-            ConfigDef.Type.LIST,
+            Type.LIST,
             Collections.emptyList(),
-            ConfigDef.Importance.HIGH,
+            Importance.HIGH,
             FITBIT_USERS_DOC,
             group,
             ++orderInGroup,
-            ConfigDef.Width.SHORT,
+            Width.SHORT,
             FITBIT_USERS_DISPLAY)
 
         .define(FITBIT_API_CLIENT_CONFIG,
-            ConfigDef.Type.STRING,
+            Type.STRING,
             NO_DEFAULT_VALUE,
-            new ConfigDef.NonEmptyString(),
-            ConfigDef.Importance.HIGH,
+            new NonEmptyString(),
+            Importance.HIGH,
             FITBIT_API_CLIENT_DOC,
             group,
             ++orderInGroup,
-            ConfigDef.Width.SHORT,
+            Width.SHORT,
             FITBIT_API_CLIENT_DISPLAY)
 
         .define(FITBIT_API_SECRET_CONFIG,
-            ConfigDef.Type.PASSWORD,
+            Type.PASSWORD,
             NO_DEFAULT_VALUE,
-            ConfigDef.Importance.HIGH,
+            Importance.HIGH,
             FITBIT_API_SECRET_DOC,
             group,
             ++orderInGroup,
-            ConfigDef.Width.SHORT,
+            Width.SHORT,
             FITBIT_API_SECRET_DISPLAY)
 
         .define(FITBIT_USER_REPOSITORY_CONFIG,
-            ConfigDef.Type.CLASS,
+            Type.CLASS,
             YamlFitbitUserRepository.class,
             ValidClass.isSubclassOf(FitbitUserRepository.class),
-            ConfigDef.Importance.MEDIUM,
+            Importance.MEDIUM,
             FITBIT_USER_REPOSITORY_DOC,
             group,
             ++orderInGroup,
-            ConfigDef.Width.SHORT,
+            Width.SHORT,
             FITBIT_USER_REPOSITORY_DISPLAY)
 
         .define(FITBIT_USER_CREDENTIALS_DIR_CONFIG,
-            ConfigDef.Type.STRING,
+            Type.STRING,
             FITBIT_USER_CREDENTIALS_DIR_DEFAULT,
-            ConfigDef.Importance.LOW,
+            Importance.LOW,
             FITBIT_USER_CREDENTIALS_DIR_DOC,
             group,
             ++orderInGroup,
-            ConfigDef.Width.SHORT,
+            Width.SHORT,
             FITBIT_USER_CREDENTIALS_DIR_DISPLAY)
 
+        .define(FITBIT_USER_REPOSITORY_URL_CONFIG,
+            Type.STRING,
+            FITBIT_USER_REPOSITORY_URL_DEFAULT,
+            Importance.LOW,
+            FITBIT_USER_REPOSITORY_URL_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            FITBIT_USER_REPOSITORY_URL_DISPLAY)
+
         .define(FITBIT_MAX_USERS_PER_POLL_CONFIG,
-            ConfigDef.Type.INT,
+            Type.INT,
             FITBIT_MAX_USERS_PER_POLL_DEFAULT,
             Range.atLeast(1),
-            ConfigDef.Importance.LOW,
+            Importance.LOW,
             FITBIT_MAX_USERS_PER_POLL_DOC,
             group,
             ++orderInGroup,
-            ConfigDef.Width.SHORT,
+            Width.SHORT,
             FITBIT_MAX_USERS_PER_POLL_DISPLAY)
 
         .define(FITBIT_INTRADAY_STEPS_TOPIC_CONFIG,
-            ConfigDef.Type.STRING,
+            Type.STRING,
             FITBIT_INTRADAY_STEPS_TOPIC_DEFAULT,
             nonControlChar,
-            ConfigDef.Importance.LOW,
+            Importance.LOW,
             FITBIT_INTRADAY_STEPS_TOPIC_DOC,
             group,
             ++orderInGroup,
-            ConfigDef.Width.SHORT,
+            Width.SHORT,
             FITBIT_INTRADAY_STEPS_TOPIC_DISPLAY)
 
         .define(FITBIT_INTRADAY_HEART_RATE_TOPIC_CONFIG,
-            ConfigDef.Type.STRING,
+            Type.STRING,
             FITBIT_INTRADAY_HEART_RATE_TOPIC_DEFAULT,
             nonControlChar,
-            ConfigDef.Importance.LOW,
+            Importance.LOW,
             FITBIT_INTRADAY_HEART_RATE_TOPIC_DOC,
             group,
             ++orderInGroup,
-            ConfigDef.Width.SHORT,
+            Width.SHORT,
             FITBIT_INTRADAY_HEART_RATE_TOPIC_DISPLAY)
 
         .define(FITBIT_SLEEP_STAGES_TOPIC_CONFIG,
-            ConfigDef.Type.STRING,
+            Type.STRING,
             FITBIT_SLEEP_STAGES_TOPIC_DEFAULT,
             nonControlChar,
-            ConfigDef.Importance.LOW,
+            Importance.LOW,
             FITBIT_SLEEP_STAGES_TOPIC_DOC,
             group,
             ++orderInGroup,
-            ConfigDef.Width.SHORT,
+            Width.SHORT,
             FITBIT_SLEEP_STAGES_TOPIC_DISPLAY)
 
         .define(FITBIT_SLEEP_CLASSIC_TOPIC_CONFIG,
-            ConfigDef.Type.STRING,
+            Type.STRING,
             FITBIT_SLEEP_CLASSIC_TOPIC_DEFAULT,
             nonControlChar,
-            ConfigDef.Importance.LOW,
+            Importance.LOW,
             FITBIT_SLEEP_CLASSIC_TOPIC_DOC,
             group,
             ++orderInGroup,
-            ConfigDef.Width.SHORT,
+            Width.SHORT,
             FITBIT_SLEEP_CLASSIC_TOPIC_DISPLAY)
 
         .define(FITBIT_TIME_ZONE_TOPIC_CONFIG,
-            ConfigDef.Type.STRING,
+            Type.STRING,
             FITBIT_TIME_ZONE_TOPIC_DEFAULT,
             nonControlChar,
-            ConfigDef.Importance.LOW,
+            Importance.LOW,
             FITBIT_TIME_ZONE_TOPIC_DOC,
             group,
             ++orderInGroup,
-            ConfigDef.Width.SHORT,
+            Width.SHORT,
             FITBIT_TIME_ZONE_TOPIC_DISPLAY)
         ;
   }
@@ -289,6 +310,20 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
 
   public Path getFitbitUserCredentialsPath() {
     return Paths.get(getString(FITBIT_USER_CREDENTIALS_DIR_CONFIG));
+  }
+
+  public HttpUrl getFitbitUserRepositoryUrl() {
+    String urlString = getString(FITBIT_USER_REPOSITORY_URL_CONFIG).trim();
+    if (urlString.charAt(urlString.length() - 1) != '/') {
+      urlString += '/';
+    }
+    HttpUrl url = HttpUrl.parse(urlString);
+    if (url == null) {
+      throw new ConfigException(FITBIT_USER_REPOSITORY_URL_CONFIG,
+          getString(FITBIT_USER_REPOSITORY_URL_CONFIG),
+          "User repository URL " + urlString + " cannot be parsed as URL.");
+    }
+    return url;
   }
 
   public Headers getClientCredentials() {
