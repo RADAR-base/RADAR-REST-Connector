@@ -40,8 +40,8 @@ import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.connect.errors.ConnectException;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
 import org.radarbase.connect.rest.config.ValidClass;
-import org.radarbase.connect.rest.fitbit.user.FitbitUserRepository;
-import org.radarbase.connect.rest.fitbit.user.YamlFitbitUserRepository;
+import org.radarbase.connect.rest.fitbit.user.UserRepository;
+import org.radarbase.connect.rest.fitbit.user.YamlUserRepository;
 
 public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
   public static final String FITBIT_USERS_CONFIG = "fitbit.users";
@@ -104,7 +104,7 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
   private static final int FITBIT_MAX_USERS_PER_POLL_DEFAULT = 100;
   private static final String FITBIT_MAX_USERS_PER_POLL_DISPLAY = "Maximum users per poll";
 
-  private final FitbitUserRepository fitbitUserRepository;
+  private final UserRepository userRepository;
   private final Headers clientCredentials;
 
   @SuppressWarnings("unchecked")
@@ -112,7 +112,7 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
     super(config, parsedConfig);
 
     try {
-      fitbitUserRepository = ((Class<? extends FitbitUserRepository>)
+      userRepository = ((Class<? extends UserRepository>)
           getClass(FITBIT_USER_REPOSITORY_CONFIG)).getDeclaredConstructor().newInstance();
     } catch (IllegalAccessException | InstantiationException
         | InvocationTargetException | NoSuchMethodException e) {
@@ -175,8 +175,8 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
 
         .define(FITBIT_USER_REPOSITORY_CONFIG,
             Type.CLASS,
-            YamlFitbitUserRepository.class,
-            ValidClass.isSubclassOf(FitbitUserRepository.class),
+            YamlUserRepository.class,
+            ValidClass.isSubclassOf(UserRepository.class),
             Importance.MEDIUM,
             FITBIT_USER_REPOSITORY_DOC,
             group,
@@ -284,9 +284,9 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
     return getPassword(FITBIT_API_SECRET_CONFIG).value();
   }
 
-  public FitbitUserRepository getFitbitUserRepository() {
-    fitbitUserRepository.initialize(this);
-    return fitbitUserRepository;
+  public UserRepository getUserRepository() {
+    userRepository.initialize(this);
+    return userRepository;
   }
 
   public String getFitbitIntradayStepsTopic() {

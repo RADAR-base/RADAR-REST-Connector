@@ -23,8 +23,8 @@ import okhttp3.Authenticator;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.Route;
-import org.radarbase.connect.rest.fitbit.user.FitbitUser;
-import org.radarbase.connect.rest.fitbit.user.FitbitUserRepository;
+import org.radarbase.connect.rest.fitbit.user.User;
+import org.radarbase.connect.rest.fitbit.user.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,10 +34,10 @@ import org.slf4j.LoggerFactory;
 public class TokenAuthenticator implements Authenticator {
   private static final Logger logger = LoggerFactory.getLogger(TokenAuthenticator.class);
 
-  private final FitbitUser user;
-  private final FitbitUserRepository userRepository;
+  private final User user;
+  private final UserRepository userRepository;
 
-  TokenAuthenticator(FitbitUser user, FitbitUserRepository userRepository) {
+  TokenAuthenticator(User user, UserRepository userRepository) {
     this.user = user;
     this.userRepository = userRepository;
   }

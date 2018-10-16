@@ -25,15 +25,15 @@ import java.util.stream.Stream;
 import org.radarbase.connect.rest.fitbit.converter.FitbitIntradayHeartRateAvroConverter;
 import org.radarbase.connect.rest.fitbit.request.FitbitRequestGenerator;
 import org.radarbase.connect.rest.fitbit.request.FitbitRestRequest;
-import org.radarbase.connect.rest.fitbit.user.FitbitUser;
-import org.radarbase.connect.rest.fitbit.user.FitbitUserRepository;
+import org.radarbase.connect.rest.fitbit.user.User;
+import org.radarbase.connect.rest.fitbit.user.UserRepository;
 
 public class FitbitIntradayHeartRateRoute extends FitbitPollingRoute {
   private static final String ROUTE_NAME = "heart_rate";
   private final FitbitIntradayHeartRateAvroConverter converter;
 
   public FitbitIntradayHeartRateRoute(FitbitRequestGenerator generator,
-      FitbitUserRepository userRepository, AvroData avroData) {
+      UserRepository userRepository, AvroData avroData) {
     super(generator, userRepository, ROUTE_NAME);
     this.converter = new FitbitIntradayHeartRateAvroConverter(avroData);
   }
@@ -43,10 +43,10 @@ public class FitbitIntradayHeartRateRoute extends FitbitPollingRoute {
     return baseUrl + "/1/user/%s/activities/heart/date/%s/1d/1sec/time/%s/%s.json?timezone=UTC";
   }
 
-  protected Stream<FitbitRestRequest> createRequests(FitbitUser user) {
+  protected Stream<FitbitRestRequest> createRequests(User user) {
     return startDateGenerator(getOffset(user).plus(ONE_SECOND).truncatedTo(SECONDS))
         .map(dateRange -> newRequest(user, dateRange,
-            user.getFitbitUserId(), DATE_FORMAT.format(dateRange.start()),
+            user.getExternalUserId(), DATE_FORMAT.format(dateRange.start()),
             ISO_LOCAL_TIME.format(dateRange.start()),
             ISO_LOCAL_TIME.format(dateRange.end().truncatedTo(SECONDS))));
   }

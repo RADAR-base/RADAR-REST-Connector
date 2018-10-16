@@ -39,7 +39,7 @@ import org.apache.kafka.connect.data.SchemaAndValue;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.radarbase.connect.rest.converter.PayloadToSourceRecordConverter;
 import org.radarbase.connect.rest.fitbit.request.FitbitRestRequest;
-import org.radarbase.connect.rest.fitbit.user.FitbitUser;
+import org.radarbase.connect.rest.fitbit.user.User;
 import org.radarbase.connect.rest.request.RestRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,7 +76,7 @@ public abstract class FitbitAvroConverter implements PayloadToSourceRecordConver
     }
     JsonNode activities = JSON_READER.readTree(body.charStream());
 
-    FitbitUser user = ((FitbitRestRequest) restRequest).getUser();
+    User user = ((FitbitRestRequest) restRequest).getUser();
     final SchemaAndValue key = user.getObservationKey(avroData);
     double timeReceived = System.currentTimeMillis() / 1000d;
 

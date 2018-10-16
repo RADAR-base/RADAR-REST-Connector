@@ -38,9 +38,9 @@ import org.radarbase.connect.rest.RestSourceConnectorConfig;
 import org.radarbase.connect.rest.fitbit.FitbitRestSourceConnectorConfig;
 
 @SuppressWarnings("unused")
-public class ServiceUserRepository implements FitbitUserRepository {
-  private static final ObjectReader USER_LIST_READER = JSON_READER.forType(FitbitUsers.class);
-  private static final ObjectReader USER_READER = JSON_READER.forType(FitbitUser.class);
+public class ServiceUserRepository implements UserRepository {
+  private static final ObjectReader USER_LIST_READER = JSON_READER.forType(Users.class);
+  private static final ObjectReader USER_READER = JSON_READER.forType(User.class);
   private static final ObjectReader OAUTH_READER = JSON_READER.forType(OAuth2UserCredentials.class);
   private static final RequestBody EMPTY_BODY = RequestBody.create(
       MediaType.parse("application/json; charset=utf-8"), "");
@@ -56,8 +56,8 @@ public class ServiceUserRepository implements FitbitUserRepository {
   }
 
   @Override
-  public FitbitUser get(String key) throws IOException {
-    Request request = requestFor("registration/users/" + key).build();
+  public User get(String key) throws IOException {
+    Request request = requestFor("users/" + key).build();
     return makeRequest(request, USER_READER);
   }
 
@@ -69,17 +69,17 @@ public class ServiceUserRepository implements FitbitUserRepository {
   }
 
   @Override
-  public Stream<? extends FitbitUser> stream() throws IOException {
-    Request request = requestFor("registration/users").build();
-    return this.<FitbitUsers>makeRequest(request, USER_LIST_READER).getUsers().stream()
+  public Stream<? extends User> stream() throws IOException {
+    Request request = requestFor("users").build();
+    return this.<Users>makeRequest(request, USER_LIST_READER).getUsers().stream()
         .filter(u -> containedUsers.contains(u.getId()));
   }
 
   @Override
-  public String getAccessToken(FitbitUser user) throws IOException, NotAuthorizedException {
+  public String getAccessToken(User user) throws IOException, NotAuthorizedException {
     OAuth2UserCredentials credentials = cachedCredentials.get(user.getId());
     if (credentials == null || credentials.isAccessTokenExpired()) {
-      Request request = requestFor("registration/users/" + user + "/token").build();
+      Request request = requestFor("users/" + user + "/token").build();
       credentials = makeRequest(request, OAUTH_READER);
       cachedCredentials.put(user.getId(), credentials);
     }
@@ -87,8 +87,8 @@ public class ServiceUserRepository implements FitbitUserRepository {
   }
 
   @Override
-  public String refreshAccessToken(FitbitUser user) throws IOException, NotAuthorizedException {
-    Request request = requestFor("registration/users/" + user + "/token")
+  public String refreshAccessToken(User user) throws IOException, NotAuthorizedException {
+    Request request = requestFor("users/" + user + "/token")
       .post(EMPTY_BODY)
       .build();
     OAuth2UserCredentials credentials = makeRequest(request, OAUTH_READER);

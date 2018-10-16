@@ -22,9 +22,9 @@ import java.time.Instant;
 import org.apache.kafka.connect.data.SchemaAndValue;
 import org.radarcns.kafka.ObservationKey;
 
-public interface FitbitUser {
+public interface User {
   String getId();
-  String getFitbitUserId();
+  String getExternalUserId();
   String getProjectId();
   String getUserId();
   Instant getStartDate();
@@ -32,7 +32,7 @@ public interface FitbitUser {
   String getSourceId();
   SchemaAndValue getObservationKey(AvroData avroData);
 
-  static SchemaAndValue computeObservationKey(AvroData avroData, FitbitUser user) {
+  static SchemaAndValue computeObservationKey(AvroData avroData, User user) {
     return avroData.toConnectData(
           ObservationKey.getClassSchema(),
           new ObservationKey(user.getProjectId(), user.getUserId(), user.getSourceId()));

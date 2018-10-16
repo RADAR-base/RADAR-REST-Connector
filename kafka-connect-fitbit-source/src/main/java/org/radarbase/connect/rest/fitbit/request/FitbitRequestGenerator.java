@@ -18,6 +18,8 @@
 package org.radarbase.connect.rest.fitbit.request;
 
 import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.databind.DeserializationConfig;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import io.confluent.connect.avro.AvroData;
@@ -36,8 +38,8 @@ import org.radarbase.connect.rest.fitbit.route.FitbitIntradayHeartRateRoute;
 import org.radarbase.connect.rest.fitbit.route.FitbitIntradayStepsRoute;
 import org.radarbase.connect.rest.fitbit.route.FitbitSleepRoute;
 import org.radarbase.connect.rest.fitbit.route.FitbitTimeZoneRoute;
-import org.radarbase.connect.rest.fitbit.user.FitbitUser;
-import org.radarbase.connect.rest.fitbit.user.FitbitUserRepository;
+import org.radarbase.connect.rest.fitbit.user.User;
+import org.radarbase.connect.rest.fitbit.user.UserRepository;
 import org.radarbase.connect.rest.request.RequestGeneratorRouter;
 import org.radarbase.connect.rest.request.RequestRoute;
 import org.slf4j.Logger;
@@ -53,7 +55,7 @@ public class FitbitRequestGenerator extends RequestGeneratorRouter {
 
   private OkHttpClient baseClient;
   private final Map<String, OkHttpClient> clients;
-  private FitbitUserRepository userRepository;
+  private UserRepository userRepository;
   private List<RequestRoute> routes;
 
   public FitbitRequestGenerator() {
@@ -71,7 +73,7 @@ public class FitbitRequestGenerator extends RequestGeneratorRouter {
     this.baseClient = new OkHttpClient();
 
     AvroData avroData = new AvroData(20);
-    this.userRepository = config1.getFitbitUserRepository();
+    this.userRepository = config1.getUserRepository();
     this.routes = Arrays.asList(
         new FitbitIntradayStepsRoute(this, userRepository, avroData),
         new FitbitSleepRoute(this, userRepository, avroData),
@@ -82,7 +84,7 @@ public class FitbitRequestGenerator extends RequestGeneratorRouter {
     super.initialize(config);
   }
 
-  public OkHttpClient getClient(FitbitUser user) {
+  public OkHttpClient getClient(User user) {
     return clients.computeIfAbsent(user.getId(), u -> baseClient.newBuilder()
           .authenticator(new TokenAuthenticator(user, userRepository))
           .build());
@@ -91,14 +93,14 @@ public class FitbitRequestGenerator extends RequestGeneratorRouter {
   public Map<String, Map<String, Object>> getPartitions(String route) {
     try {
       return userRepository.stream()
-          .collect(Collectors.toMap(FitbitUser::getId, u -> getPartition(route, u)));
+          .collect(Collectors.toMap(User::getId, u -> getPartition(route, u)));
     } catch (IOException e) {
       logger.warn("Failed to initialize user partitions for route {}: {}", route, e.toString());
       return Collections.emptyMap();
     }
   }
 
-  public Map<String, Object> getPartition(String route, FitbitUser user) {
+  public Map<String, Object> getPartition(String route, User user) {
     Map<String, Object> partition = new HashMap<>(4);
     partition.put("user", user.getId());
     partition.put("route", route);

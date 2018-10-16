@@ -28,8 +28,8 @@ import java.util.stream.Stream;
 import org.radarbase.connect.rest.fitbit.converter.FitbitSleepAvroConverter;
 import org.radarbase.connect.rest.fitbit.request.FitbitRequestGenerator;
 import org.radarbase.connect.rest.fitbit.request.FitbitRestRequest;
-import org.radarbase.connect.rest.fitbit.user.FitbitUser;
-import org.radarbase.connect.rest.fitbit.user.FitbitUserRepository;
+import org.radarbase.connect.rest.fitbit.user.User;
+import org.radarbase.connect.rest.fitbit.user.UserRepository;
 import org.radarbase.connect.rest.fitbit.util.DateRange;
 
 public class FitbitSleepRoute extends FitbitPollingRoute {
@@ -39,7 +39,7 @@ public class FitbitSleepRoute extends FitbitPollingRoute {
 
   private final FitbitSleepAvroConverter converter;
 
-  public FitbitSleepRoute(FitbitRequestGenerator generator, FitbitUserRepository userRepository,
+  public FitbitSleepRoute(FitbitRequestGenerator generator, UserRepository userRepository,
       AvroData avroData) {
     super(generator, userRepository, "sleep");
     converter = new FitbitSleepAvroConverter(avroData);
@@ -55,13 +55,13 @@ public class FitbitSleepRoute extends FitbitPollingRoute {
    * @param user Fitbit user
    * @return request to make
    */
-  protected Stream<FitbitRestRequest> createRequests(FitbitUser user) {
+  protected Stream<FitbitRestRequest> createRequests(User user) {
     ZonedDateTime startDate = this.getOffset(user).plus(ONE_SECOND)
         .atZone(UTC)
         .truncatedTo(SECONDS);
 
     return Stream.of(newRequest(user, new DateRange(startDate, ZonedDateTime.now(UTC)),
-        user.getFitbitUserId(), DATE_TIME_FORMAT.format(startDate)));
+        user.getExternalUserId(), DATE_TIME_FORMAT.format(startDate)));
   }
 
 

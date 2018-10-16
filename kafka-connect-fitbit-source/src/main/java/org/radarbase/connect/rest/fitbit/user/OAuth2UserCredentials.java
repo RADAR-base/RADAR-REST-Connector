@@ -17,44 +17,45 @@
 
 package org.radarbase.connect.rest.fitbit.user;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import java.time.Duration;
 import java.time.Instant;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class OAuth2UserCredentials {
   private static final Duration DEFAULT_EXPIRY = Duration.ofHours(1);
   private static final Duration EXPIRY_TIME_MARGIN = Duration.ofMinutes(5);
 
   @JsonProperty
-  private final String accessToken;
+  private String accessToken;
   @JsonProperty
-  private final String refreshToken;
+  private String refreshToken;
   @JsonProperty
-  private final Instant expiresAt;
+  private Instant expiresAt;
 
   public OAuth2UserCredentials() {
-    this(null, null, (Instant)null);
-  }
-
-  @JsonCreator
-  public OAuth2UserCredentials(
-      @JsonProperty("refreshToken") String refreshToken,
-      @JsonProperty("accessToken") String accessToken,
-      @JsonProperty("expiresAt") Instant expiresAt) {
-    this.refreshToken = refreshToken;
-    this.accessToken = accessToken;
-    this.expiresAt = expiresAt == null ? getExpiresAt(DEFAULT_EXPIRY) : expiresAt;
   }
 
   public OAuth2UserCredentials(String refreshToken, String accessToken, Long expiresIn) {
-    this(refreshToken, accessToken, getExpiresAt(
-        expiresIn != null && expiresIn > 0L ? Duration.ofSeconds(expiresIn) : DEFAULT_EXPIRY));
+    this.refreshToken = refreshToken;
+    this.accessToken = accessToken;
+    this.expiresAt = getExpiresAt(expiresIn != null && expiresIn > 0L
+        ? Duration.ofSeconds(expiresIn) : DEFAULT_EXPIRY);
   }
 
   public String getAccessToken() {
     return accessToken;
+  }
+
+  @JsonSetter
+  public void setAccessToken(String accessToken) {
+    this.accessToken = accessToken;
+    if (expiresAt == null) {
+      expiresAt = getExpiresAt(DEFAULT_EXPIRY);
+    }
   }
 
   public boolean hasRefreshToken() {
@@ -73,6 +74,6 @@ public class OAuth2UserCredentials {
 
   @JsonIgnore
   public boolean isAccessTokenExpired() {
-    return Instant.now().isAfter(expiresAt);
+    return expiresAt == null || Instant.now().isAfter(expiresAt);
   }
 }

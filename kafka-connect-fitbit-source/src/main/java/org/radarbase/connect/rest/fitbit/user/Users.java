@@ -22,15 +22,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FitbitUsers {
-  private final List<FitbitUser> users;
+public class Users {
+  private final List<User> users;
 
   @JsonCreator
-  public FitbitUsers(@JsonProperty("users") List<FitbitUser> users) {
+  public Users(@JsonProperty("users") List<User> users) {
     this.users = new ArrayList<>(users);
   }
 
-  public List<FitbitUser> getUsers() {
+  public List<User> getUsers() {
     return users;
   }
 }

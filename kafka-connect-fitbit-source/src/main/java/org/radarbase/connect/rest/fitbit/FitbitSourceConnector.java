@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.config.ConfigException;
 import org.radarbase.connect.rest.AbstractRestSourceConnector;
-import org.radarbase.connect.rest.fitbit.user.FitbitUser;
+import org.radarbase.connect.rest.fitbit.user.User;
 
 public class FitbitSourceConnector extends AbstractRestSourceConnector {
   @Override
@@ -46,8 +46,8 @@ public class FitbitSourceConnector extends AbstractRestSourceConnector {
     FitbitRestSourceConnectorConfig fitbitConfig = getConfig(baseConfig);
     // Divide the users over tasks
     try {
-      return fitbitConfig.getFitbitUserRepository().stream()
-          .map(FitbitUser::getId)
+      return fitbitConfig.getUserRepository().stream()
+          .map(User::getId)
           // group users based on their hashCode
           // in principle this allows for more efficient reconfigurations for a fixed number of tasks,
           // since that allows existing tasks to only handle small modifications users to handle.
