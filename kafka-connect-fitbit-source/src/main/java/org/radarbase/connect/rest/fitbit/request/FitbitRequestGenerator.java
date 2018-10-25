@@ -18,10 +18,9 @@
 package org.radarbase.connect.rest.fitbit.request;
 
 import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.databind.DeserializationConfig;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.confluent.connect.avro.AvroData;
 import java.io.IOException;
 import java.util.Arrays;
@@ -50,7 +49,9 @@ import org.slf4j.LoggerFactory;
  */
 public class FitbitRequestGenerator extends RequestGeneratorRouter {
   public static final JsonFactory JSON_FACTORY = new JsonFactory();
-  public static final ObjectReader JSON_READER = new ObjectMapper(JSON_FACTORY).reader();
+  public static final ObjectReader JSON_READER = new ObjectMapper(JSON_FACTORY)
+      .registerModule(new JavaTimeModule())
+      .reader();
   private static final Logger logger = LoggerFactory.getLogger(FitbitRequestGenerator.class);
 
   private OkHttpClient baseClient;
