@@ -23,14 +23,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Users {
-  private final List<User> users;
+  private final List<LocalUser> users;
+
 
   @JsonCreator
-  public Users(@JsonProperty("users") List<User> users) {
+  public Users(@JsonProperty("users") List<LocalUser> users) {
     this.users = new ArrayList<>(users);
   }
 
-  public List<User> getUsers() {
+  public List<? extends User> getUsers() {
     return users;
   }
 }

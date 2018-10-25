@@ -19,6 +19,7 @@ package org.radarbase.connect.rest.fitbit.user;
 
 import static org.radarbase.connect.rest.fitbit.request.FitbitRequestGenerator.JSON_READER;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectReader;
 import java.io.IOException;
 import java.util.HashMap;
@@ -27,6 +28,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 import javax.ws.rs.NotAuthorizedException;
+
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -36,9 +38,13 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
 import org.radarbase.connect.rest.fitbit.FitbitRestSourceConnectorConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("unused")
 public class ServiceUserRepository implements UserRepository {
+  private static final Logger logger = LoggerFactory.getLogger(ServiceUserRepository.class);
+
   private static final ObjectReader USER_LIST_READER = JSON_READER.forType(Users.class);
   private static final ObjectReader USER_READER = JSON_READER.forType(User.class);
   private static final ObjectReader OAUTH_READER = JSON_READER.forType(OAuth2UserCredentials.class);
@@ -70,16 +76,16 @@ public class ServiceUserRepository implements UserRepository {
 
   @Override
   public Stream<? extends User> stream() throws IOException {
-    Request request = requestFor("users").build();
+    Request request = requestFor("users" + "?device-type=FitBit").build();
     return this.<Users>makeRequest(request, USER_LIST_READER).getUsers().stream()
-        .filter(u -> containedUsers.contains(u.getId()));
+        .filter(u -> containedUsers.isEmpty() || containedUsers.contains(u.getId()));
   }
 
   @Override
   public String getAccessToken(User user) throws IOException, NotAuthorizedException {
     OAuth2UserCredentials credentials = cachedCredentials.get(user.getId());
     if (credentials == null || credentials.isAccessTokenExpired()) {
-      Request request = requestFor("users/" + user + "/token").build();
+      Request request = requestFor("users/" + user.getId() + "/token").build();
       credentials = makeRequest(request, OAUTH_READER);
       cachedCredentials.put(user.getId(), credentials);
     }
@@ -88,7 +94,7 @@ public class ServiceUserRepository implements UserRepository {
 
   @Override
   public String refreshAccessToken(User user) throws IOException, NotAuthorizedException {
-    Request request = requestFor("users/" + user + "/token")
+    Request request = requestFor("users/" + user.getId() + "/token")
       .post(EMPTY_BODY)
       .build();
     OAuth2UserCredentials credentials = makeRequest(request, OAUTH_READER);
@@ -105,8 +111,10 @@ public class ServiceUserRepository implements UserRepository {
   }
 
   private <T> T makeRequest(Request request, ObjectReader reader) throws IOException {
+    logger.info("Requesting info from {}", request.url());
     try (Response response = client.newCall(request).execute()) {
       ResponseBody body = response.body();
+
       if (response.code() == 404) {
         throw new NoSuchElementException("URL " + request.url() + " does not exist");
       } else if (!response.isSuccessful() || body == null) {
@@ -119,7 +127,13 @@ public class ServiceUserRepository implements UserRepository {
         }
         throw new IOException(message);
       }
-      return reader.readValue(body.charStream());
+      String bodyString = body.string();
+      try {
+        return reader.readValue(bodyString);
+      } catch (JsonProcessingException ex) {
+        logger.error("Failed to parse JSON: {}\n{}", ex.toString(), bodyString);
+        throw ex;
+      }
     }
   }
 }

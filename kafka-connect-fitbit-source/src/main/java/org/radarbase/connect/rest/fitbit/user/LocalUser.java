@@ -115,7 +115,7 @@ public class LocalUser implements User {
 
   @Override
   public String toString() {
-    return "LocalDeviceUser{" + "id='" + id + '\''
+    return "LocalUser{" + "id='" + id + '\''
         + ", externalUserId='" + externalUserId + '\''
         + ", projectId='" + projectId + '\''
         + ", userId='" + userId + '\''
