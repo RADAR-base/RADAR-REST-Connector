@@ -25,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import io.confluent.connect.avro.AvroData;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.regex.Pattern;
 import org.apache.kafka.connect.data.SchemaAndValue;
 
@@ -121,5 +122,31 @@ public class LocalUser implements User {
         + ", userId='" + userId + '\''
         + ", sourceId='" + sourceId + '\''
         + '}';
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    LocalUser localUser = (LocalUser) o;
+    return Objects.equals(id, localUser.id)
+        && Objects.equals(externalUserId, localUser.externalUserId)
+        && Objects.equals(projectId, localUser.projectId)
+        && Objects.equals(userId, localUser.userId)
+        && Objects.equals(sourceId, localUser.sourceId)
+        && Objects.equals(startDate, localUser.startDate)
+        && Objects.equals(endDate, localUser.endDate)
+        && Objects.equals(observationKey, localUser.observationKey);
+  }
+
+  @Override
+  public int hashCode() {
+
+    return Objects
+        .hash(id, externalUserId, projectId, userId, sourceId, startDate, endDate, observationKey);
   }
 }
