@@ -44,7 +44,7 @@ FROM confluentinc/cp-kafka-connect-base:5.0.0
 
 MAINTAINER Joris Borgdorff <joris@thehyve.nl>
 
-LABEL description="Kafka MongoDB Sink Connector"
+LABEL description="Kafka REST API Source connector"
 
 ENV CONNECT_PLUGIN_PATH /usr/share/java/kafka-connect/plugins
 
