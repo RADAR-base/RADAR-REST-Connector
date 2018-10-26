@@ -21,9 +21,12 @@ FITBIT_BOT:
 # by entering your fitbit app details. Basic auth header can be generated using the Fitbit client Id and Fitbit client secret
 # here - https://www.blitter.se/utils/basic-authentication-header-generator/
 FITBIT_AUTH:
-  FITBIT_BASIC_AUTH: ''
   FITBIT_CLIENT_ID: ''
-  FITBIT_REDIRECT_URI: ''
+  FITBIT_CLIENT_SECRET: ''
+    FITBIT_REDIRECT_URI: ''
+  # Include the full authorization URL as shown in
+  # https://dev.fitbit.com/apps/oauthinteractivetutorial
+  # and end the auth url with &prompt=login
   FITBIT_AUTH_URL: ''
 DATES:
   DATA_PULL_START_DATE_DEFAULT: '2017-11-01T00:00:00Z'

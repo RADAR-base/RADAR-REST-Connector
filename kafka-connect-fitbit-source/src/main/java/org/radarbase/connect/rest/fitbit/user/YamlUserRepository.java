@@ -58,25 +58,24 @@ import okhttp3.ResponseBody;
 import org.apache.kafka.common.config.ConfigException;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
 import org.radarbase.connect.rest.fitbit.FitbitRestSourceConnectorConfig;
-import org.radarbase.connect.rest.fitbit.config.LocalFitbitUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * User repository that reads and writes configuration of YAML files in a local directory. The
  * directory will be recursively scanned for all YAML files. Those should all contain
- * {@link LocalFitbitUser} serializations.
+ * {@link LocalUser} serializations.
  */
-public class YamlFitbitUserRepository implements FitbitUserRepository {
-  private static final Logger logger = LoggerFactory.getLogger(YamlFitbitUserRepository.class);
+public class YamlUserRepository implements UserRepository {
+  private static final Logger logger = LoggerFactory.getLogger(YamlUserRepository.class);
   private static final YAMLFactory YAML_FACTORY = new YAMLFactory();
   private static final ObjectMapper YAML_MAPPER = new ObjectMapper(YAML_FACTORY);
   static {
     YAML_MAPPER.registerModule(new JavaTimeModule());
     YAML_MAPPER.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
   }
-  private static final ObjectReader USER_READER = YAML_MAPPER.readerFor(LocalFitbitUser.class);
-  private static final ObjectWriter USER_WRITER = YAML_MAPPER.writerFor(LocalFitbitUser.class);
+  private static final ObjectReader USER_READER = YAML_MAPPER.readerFor(LocalUser.class);
+  private static final ObjectWriter USER_WRITER = YAML_MAPPER.writerFor(LocalUser.class);
   private static final Duration FETCH_THRESHOLD = Duration.ofHours(1L);
 
   private static final int NUM_RETRIES = 10;
@@ -90,18 +89,18 @@ public class YamlFitbitUserRepository implements FitbitUserRepository {
   private final AtomicReference<Instant> nextFetch = new AtomicReference<>(Instant.MIN);
   private Path credentialsDir;
 
-  public YamlFitbitUserRepository() {
+  public YamlUserRepository() {
     this.client = new OkHttpClient();
   }
 
   @Override
-  public FitbitUser get(String key) {
+  public User get(String key) {
     updateUsers();
     LockedUser user = users.get(key);
     if (user == null) {
       return null;
     } else {
-      return user.apply(LocalFitbitUser::copy);
+      return user.apply(LocalUser::copy);
     }
   }
 
@@ -128,7 +127,7 @@ public class YamlFitbitUserRepository implements FitbitUserRepository {
   }
 
   @Override
-  public Stream<LocalFitbitUser> stream() {
+  public Stream<LocalUser> stream() {
     updateUsers();
 
     Stream<LockedUser> users = this.users.values().stream()
@@ -136,7 +135,7 @@ public class YamlFitbitUserRepository implements FitbitUserRepository {
     if (!configuredUsers.isEmpty()) {
       users = users.filter(lockedTest(u -> configuredUsers.contains(u.getId())));
     }
-    return users.map(lockedApply(LocalFitbitUser::copy));
+    return users.map(lockedApply(LocalUser::copy));
   }
 
   @Override
@@ -155,7 +154,7 @@ public class YamlFitbitUserRepository implements FitbitUserRepository {
   }
 
   @Override
-  public String getAccessToken(FitbitUser user) throws IOException, NotAuthorizedException {
+  public String getAccessToken(User user) throws IOException, NotAuthorizedException {
     updateUsers();
     LockedUser actualUser = this.users.get(user.getId());
     if (actualUser == null) {
@@ -173,7 +172,7 @@ public class YamlFitbitUserRepository implements FitbitUserRepository {
   }
 
   @Override
-  public String refreshAccessToken(FitbitUser user) throws IOException {
+  public String refreshAccessToken(User user) throws IOException {
     return refreshAccessToken(user, NUM_RETRIES);
   }
 
@@ -189,7 +188,7 @@ public class YamlFitbitUserRepository implements FitbitUserRepository {
    * @throws NotAuthorizedException if no refresh token is stored with the user or if the
    *                                current refresh token is no longer valid.
    */
-  public synchronized String refreshAccessToken(FitbitUser user, int retry) throws IOException {
+  public synchronized String refreshAccessToken(User user, int retry) throws IOException {
     LockedUser actualUser = this.users.get(user.getId());
     if (actualUser == null) {
       throw new NoSuchElementException("User " + user + " is not present in this user repository.");
@@ -275,7 +274,7 @@ public class YamlFitbitUserRepository implements FitbitUserRepository {
    * @param path path to store at.
    * @param user use to store.
    */
-  private void store(Path path, LocalFitbitUser user) {
+  private void store(Path path, LocalUser user) {
     try {
       Path temp = Files.createTempFile(user.getId(), ".tmp");
       try {
@@ -299,15 +298,15 @@ public class YamlFitbitUserRepository implements FitbitUserRepository {
    */
   private final class LockedUser {
     final Lock lock = new ReentrantLock();
-    final LocalFitbitUser user;
+    final LocalUser user;
     final Path path;
 
-    LockedUser(LocalFitbitUser user, Path path) {
+    LockedUser(LocalUser user, Path path) {
       this.user = user;
       this.path = path;
     }
 
-    <V> V apply(Function<? super LocalFitbitUser, ? extends V> func) {
+    <V> V apply(Function<? super LocalUser, ? extends V> func) {
       lock.lock();
       try {
         return func.apply(user);
@@ -316,7 +315,7 @@ public class YamlFitbitUserRepository implements FitbitUserRepository {
       }
     }
 
-    void accept(BiConsumer<? super LocalFitbitUser, ? super Path> consumer) {
+    void accept(BiConsumer<? super LocalUser, ? super Path> consumer) {
       lock.lock();
       try {
         consumer.accept(user, path);
@@ -326,11 +325,11 @@ public class YamlFitbitUserRepository implements FitbitUserRepository {
     }
   }
 
-  private static <V> Function<LockedUser, V> lockedApply(Function<? super LocalFitbitUser, ? extends V> func) {
+  private static <V> Function<LockedUser, V> lockedApply(Function<? super LocalUser, ? extends V> func) {
     return l -> l.apply(func);
   }
 
-  private static Predicate<LockedUser> lockedTest(Predicate<? super LocalFitbitUser> func) {
+  private static Predicate<LockedUser> lockedTest(Predicate<? super LocalUser> func) {
     return l -> {
       l.lock.lock();
       try {

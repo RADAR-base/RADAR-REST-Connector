@@ -26,8 +26,8 @@ import java.util.stream.Stream;
 import org.radarbase.connect.rest.fitbit.converter.FitbitTimeZoneAvroConverter;
 import org.radarbase.connect.rest.fitbit.request.FitbitRequestGenerator;
 import org.radarbase.connect.rest.fitbit.request.FitbitRestRequest;
-import org.radarbase.connect.rest.fitbit.user.FitbitUser;
-import org.radarbase.connect.rest.fitbit.user.FitbitUserRepository;
+import org.radarbase.connect.rest.fitbit.user.User;
+import org.radarbase.connect.rest.fitbit.user.UserRepository;
 import org.radarbase.connect.rest.fitbit.util.DateRange;
 
 public class FitbitTimeZoneRoute extends FitbitPollingRoute {
@@ -36,7 +36,7 @@ public class FitbitTimeZoneRoute extends FitbitPollingRoute {
   private final FitbitTimeZoneAvroConverter converter;
 
   public FitbitTimeZoneRoute(FitbitRequestGenerator generator,
-      FitbitUserRepository userRepository, AvroData avroData) {
+      UserRepository userRepository, AvroData avroData) {
     super(generator, userRepository, "timezone");
     this.converter = new FitbitTimeZoneAvroConverter(avroData);
   }
@@ -46,9 +46,9 @@ public class FitbitTimeZoneRoute extends FitbitPollingRoute {
     return baseUrl + "/1/user/%s/profile.json";
   }
 
-  protected Stream<FitbitRestRequest> createRequests(FitbitUser user) {
+  protected Stream<FitbitRestRequest> createRequests(User user) {
     ZonedDateTime now = ZonedDateTime.now(UTC);
-    return Stream.of(newRequest(user, new DateRange(now, now), user.getFitbitUserId()));
+    return Stream.of(newRequest(user, new DateRange(now, now), user.getExternalUserId()));
   }
 
   @Override

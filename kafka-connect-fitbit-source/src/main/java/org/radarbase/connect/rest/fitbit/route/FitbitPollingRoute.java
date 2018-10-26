@@ -45,8 +45,8 @@ import org.radarbase.connect.rest.RestSourceConnectorConfig;
 import org.radarbase.connect.rest.fitbit.FitbitRestSourceConnectorConfig;
 import org.radarbase.connect.rest.fitbit.request.FitbitRequestGenerator;
 import org.radarbase.connect.rest.fitbit.request.FitbitRestRequest;
-import org.radarbase.connect.rest.fitbit.user.FitbitUser;
-import org.radarbase.connect.rest.fitbit.user.FitbitUserRepository;
+import org.radarbase.connect.rest.fitbit.user.User;
+import org.radarbase.connect.rest.fitbit.user.UserRepository;
 import org.radarbase.connect.rest.fitbit.util.DateRange;
 import org.radarbase.connect.rest.request.PollingRequestRoute;
 import org.radarbase.connect.rest.request.RestRequest;
@@ -101,7 +101,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
   private final Map<String, Map<String, Object>> partitions;
   private final Map<String, Instant> lastPollPerUser;
   private final FitbitRequestGenerator generator;
-  private final FitbitUserRepository userRepository;
+  private final UserRepository userRepository;
   private final String routeName;
   private Duration pollInterval;
   private Instant lastPoll;
@@ -111,7 +111,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
 
   public FitbitPollingRoute(
       FitbitRequestGenerator generator,
-      FitbitUserRepository userRepository,
+      UserRepository userRepository,
       String routeName) {
     this.generator = generator;
     this.userRepository = userRepository;
@@ -152,7 +152,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
   @Override
   public void requestFailed(RestRequest request, Response response) {
     if (response != null && response.code() == 429) {
-      FitbitUser user = ((FitbitRestRequest)request).getUser();
+      User user = ((FitbitRestRequest)request).getUser();
       logger.info("Too many requests for user {}. Backing off for {}",
           user, TOO_MANY_REQUESTS_COOLDOWN);
       lastPollPerUser.compute(user.getId(), (u, p) -> p == null
@@ -169,7 +169,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
    * @param user Fitbit user
    * @return request to make
    */
-  protected abstract Stream<FitbitRestRequest> createRequests(FitbitUser user);
+  protected abstract Stream<FitbitRestRequest> createRequests(User user);
 
   @Override
   public Stream<FitbitRestRequest> requests() {
@@ -191,7 +191,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
     }
   }
 
-  private Map<String, Object> getPartition(FitbitUser user) {
+  private Map<String, Object> getPartition(User user) {
     return partitions.computeIfAbsent(user.getId(),
         k -> generator.getPartition(routeName, user));
   }
@@ -203,7 +203,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
    * @param urlFormatArgs format arguments to {@link #getUrlFormat(String)}.
    * @return request or {@code null} if the authorization cannot be arranged.
    */
-  protected FitbitRestRequest newRequest(FitbitUser user, DateRange dateRange,
+  protected FitbitRestRequest newRequest(User user, DateRange dateRange,
       Object... urlFormatArgs) {
     Request.Builder builder = new Request.Builder()
         .url(String.format(getUrlFormat(baseUrl), urlFormatArgs));
@@ -253,13 +253,13 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
     return lastPoll;
   }
 
-  protected Instant getOffset(FitbitUser user) {
+  protected Instant getOffset(User user) {
     return offsets.getOrDefault(user.getId(), user.getStartDate().minus(ONE_NANO));
   }
 
   /**
    * URL String format. The format arguments should be provided to
-   * {@link #newRequest(FitbitUser, Instant, Instant, Object...)}
+   * {@link #newRequest(User, Instant, Instant, Object...)}
    */
   protected abstract String getUrlFormat(String baseUrl);
 
@@ -280,7 +280,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
   /**
    * Next time that given user should be polled.
    */
-  protected Instant nextPoll(FitbitUser user) {
+  protected Instant nextPoll(User user) {
     Instant offset = getOffset(user);
     if (offset.isAfter(user.getEndDate())) {
       return Instant.MAX;

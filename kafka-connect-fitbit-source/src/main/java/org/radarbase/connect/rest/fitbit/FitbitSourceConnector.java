@@ -23,13 +23,56 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.config.ConfigException;
 import org.radarbase.connect.rest.AbstractRestSourceConnector;
-import org.radarbase.connect.rest.fitbit.user.FitbitUser;
+import org.radarbase.connect.rest.fitbit.user.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FitbitSourceConnector extends AbstractRestSourceConnector {
+
+  private static final Logger logger = LoggerFactory.getLogger(FitbitSourceConnector.class);
+  private ScheduledExecutorService executor;
+  private Set<? extends User> configuredUsers;
+
+
+  @Override
+  public void start(Map<String, String> props) {
+    super.start(props);
+    executor = Executors.newSingleThreadScheduledExecutor();
+
+    executor.scheduleAtFixedRate(() -> {
+      try {
+        logger.info("Requesting latest user details...");
+        Set<? extends User> newUsers = getConfig(props).getUserRepository().stream()
+            .collect(Collectors.toSet());
+        if (configuredUsers != null && !newUsers.equals(configuredUsers)) {
+          logger.info("User info mismatch found. Requesting reconfiguration...");
+          reconfigure();
+        }
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+
+    },0, 1, TimeUnit.HOURS);
+  }
+
+  @Override
+  public void stop() {
+    super.stop();
+    executor.shutdown();
+
+    configuredUsers = null;
+  }
+
   @Override
   public FitbitRestSourceConnectorConfig getConfig(Map<String, String> conf) {
     return new FitbitRestSourceConnectorConfig(conf);
@@ -42,12 +85,17 @@ public class FitbitSourceConnector extends AbstractRestSourceConnector {
 
   @Override
   public List<Map<String, String>> taskConfigs(int maxTasks) {
+    return configureTasks(maxTasks);
+  }
+
+  private List<Map<String, String>> configureTasks(int maxTasks) {
     Map<String, String> baseConfig = config.originalsStrings();
     FitbitRestSourceConnectorConfig fitbitConfig = getConfig(baseConfig);
     // Divide the users over tasks
     try {
-      return fitbitConfig.getFitbitUserRepository().stream()
-          .map(FitbitUser::getId)
+
+      List<Map<String, String>> userTasks = fitbitConfig.getUserRepository().stream()
+          .map(User::getId)
           // group users based on their hashCode
           // in principle this allows for more efficient reconfigurations for a fixed number of tasks,
           // since that allows existing tasks to only handle small modifications users to handle.
@@ -61,8 +109,20 @@ public class FitbitSourceConnector extends AbstractRestSourceConnector {
             return config;
           })
           .collect(Collectors.toList());
+      this.configuredUsers = fitbitConfig.getUserRepository().stream()
+          .collect(Collectors.toSet());
+      logger.info("Received userTask Configs {}" , userTasks);
+      return userTasks;
     } catch (IOException ex) {
       throw new ConfigException("Cannot read users", ex);
     }
+  }
+
+  public void reconfigure() {
+    new Thread(() -> {
+      logger.info("Requesting reconfiguration");
+      context.requestTaskReconfiguration();
+      logger.info("Requested reconfiguration");
+    }).start();
   }
 }

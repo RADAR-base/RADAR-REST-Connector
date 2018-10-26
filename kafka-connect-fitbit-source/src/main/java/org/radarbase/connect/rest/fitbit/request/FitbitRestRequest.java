@@ -20,7 +20,7 @@ package org.radarbase.connect.rest.fitbit.request;
 import java.util.Map;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import org.radarbase.connect.rest.fitbit.user.FitbitUser;
+import org.radarbase.connect.rest.fitbit.user.User;
 import org.radarbase.connect.rest.fitbit.util.DateRange;
 import org.radarbase.connect.rest.request.RequestRoute;
 import org.radarbase.connect.rest.request.RestRequest;
@@ -30,18 +30,18 @@ import org.radarbase.connect.rest.request.RestRequest;
  * defining what dates to poll (again).
  */
 public class FitbitRestRequest extends RestRequest {
-  private final FitbitUser user;
+  private final User user;
   private final DateRange dateRange;
 
   public FitbitRestRequest(
-      RequestRoute requestRoute, Request request, FitbitUser user,
+      RequestRoute requestRoute, Request request, User user,
       Map<String, Object> partition, OkHttpClient client, DateRange dateRange) {
     super(requestRoute, client, request, partition);
     this.user = user;
     this.dateRange = dateRange;
   }
 
-  public FitbitUser getUser() {
+  public User getUser() {
     return user;
   }
 
