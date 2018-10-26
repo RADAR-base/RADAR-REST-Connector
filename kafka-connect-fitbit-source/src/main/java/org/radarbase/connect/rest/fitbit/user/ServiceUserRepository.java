@@ -22,10 +22,17 @@ import static org.radarbase.connect.rest.fitbit.request.FitbitRequestGenerator.J
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectReader;
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.ws.rs.NotAuthorizedException;
 
@@ -54,6 +61,9 @@ public class ServiceUserRepository implements UserRepository {
   private HttpUrl baseUrl;
   private final Map<String, OAuth2UserCredentials> cachedCredentials;
   private HashSet<String> containedUsers;
+  private Set< ? extends User> timedCachedUsers = new HashSet<>();
+  private final AtomicReference<Instant> nextFetch = new AtomicReference<>(Instant.MIN);
+  private static final Duration FETCH_THRESHOLD = Duration.ofMinutes(30L);
 
   public ServiceUserRepository() {
     this.client = new OkHttpClient();
@@ -76,9 +86,22 @@ public class ServiceUserRepository implements UserRepository {
 
   @Override
   public Stream<? extends User> stream() throws IOException {
+    Instant nextFetchTime = nextFetch.get();
+    Instant now = Instant.now();
+    if (!now.isAfter(nextFetchTime)
+        || !nextFetch.compareAndSet(nextFetchTime, now.plus(FETCH_THRESHOLD))) {
+      logger.info("Providing cached user information...");
+      return timedCachedUsers.stream();
+    }
+
+    logger.info("Requesting user information from webservice");
     Request request = requestFor("users" + "?device-type=FitBit").build();
-    return this.<Users>makeRequest(request, USER_LIST_READER).getUsers().stream()
-        .filter(u -> containedUsers.isEmpty() || containedUsers.contains(u.getId()));
+    this.timedCachedUsers = this.<Users>makeRequest(request, USER_LIST_READER)
+        .getUsers().stream()
+        .filter(u -> containedUsers.isEmpty() || containedUsers.contains(u.getId()))
+        .collect(Collectors.toSet());
+
+    return this.timedCachedUsers.stream();
   }
 
   @Override
