@@ -63,7 +63,7 @@ public class ServiceUserRepository implements UserRepository {
   private HashSet<String> containedUsers;
   private Set< ? extends User> timedCachedUsers = new HashSet<>();
   private final AtomicReference<Instant> nextFetch = new AtomicReference<>(Instant.MIN);
-  private static final Duration FETCH_THRESHOLD = Duration.ofMinutes(30L);
+  private static final Duration FETCH_THRESHOLD = Duration.ofMinutes(1L);
 
   public ServiceUserRepository() {
     this.client = new OkHttpClient();
@@ -95,7 +95,7 @@ public class ServiceUserRepository implements UserRepository {
     }
 
     logger.info("Requesting user information from webservice");
-    Request request = requestFor("users" + "?device-type=FitBit").build();
+    Request request = requestFor("users" + "?source-type=FitBit").build();
     this.timedCachedUsers = this.<Users>makeRequest(request, USER_LIST_READER)
         .getUsers().stream()
         .filter(u -> containedUsers.isEmpty() || containedUsers.contains(u.getId()))
