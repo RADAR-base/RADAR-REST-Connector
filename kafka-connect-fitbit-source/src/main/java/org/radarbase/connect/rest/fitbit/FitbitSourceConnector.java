@@ -62,7 +62,7 @@ public class FitbitSourceConnector extends AbstractRestSourceConnector {
         e.printStackTrace();
       }
 
-    },0, 1, TimeUnit.HOURS);
+    },0, 5, TimeUnit.MINUTES);
   }
 
   @Override
