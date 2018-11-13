@@ -51,12 +51,12 @@ public class FitbitIntradayHeartRateAvroConverter extends FitbitAvroConverter {
   protected Stream<TopicData> processRecords(
       FitbitRestRequest request, JsonNode root, double timeReceived) {
     JsonNode intraday = root.get("activities-heart-intraday");
-    if (intraday == null) {
+    if (intraday == null || !intraday.isObject()) {
       return Stream.empty();
     }
 
     JsonNode dataset = intraday.get("dataset");
-    if (dataset == null) {
+    if (dataset == null || !dataset.isArray()) {
       return Stream.empty();
     }
 

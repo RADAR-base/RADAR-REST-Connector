@@ -39,6 +39,12 @@ your Fitbit App client ID and client secret. The following tables shows the poss
 <tr>
 <td>rest.source.base.url</td></td><td>Base URL for REST source connector.</td></td><td>string</td></td><td></td></td><td></td></td><td>high</td></td></tr>
 <tr>
+<td>rest.source.destination.topics</td></td><td>The  list of destination topics for the REST source connector.</td></td><td>list</td></td><td>""</td></td><td></td></td><td>high</td></td></tr>
+<tr>
+<td>rest.source.topic.selector</td></td><td>The topic selector class for REST source connector.</td></td><td>class</td></td><td>org.radarbase.connect.rest.selector.SimpleTopicSelector</td></td><td>Class extending org.radarbase.connect.rest.selector.TopicSelector</td></td><td>high</td></td></tr>
+<tr>
+<td>rest.source.payload.converter.class</td></td><td>Class to be used to convert messages from REST calls to SourceRecords</td></td><td>class</td></td><td>org.radarbase.connect.rest.converter.StringPayloadConverter</td></td><td>Class extending org.radarbase.connect.rest.converter.PayloadToSourceRecordConverter</td></td><td>low</td></td></tr>
+<tr>
 <td>rest.source.request.generator.class</td></td><td>Class to be used to generate REST requests</td></td><td>class</td></td><td>org.radarbase.connect.rest.single.SingleRequestGenerator</td></td><td>Class extending org.radarbase.connect.rest.request.RequestGenerator</td></td><td>low</td></td></tr>
 <tr>
 <td>fitbit.users</td></td><td>The user ID of Fitbit users to include in polling, separated by commas. Non existing user names will be ignored. If empty, all users in the user directory will be used.</td></td><td>list</td></td><td>""</td></td><td></td></td><td>high</td></td></tr>
@@ -47,9 +53,13 @@ your Fitbit App client ID and client secret. The following tables shows the poss
 <tr>
 <td>fitbit.api.secret</td></td><td>Secret for the Fitbit API client set in fitbit.api.client.</td></td><td>password</td></td><td></td></td><td></td></td><td>high</td></td></tr>
 <tr>
-<td>fitbit.user.repository.class</td></td><td>Class for managing users and authentication.</td></td><td>class</td></td><td>org.radarbase.connect.rest.fitbit.user.YamlFitbitUserRepository</td></td><td>Class extending org.radarbase.connect.rest.fitbit.user.FitbitUserRepository</td></td><td>medium</td></td></tr>
+<td>fitbit.api.intraday</td></td><td>Set to true if the client has permissions to Fitbit Intraday API, false otherwise.</td></td><td>boolean</td></td><td>true</td></td><td></td></td><td>medium</td></td></tr>
+<tr>
+<td>fitbit.user.repository.class</td></td><td>Class for managing users and authentication.</td></td><td>class</td></td><td>org.radarbase.connect.rest.fitbit.user.YamlUserRepository</td></td><td>Class extending org.radarbase.connect.rest.fitbit.user.UserRepository</td></td><td>medium</td></td></tr>
 <tr>
 <td>fitbit.user.dir</td></td><td>Directory containing Fitbit user information and credentials. Only used if a file-based user repository is configured.</td></td><td>string</td></td><td>/var/lib/kafka-connect-fitbit-source/users</td></td><td></td></td><td>low</td></td></tr>
+<tr>
+<td>fitbit.user.repository.url</td></td><td>URL for webservice containing user credentials. Only used if a webservice-based user repository is configured.</td></td><td>string</td></td><td>""</td></td><td></td></td><td>low</td></td></tr>
 <tr>
 <td>fitbit.max.users.per.poll</td></td><td>Maximum number of users to query in a single poll operation. Decrease this if memory constrains are pressing.</td></td><td>int</td></td><td>100</td></td><td>[1,...]</td></td><td>low</td></td></tr>
 <tr>
@@ -61,7 +71,9 @@ your Fitbit App client ID and client secret. The following tables shows the poss
 <tr>
 <td>fitbit.sleep.classic.topic</td></td><td>Topic for Fitbit sleep classic data</td></td><td>string</td></td><td>connect_fitbit_sleep_classic</td></td><td>non-empty string without control characters</td></td><td>low</td></td></tr>
 <tr>
-<td>fitbit.time.zone.topic</td></td><td>Topic for Fitbit profile timezone</td></td><td>string</td></td><td>connect_fitbit_time_zone</td></td><td>non-empty string without control characters</td></td><td>low</td></td></tr>
+<td>fitbit.time.zone.topic</td></td><td>Topic for Fitbit profile time zone</td></td><td>string</td></td><td>connect_fitbit_time_zone</td></td><td>non-empty string without control characters</td></td><td>low</td></td></tr>
+<tr>
+<td>fitbit.activity.log.topic</td></td><td>Topic for Fitbit activity log.</td></td><td>string</td></td><td>connect_fitbit_activity_log</td></td><td>non-empty string without control characters</td></td><td>low</td></td></tr>
 </tbody></table>
 
 Now you can run a full Kafka stack using
