@@ -18,6 +18,7 @@
 package org.radarbase.connect.rest.converter;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Collection;
 import okhttp3.Response;
 import org.apache.kafka.connect.source.SourceRecord;
@@ -25,6 +26,7 @@ import org.radarbase.connect.rest.config.RestSourceTool;
 import org.radarbase.connect.rest.request.RestRequest;
 
 public interface PayloadToSourceRecordConverter extends RestSourceTool {
+  Instant MIN_INSTANT = Instant.EPOCH;
   String TIMESTAMP_OFFSET_KEY = "timestamp";
 
   Collection<SourceRecord> convert(

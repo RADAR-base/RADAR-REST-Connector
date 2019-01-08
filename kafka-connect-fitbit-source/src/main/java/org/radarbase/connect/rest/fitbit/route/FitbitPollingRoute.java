@@ -21,6 +21,7 @@ import static java.time.ZoneOffset.UTC;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.NANOS;
 import static java.time.temporal.ChronoUnit.SECONDS;
+import static org.radarbase.connect.rest.converter.PayloadToSourceRecordConverter.MIN_INSTANT;
 import static org.radarbase.connect.rest.converter.PayloadToSourceRecordConverter.TIMESTAMP_OFFSET_KEY;
 
 import java.io.IOException;
@@ -118,7 +119,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
     this.offsets = new HashMap<>();
     this.partitions = new HashMap<>(generator.getPartitions(routeName));
     this.routeName = routeName;
-    this.lastPoll = Instant.MIN;
+    this.lastPoll = MIN_INSTANT;
     this.lastPollPerUser = new HashMap<>();
   }
 
@@ -285,7 +286,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
     if (offset.isAfter(user.getEndDate())) {
       return Instant.MAX;
     } else {
-      Instant nextPoll = lastPollPerUser.getOrDefault(user.getId(), Instant.MIN)
+      Instant nextPoll = lastPollPerUser.getOrDefault(user.getId(), MIN_INSTANT)
           .plus(getPollIntervalPerUser());
       return PollingRequestRoute.max(offset.plus(getLookbackTime()), nextPoll);
     }

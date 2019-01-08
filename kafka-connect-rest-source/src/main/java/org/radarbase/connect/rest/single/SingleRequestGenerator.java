@@ -17,6 +17,7 @@
 
 package org.radarbase.connect.rest.single;
 
+import static org.radarbase.connect.rest.converter.PayloadToSourceRecordConverter.MIN_INSTANT;
 import static org.radarbase.connect.rest.converter.PayloadToSourceRecordConverter.TIMESTAMP_OFFSET_KEY;
 import static org.radarbase.connect.rest.request.PollingRequestRoute.max;
 
@@ -60,7 +61,7 @@ public class SingleRequestGenerator implements RequestRoute {
   public void initialize(RestSourceConnectorConfig config) {
     SingleRestSourceConnectorConfig singleConfig = (SingleRestSourceConnectorConfig) config;
     this.pollInterval = config.getPollInterval();
-    lastPoll = Instant.MIN;
+    lastPoll = MIN_INSTANT;
 
     this.url = HttpUrl.parse(config.getUrl());
     this.key = Collections.singletonMap("URL", config.getUrl());
@@ -119,7 +120,7 @@ public class SingleRequestGenerator implements RequestRoute {
 
   @Override
   public void setOffsetStorageReader(OffsetStorageReader offsetStorageReader) {
-    lastTimestamp = Instant.MIN;
+    lastTimestamp = MIN_INSTANT;
 
     if (offsetStorageReader != null) {
       Map<String, Object> offset = offsetStorageReader.offset(key);

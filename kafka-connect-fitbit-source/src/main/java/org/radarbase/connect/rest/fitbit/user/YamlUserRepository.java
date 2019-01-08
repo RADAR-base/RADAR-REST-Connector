@@ -18,6 +18,7 @@
 package org.radarbase.connect.rest.fitbit.user;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static org.radarbase.connect.rest.converter.PayloadToSourceRecordConverter.MIN_INSTANT;
 import static org.radarbase.connect.rest.fitbit.request.FitbitRequestGenerator.JSON_READER;
 import static org.radarbase.connect.rest.util.ThrowingFunction.tryOrRethrow;
 
@@ -86,7 +87,7 @@ public class YamlUserRepository implements UserRepository {
   private Set<String> configuredUsers;
   private Headers headers;
   private ConcurrentMap<String, LockedUser> users = new ConcurrentHashMap<>();
-  private final AtomicReference<Instant> nextFetch = new AtomicReference<>(Instant.MIN);
+  private final AtomicReference<Instant> nextFetch = new AtomicReference<>(MIN_INSTANT);
   private Path credentialsDir;
 
   public YamlUserRepository() {
