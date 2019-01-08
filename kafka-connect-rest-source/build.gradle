@@ -7,7 +7,7 @@ dependencies {
     testImplementation group: 'ch.qos.logback', name: 'logback-classic', version:'1.2.3'
     testImplementation group: 'junit', name: 'junit', version:'4.12'
     testImplementation group: 'org.mockito', name: 'mockito-core', version:'1.10.19'
-    testImplementation group: 'com.github.tomakehurst', name: 'wiremock', version:'2.14.0'
+    testImplementation group: 'com.github.tomakehurst', name: 'wiremock', version:'2.20.0'
 
     testImplementation group: 'org.apache.kafka', name: 'connect-api', version:'2.0.0'
 }
