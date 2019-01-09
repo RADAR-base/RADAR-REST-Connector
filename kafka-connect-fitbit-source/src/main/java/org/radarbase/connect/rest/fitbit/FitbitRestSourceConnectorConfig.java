@@ -23,6 +23,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
@@ -118,8 +119,8 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
   private final Headers clientCredentials;
 
   @SuppressWarnings("unchecked")
-  public FitbitRestSourceConnectorConfig(ConfigDef config, Map<String, String> parsedConfig) {
-    super(config, parsedConfig);
+  public FitbitRestSourceConnectorConfig(ConfigDef config, Map<String, String> parsedConfig, boolean doLog) {
+    super(config, parsedConfig, doLog);
 
     try {
       userRepository = ((Class<? extends UserRepository>)
@@ -135,8 +136,8 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
     this.clientCredentials = Headers.of("Authorization", "Basic " + credentialsBase64);
   }
 
-  public FitbitRestSourceConnectorConfig(Map<String, String> parsedConfig) {
-    this(FitbitRestSourceConnectorConfig.conf(), parsedConfig);
+  public FitbitRestSourceConnectorConfig(Map<String, String> parsedConfig, boolean doLog) {
+    this(FitbitRestSourceConnectorConfig.conf(), parsedConfig, doLog);
   }
 
   public static ConfigDef conf() {

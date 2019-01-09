@@ -18,6 +18,7 @@
 package org.radarbase.connect.rest.fitbit.request;
 
 import java.util.Map;
+import java.util.function.Predicate;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import org.radarbase.connect.rest.fitbit.user.User;
@@ -35,8 +36,9 @@ public class FitbitRestRequest extends RestRequest {
 
   public FitbitRestRequest(
       RequestRoute requestRoute, Request request, User user,
-      Map<String, Object> partition, OkHttpClient client, DateRange dateRange) {
-    super(requestRoute, client, request, partition);
+      Map<String, Object> partition, OkHttpClient client, DateRange dateRange,
+      Predicate<RestRequest> isValid) {
+    super(requestRoute, client, request, partition, isValid);
     this.user = user;
     this.dateRange = dateRange;
   }

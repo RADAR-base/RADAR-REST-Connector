@@ -52,16 +52,15 @@ public class FitbitSourceConnector extends AbstractRestSourceConnector {
     executor.scheduleAtFixedRate(() -> {
       try {
         logger.info("Requesting latest user details...");
-        Set<? extends User> newUsers = getConfig(props).getUserRepository().stream()
+        Set<? extends User> newUsers = getConfig(props, false).getUserRepository().stream()
             .collect(Collectors.toSet());
         if (configuredUsers != null && !newUsers.equals(configuredUsers)) {
           logger.info("User info mismatch found. Requesting reconfiguration...");
           reconfigure();
         }
       } catch (IOException e) {
-        e.printStackTrace();
+        logger.warn("Failed to refresh users: {}", e.toString());
       }
-
     },0, 5, TimeUnit.MINUTES);
   }
 
@@ -73,9 +72,13 @@ public class FitbitSourceConnector extends AbstractRestSourceConnector {
     configuredUsers = null;
   }
 
+  private FitbitRestSourceConnectorConfig getConfig(Map<String, String> conf, boolean doLog) {
+    return new FitbitRestSourceConnectorConfig(conf, doLog);
+  }
+
   @Override
   public FitbitRestSourceConnectorConfig getConfig(Map<String, String> conf) {
-    return new FitbitRestSourceConnectorConfig(conf);
+    return getConfig(conf, true);
   }
 
   @Override

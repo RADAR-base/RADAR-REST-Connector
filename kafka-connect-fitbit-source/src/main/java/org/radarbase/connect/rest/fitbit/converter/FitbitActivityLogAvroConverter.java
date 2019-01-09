@@ -83,8 +83,7 @@ public class FitbitActivityLogAvroConverter extends FitbitAvroConverter {
         .setId(optLong(s, "logId").orElseThrow(
             () -> new IllegalArgumentException("Activity log ID not specified")))
         .setLogType(optString(s, "logType").orElse(null))
-        .setType(optLong(s, "activityType").orElseThrow(
-            () -> new IllegalArgumentException("Activity log type not specified.")))
+        .setType(optLong(s, "activityType").orElse(null))
         .setSpeed(optDouble(s, "speed").orElse(null))
         .setDistance(optDouble(s, "distance").map(Float::new).orElse(null))
         .setSteps(optInt(s, "steps").orElse(null))

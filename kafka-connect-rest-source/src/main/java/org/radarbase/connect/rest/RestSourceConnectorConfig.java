@@ -86,8 +86,8 @@ public class RestSourceConnectorConfig extends AbstractConfig {
   private final RequestGenerator requestGenerator;
 
   @SuppressWarnings("unchecked")
-  public RestSourceConnectorConfig(ConfigDef config, Map<String, String> parsedConfig) {
-    super(config, parsedConfig);
+  public RestSourceConnectorConfig(ConfigDef config, Map<String, String> parsedConfig, boolean doLog) {
+    super(config, parsedConfig, doLog);
     try {
       topicSelector = ((Class<? extends TopicSelector>)
           getClass(SOURCE_TOPIC_SELECTOR_CONFIG)).getDeclaredConstructor().newInstance();
@@ -101,8 +101,8 @@ public class RestSourceConnectorConfig extends AbstractConfig {
     }
   }
 
-  public RestSourceConnectorConfig(Map<String, String> parsedConfig) {
-    this(conf(), parsedConfig);
+  public RestSourceConnectorConfig(Map<String, String> parsedConfig, boolean doLog) {
+    this(conf(), parsedConfig, doLog);
   }
 
   public static ConfigDef conf() {
@@ -217,5 +217,9 @@ public class RestSourceConnectorConfig extends AbstractConfig {
 
   public Duration getPollIntervalPerUser() {
     return Duration.ofMinutes(30);
+  }
+
+  public Duration getTooManyRequestsCooldownInterval() {
+    return Duration.ofHours(1);
   }
 }

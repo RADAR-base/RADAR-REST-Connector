@@ -17,6 +17,8 @@
 
 package org.radarbase.connect.rest.request;
 
+import static org.radarbase.connect.rest.converter.PayloadToSourceRecordConverter.nearFuture;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Comparator;
@@ -32,8 +34,11 @@ public interface PollingRequestRoute extends RequestRoute {
 
   /** Get the time that this route should be polled again. */
   default Instant getTimeOfNextRequest() {
-    return max(getLastPoll().plus(getPollInterval()),
-        nextPolls().min(Comparator.naturalOrder()).orElse(Instant.MAX));
+    return max(
+        getLastPoll().plus(getPollInterval()),
+        nextPolls()
+            .min(Comparator.naturalOrder())
+            .orElse(nearFuture()));
   }
 
   static <T extends Comparable<? super T>> T max(T a, T b) {

@@ -20,6 +20,7 @@ package org.radarbase.connect.rest.request;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -34,6 +35,7 @@ public class RestRequest {
   private final Map<String, Object> partition;
   private final RequestRoute route;
   private final OkHttpClient client;
+  private final Predicate<RestRequest> isValid;
 
   /**
    * Single RestRequest.
@@ -41,16 +43,19 @@ public class RestRequest {
    * @param client OkHttp client to make request with
    * @param request OkHttp request to make
    * @param partition Kafka source partition
+   * @param isValid whether the request is still valid when the request is made. May be null.
    */
   public RestRequest(
       RequestRoute route,
       OkHttpClient client,
       Request request,
-      Map<String, Object> partition) {
+      Map<String, Object> partition,
+      Predicate<RestRequest> isValid) {
     this.request = request;
     this.partition = partition;
     this.route = route;
     this.client = client;
+    this.isValid = isValid;
   }
 
   public Request getRequest() {
@@ -61,12 +66,20 @@ public class RestRequest {
     return partition;
   }
 
+  public boolean isStillValid() {
+    return isValid == null || isValid.test(this);
+  }
+
   /**
    * Handle the request using the internal client, using the request route converter.
    * @return stream of resulting source records, or {@code null} if the response was not successful.
    * @throws IOException if making or parsing the request failed.
    */
   public Stream<SourceRecord> handleRequest() throws IOException {
+    if (!isStillValid()) {
+      return Stream.empty();
+    }
+
     try (Response response = client.newCall(request).execute()) {
       if (!response.isSuccessful()) {
         route.requestFailed(this, response);

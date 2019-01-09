@@ -99,7 +99,7 @@ public class SingleRequestGenerator implements RequestRoute {
         .method(method, body)
         .url(url)
         .headers(headers)
-        .build(), key));
+        .build(), key, null));
   }
 
   @Override
