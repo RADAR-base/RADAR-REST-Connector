@@ -30,6 +30,6 @@ public class SingleRestSourceConnector extends AbstractRestSourceConnector {
 
   @Override
   public RestSourceConnectorConfig getConfig(Map<String, String> conf) {
-    return new SingleRestSourceConnectorConfig(conf);
+    return new SingleRestSourceConnectorConfig(conf, true);
   }
 }

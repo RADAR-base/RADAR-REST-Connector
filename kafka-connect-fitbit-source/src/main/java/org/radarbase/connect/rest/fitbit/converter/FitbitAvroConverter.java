@@ -20,14 +20,19 @@ package org.radarbase.connect.rest.fitbit.converter;
 import static org.radarbase.connect.rest.fitbit.request.FitbitRequestGenerator.JSON_READER;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.confluent.connect.avro.AvroData;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.OptionalLong;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -115,6 +120,42 @@ public abstract class FitbitAvroConverter implements PayloadToSourceRecordConver
   /** Converts an iterable (like a JsonNode containing an array) to a stream. */
   protected static <T> Stream<T> iterableToStream(Iterable<T> iter) {
     return StreamSupport.stream(iter.spliterator(), false);
+  }
+
+  protected static Optional<Long> optLong(JsonNode node, String fieldName) {
+    JsonNode v = node.get(fieldName);
+    return v != null && v.canConvertToLong() ? Optional.of(v.longValue()) : Optional.empty();
+  }
+
+  protected static Optional<Double> optDouble(JsonNode node, String fieldName) {
+    JsonNode v = node.get(fieldName);
+    return v != null && v.isNumber() ? Optional.of(v.doubleValue()) : Optional.empty();
+  }
+
+  protected static Optional<Integer> optInt(JsonNode node, String fieldName) {
+    JsonNode v = node.get(fieldName);
+    return v != null && v.canConvertToInt() ? Optional.of(v.intValue()) : Optional.empty();
+  }
+
+  protected static Optional<String> optString(JsonNode node, String fieldName) {
+    JsonNode v = node.get(fieldName);
+    return v != null && v.isTextual() ? Optional.ofNullable(v.textValue()) : Optional.empty();
+  }
+
+  protected static Optional<Boolean> optBoolean(JsonNode node, String fieldName) {
+    JsonNode v = node.get(fieldName);
+    return v != null && v.isBoolean() ? Optional.of(v.booleanValue()) : Optional.empty();
+  }
+
+  protected static Optional<ObjectNode> optObject(JsonNode parent, String fieldName) {
+    JsonNode v = parent.get(fieldName);
+    return v != null && v.isObject() ? Optional.of((ObjectNode) v) : Optional.empty();
+  }
+
+  protected static Optional<Iterable<JsonNode>> optArray(JsonNode parent, String fieldName) {
+    JsonNode v = parent.get(fieldName);
+    return v != null && v.isArray() && v.size() != 0 ?
+        Optional.of(v) : Optional.empty();
   }
 
   /** Single value for a topic. */

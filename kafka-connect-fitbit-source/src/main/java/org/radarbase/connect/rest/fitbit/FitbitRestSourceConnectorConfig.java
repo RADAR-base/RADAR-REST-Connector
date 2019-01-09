@@ -23,6 +23,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
@@ -64,6 +65,11 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
   private static final String FITBIT_USER_REPOSITORY_DOC = "Class for managing users and authentication.";
   private static final String FITBIT_USER_REPOSITORY_DISPLAY = "User repository class";
 
+  public static final String FITBIT_API_INTRADAY_ACCESS_CONFIG = "fitbit.api.intraday";
+  private static final String FITBIT_API_INTRADAY_ACCESS_DOC = "Set to true if the client has permissions to Fitbit Intraday API, false otherwise.";
+  private static final boolean FITBIT_API_INTRADAY_ACCESS_DEFAULT = false;
+  private static final String FITBIT_API_INTRADAY_ACCESS_DISPLAY = "Is Fitbit Intraday API available?";
+
   public static final String FITBIT_USER_CREDENTIALS_DIR_CONFIG = "fitbit.user.dir";
   private static final String FITBIT_USER_CREDENTIALS_DIR_DOC = "Directory containing Fitbit user information and credentials. Only used if a file-based user repository is configured.";
   private static final String FITBIT_USER_CREDENTIALS_DIR_DISPLAY = "User directory";
@@ -95,21 +101,26 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
   private static final String FITBIT_SLEEP_CLASSIC_TOPIC_DISPLAY = "Classic sleep topic";
 
   private static final String FITBIT_TIME_ZONE_TOPIC_CONFIG = "fitbit.time.zone.topic";
-  private static final String FITBIT_TIME_ZONE_TOPIC_DOC = "Topic for Fitbit profile timezone";
+  private static final String FITBIT_TIME_ZONE_TOPIC_DOC = "Topic for Fitbit profile time zone";
   private static final String FITBIT_TIME_ZONE_TOPIC_DEFAULT = "connect_fitbit_time_zone";
-  private static final String FITBIT_TIME_ZONE_TOPIC_DISPLAY = "Timezone topic";
+  private static final String FITBIT_TIME_ZONE_TOPIC_DISPLAY = "Time zone topic";
 
   private static final String FITBIT_MAX_USERS_PER_POLL_CONFIG = "fitbit.max.users.per.poll";
   private static final String FITBIT_MAX_USERS_PER_POLL_DOC = "Maximum number of users to query in a single poll operation. Decrease this if memory constrains are pressing.";
   private static final int FITBIT_MAX_USERS_PER_POLL_DEFAULT = 100;
   private static final String FITBIT_MAX_USERS_PER_POLL_DISPLAY = "Maximum users per poll";
 
+  private static final String FITBIT_ACTIVITY_LOG_TOPIC_CONFIG = "fitbit.activity.log.topic";
+  private static final String FITBIT_ACTIVITY_LOG_TOPIC_DOC = "Topic for Fitbit activity log.";
+  private static final String FITBIT_ACTIVITY_LOG_TOPIC_DEFAULT = "connect_fitbit_activity_log";
+  private static final String FITBIT_ACTIVITY_LOG_TOPIC_DISPLAY = "Activity log topic";
+
   private final UserRepository userRepository;
   private final Headers clientCredentials;
 
   @SuppressWarnings("unchecked")
-  public FitbitRestSourceConnectorConfig(ConfigDef config, Map<String, String> parsedConfig) {
-    super(config, parsedConfig);
+  public FitbitRestSourceConnectorConfig(ConfigDef config, Map<String, String> parsedConfig, boolean doLog) {
+    super(config, parsedConfig, doLog);
 
     try {
       userRepository = ((Class<? extends UserRepository>)
@@ -125,8 +136,8 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
     this.clientCredentials = Headers.of("Authorization", "Basic " + credentialsBase64);
   }
 
-  public FitbitRestSourceConnectorConfig(Map<String, String> parsedConfig) {
-    this(FitbitRestSourceConnectorConfig.conf(), parsedConfig);
+  public FitbitRestSourceConnectorConfig(Map<String, String> parsedConfig, boolean doLog) {
+    this(FitbitRestSourceConnectorConfig.conf(), parsedConfig, doLog);
   }
 
   public static ConfigDef conf() {
@@ -172,6 +183,16 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
             ++orderInGroup,
             Width.SHORT,
             FITBIT_API_SECRET_DISPLAY)
+
+        .define(FITBIT_API_INTRADAY_ACCESS_CONFIG,
+            Type.BOOLEAN,
+            true,
+            Importance.MEDIUM,
+            FITBIT_API_INTRADAY_ACCESS_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            FITBIT_API_INTRADAY_ACCESS_DISPLAY)
 
         .define(FITBIT_USER_REPOSITORY_CONFIG,
             Type.CLASS,
@@ -269,6 +290,17 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
             ++orderInGroup,
             Width.SHORT,
             FITBIT_TIME_ZONE_TOPIC_DISPLAY)
+
+        .define(FITBIT_ACTIVITY_LOG_TOPIC_CONFIG,
+            Type.STRING,
+            FITBIT_ACTIVITY_LOG_TOPIC_DEFAULT,
+            nonControlChar,
+            Importance.LOW,
+            FITBIT_ACTIVITY_LOG_TOPIC_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            FITBIT_ACTIVITY_LOG_TOPIC_DISPLAY)
         ;
   }
 
@@ -332,5 +364,13 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
 
   public long getMaxUsersPerPoll() {
     return getInt(FITBIT_MAX_USERS_PER_POLL_CONFIG);
+  }
+
+  public String getActivityLogTopic() {
+    return getString(FITBIT_ACTIVITY_LOG_TOPIC_CONFIG);
+  }
+
+  public boolean hasIntradayAccess() {
+    return getBoolean(FITBIT_API_INTRADAY_ACCESS_CONFIG);
   }
 }

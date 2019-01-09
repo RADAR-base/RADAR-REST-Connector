@@ -18,6 +18,9 @@
 package org.radarbase.connect.rest.converter;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.TemporalAmount;
 import java.util.Collection;
 import okhttp3.Response;
 import org.apache.kafka.connect.source.SourceRecord;
@@ -25,8 +28,14 @@ import org.radarbase.connect.rest.config.RestSourceTool;
 import org.radarbase.connect.rest.request.RestRequest;
 
 public interface PayloadToSourceRecordConverter extends RestSourceTool {
+  Instant MIN_INSTANT = Instant.EPOCH;
   String TIMESTAMP_OFFSET_KEY = "timestamp";
+  TemporalAmount NEAR_FUTURE = Duration.ofDays(31L);
 
   Collection<SourceRecord> convert(
       RestRequest request, Response response) throws IOException;
+
+  static Instant nearFuture() {
+    return Instant.now().plus(NEAR_FUTURE);
+  }
 }

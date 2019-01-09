@@ -20,6 +20,7 @@ package org.radarbase.connect.rest;
 import static java.time.temporal.ChronoUnit.MILLIS;
 import static org.radarbase.connect.rest.util.ThrowingFunction.tryOrNull;
 
+import java.lang.reflect.InvocationTargetException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -45,10 +46,11 @@ public class RestSourceTask extends SourceTask {
     RestSourceConnectorConfig connectorConfig;
     try {
       Class<?> connector = Class.forName(map.get("connector.class"));
-      connectorConfig = ((AbstractRestSourceConnector)connector.newInstance()).getConfig(map);
+      Object connectorInst = connector.getConstructor().newInstance();
+      connectorConfig = ((AbstractRestSourceConnector)connectorInst).getConfig(map);
     } catch (ClassNotFoundException e) {
       throw new ConnectException("Connector " + map.get("connector.class") + " not found", e);
-    } catch (IllegalAccessException | InstantiationException e) {
+    } catch (ReflectiveOperationException e) {
       throw new ConnectException("Connector " + map.get("connector.class")
           + " could not be instantiated", e);
     }
@@ -67,6 +69,7 @@ public class RestSourceTask extends SourceTask {
     LongAdder requestsGenerated = new LongAdder();
 
     List<SourceRecord> requests = requestGenerator.requests()
+        .filter(RestRequest::isStillValid)
         .peek(r -> {
           logger.info("Requesting {}", r.getRequest().url());
           requestsGenerated.increment();

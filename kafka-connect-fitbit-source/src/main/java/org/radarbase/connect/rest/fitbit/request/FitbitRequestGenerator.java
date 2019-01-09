@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.confluent.connect.avro.AvroData;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -33,6 +34,7 @@ import java.util.stream.Stream;
 import okhttp3.OkHttpClient;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
 import org.radarbase.connect.rest.fitbit.FitbitRestSourceConnectorConfig;
+import org.radarbase.connect.rest.fitbit.route.FitbitActivityLogRoute;
 import org.radarbase.connect.rest.fitbit.route.FitbitIntradayHeartRateRoute;
 import org.radarbase.connect.rest.fitbit.route.FitbitIntradayStepsRoute;
 import org.radarbase.connect.rest.fitbit.route.FitbitSleepRoute;
@@ -70,19 +72,26 @@ public class FitbitRequestGenerator extends RequestGeneratorRouter {
 
   @Override
   public void initialize(RestSourceConnectorConfig config) {
-    FitbitRestSourceConnectorConfig config1 = (FitbitRestSourceConnectorConfig) config;
+    FitbitRestSourceConnectorConfig fitbitConfig = (FitbitRestSourceConnectorConfig) config;
     this.baseClient = new OkHttpClient();
 
-    AvroData avroData = new AvroData(20);
-    this.userRepository = config1.getUserRepository();
-    this.routes = Arrays.asList(
-        new FitbitIntradayStepsRoute(this, userRepository, avroData),
-        new FitbitSleepRoute(this, userRepository, avroData),
-        new FitbitIntradayHeartRateRoute(this, userRepository, avroData),
-        new FitbitTimeZoneRoute(this, userRepository, avroData)
-    );
+    this.userRepository = fitbitConfig.getUserRepository();
+    this.routes = getRoutes(fitbitConfig);
 
     super.initialize(config);
+  }
+
+  private List<RequestRoute> getRoutes(FitbitRestSourceConnectorConfig config) {
+    AvroData avroData = new AvroData(20);
+    List<RequestRoute> localRoutes = new ArrayList<>(5);
+    localRoutes.add(new FitbitSleepRoute(this, userRepository, avroData));
+    localRoutes.add(new FitbitTimeZoneRoute(this, userRepository, avroData));
+    localRoutes.add(new FitbitActivityLogRoute(this, userRepository, avroData));
+    if (config.hasIntradayAccess()) {
+      localRoutes.add(new FitbitIntradayStepsRoute(this, userRepository, avroData));
+      localRoutes.add(new FitbitIntradayHeartRateRoute(this, userRepository, avroData));
+    }
+    return localRoutes;
   }
 
   public OkHttpClient getClient(User user) {

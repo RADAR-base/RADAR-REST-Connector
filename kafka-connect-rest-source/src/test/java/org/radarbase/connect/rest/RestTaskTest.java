@@ -22,28 +22,41 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.matching;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.resetAllRequests;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.junit.Assert.assertEquals;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import java.net.ServerSocket;
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.VerificationException;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.verification.LoggedRequest;
+import com.github.tomakehurst.wiremock.verification.NearMiss;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.apache.kafka.connect.source.SourceTaskContext;
 import org.apache.kafka.connect.storage.OffsetStorageReader;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.BeforeEachCallback;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.extension.ParameterContext;
+import org.junit.jupiter.api.extension.ParameterResolutionException;
+import org.junit.jupiter.api.extension.ParameterResolver;
+import org.radarbase.connect.rest.RestTaskTest.WireMockRule;
 import org.radarbase.connect.rest.converter.BytesPayloadConverter;
 import org.radarbase.connect.rest.converter.StringPayloadConverter;
 import org.radarbase.connect.rest.selector.SimpleTopicSelector;
 import org.radarbase.connect.rest.single.SingleRestSourceConnector;
 import org.radarbase.connect.rest.single.SingleRestSourceConnectorConfig;
 
+@ExtendWith(WireMockRule.class)
 public class RestTaskTest {
 
   private static final String CONTENT_TYPE = "Content-Type";
@@ -62,15 +75,10 @@ public class RestTaskTest {
   private static final String STRING_PAYLOAD_CONVERTER = StringPayloadConverter.class.getName();
   private static final String DATA = "{\"A\":\"B\"}";
   private static final String RESPONSE_BODY = "{\"B\":\"A\"}";
-  private static final int PORT = getPort();
   private static final String PATH = "/my/resource";
-  private static final String URL = "http://localhost:" + PORT + PATH;
-
-  @Rule
-  public WireMockRule wireMockRule = new WireMockRule(PORT);
 
   @Test
-  public void restTest() throws InterruptedException {
+  public void restTest(WireMockRule wireMock) throws InterruptedException {
     stubFor(post(urlEqualTo(PATH))
       .withHeader(ACCEPT, equalTo(APPLICATION_JSON))
       .willReturn(aResponse()
@@ -83,7 +91,7 @@ public class RestTaskTest {
     props.put("connector.class", SingleRestSourceConnector.class.getName());
     props.put(SingleRestSourceConnectorConfig.SOURCE_METHOD_CONFIG, METHOD);
     props.put(SingleRestSourceConnectorConfig.SOURCE_PROPERTIES_LIST_CONFIG, PROPERTIES_LIST);
-    props.put(RestSourceConnectorConfig.SOURCE_URL_CONFIG, URL);
+    props.put(RestSourceConnectorConfig.SOURCE_URL_CONFIG, wireMock.url(PATH));
     props.put(SingleRestSourceConnectorConfig.SOURCE_DATA_CONFIG, DATA);
     props.put(RestSourceConnectorConfig.SOURCE_TOPIC_SELECTOR_CONFIG, TOPIC_SELECTOR);
     props.put(RestSourceConnectorConfig.SOURCE_TOPIC_LIST_CONFIG, REST_SOURCE_DESTINATION_TOPIC_LIST);
@@ -134,18 +142,53 @@ public class RestTaskTest {
     verify(postRequestedFor(urlMatching(PATH))
       .withRequestBody(equalTo(DATA))
       .withHeader(CONTENT_TYPE, matching(APPLICATION_JSON)));
-
-    wireMockRule.resetRequests();
   }
 
-  private static int getPort() {
-    try {
-      ServerSocket s = new ServerSocket(0);
-      int localPort = s.getLocalPort();
-      s.close();
-      return localPort;
-    } catch (Exception e) {
-      throw new RuntimeException("Failed to get a free PORT", e);
+  public static class WireMockRule extends WireMockServer implements BeforeEachCallback,
+      AfterEachCallback, ParameterResolver {
+
+    public WireMockRule() {
+      super(wireMockConfig().dynamicPort());
+    }
+
+    @Override
+    public void beforeEach(ExtensionContext context) {
+      start();
+      WireMock.configureFor("localhost", port());
+    }
+
+    @Override
+    public void afterEach(ExtensionContext context) {
+      try {
+        checkForUnmatchedRequests();
+      } finally {
+        resetAllRequests();
+        stop();
+      }
+    }
+
+    private void checkForUnmatchedRequests() {
+      List<LoggedRequest> unmatchedRequests = findAllUnmatchedRequests();
+      if (!unmatchedRequests.isEmpty()) {
+        List<NearMiss> nearMisses = findNearMissesForAllUnmatchedRequests();
+        if (nearMisses.isEmpty()) {
+          throw VerificationException.forUnmatchedRequests(unmatchedRequests);
+        } else {
+          throw VerificationException.forUnmatchedNearMisses(nearMisses);
+        }
+      }
+    }
+
+    @Override
+    public boolean supportsParameter(ParameterContext parameterContext,
+        ExtensionContext extensionContext) throws ParameterResolutionException {
+      return parameterContext.getParameter().getType() == WireMockRule.class;
+    }
+
+    @Override
+    public Object resolveParameter(ParameterContext parameterContext,
+        ExtensionContext extensionContext) throws ParameterResolutionException {
+      return this;
     }
   }
 }
