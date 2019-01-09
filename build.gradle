@@ -2,9 +2,9 @@ description = 'kafka-connect-rest-source'
 
 subprojects {
     ext {
-        kafkaVersion = '2.0.0'
-        confluentVersion = '5.0.0'
-        jacksonVersion = '2.8.9'
+        kafkaVersion = '2.1.0-cp1'
+        confluentVersion = '5.1.0'
+        jacksonVersion = '2.9.8'
     }
 
     apply plugin: 'java'

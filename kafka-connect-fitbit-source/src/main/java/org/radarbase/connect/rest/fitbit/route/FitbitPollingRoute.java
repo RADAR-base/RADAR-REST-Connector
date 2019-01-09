@@ -21,7 +21,9 @@ import static java.time.ZoneOffset.UTC;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.NANOS;
 import static java.time.temporal.ChronoUnit.SECONDS;
+import static org.radarbase.connect.rest.converter.PayloadToSourceRecordConverter.MIN_INSTANT;
 import static org.radarbase.connect.rest.converter.PayloadToSourceRecordConverter.TIMESTAMP_OFFSET_KEY;
+import static org.radarbase.connect.rest.converter.PayloadToSourceRecordConverter.nearFuture;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -34,6 +36,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.ws.rs.NotAuthorizedException;
@@ -88,7 +92,6 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
   protected static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
   protected static final Duration LOOKBACK_TIME = Duration.ofDays(1); // 1 day
   protected static final long HISTORICAL_TIME_DAYS = 14L;
-  protected static final Duration TOO_MANY_REQUESTS_COOLDOWN = Duration.ofHours(1);
   protected static final Duration ONE_DAY = DAYS.getDuration();
   protected static final Duration ONE_NANO = NANOS.getDuration();
   protected static final TemporalAmount ONE_SECOND = SECONDS.getDuration();
@@ -108,6 +111,8 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
   private String baseUrl;
   private long maxUsersPerPoll;
   private Duration pollIntervalPerUser;
+  private final Set<User> tooManyRequestsForUser;
+  private Duration tooManyRequestsCooldown;
 
   public FitbitPollingRoute(
       FitbitRequestGenerator generator,
@@ -118,8 +123,9 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
     this.offsets = new HashMap<>();
     this.partitions = new HashMap<>(generator.getPartitions(routeName));
     this.routeName = routeName;
-    this.lastPoll = Instant.MIN;
+    this.lastPoll = MIN_INSTANT;
     this.lastPollPerUser = new HashMap<>();
+    this.tooManyRequestsForUser = ConcurrentHashMap.newKeySet();
   }
 
   @Override
@@ -129,6 +135,8 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
     this.baseUrl = fitbitConfig.getUrl();
     this.maxUsersPerPoll = fitbitConfig.getMaxUsersPerPoll();
     this.pollIntervalPerUser = fitbitConfig.getPollIntervalPerUser();
+    this.tooManyRequestsCooldown = fitbitConfig.getTooManyRequestsCooldownInterval()
+        .minus(getPollIntervalPerUser());
     this.converter().initialize(fitbitConfig);
   }
 
@@ -153,12 +161,11 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
   public void requestFailed(RestRequest request, Response response) {
     if (response != null && response.code() == 429) {
       User user = ((FitbitRestRequest)request).getUser();
-      logger.info("Too many requests for user {}. Backing off for {}",
-          user, TOO_MANY_REQUESTS_COOLDOWN);
-      lastPollPerUser.compute(user.getId(), (u, p) -> p == null
-          ? lastPoll.plus(TOO_MANY_REQUESTS_COOLDOWN)
-          : PollingRequestRoute.max(
-              p.plus(getPollIntervalPerUser()), lastPoll.plus(TOO_MANY_REQUESTS_COOLDOWN)));
+      tooManyRequestsForUser.add(user);
+      Instant backOff = lastPoll.plus(getTooManyRequestsCooldown());
+      lastPollPerUser.put(user.getId(), backOff);
+      logger.info("Too many requests for user {}. Backing off until {}",
+          user, backOff.plus(getPollIntervalPerUser()));
     } else {
       logger.warn("Failed to make request {}", request);
     }
@@ -173,6 +180,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
 
   @Override
   public Stream<FitbitRestRequest> requests() {
+    tooManyRequestsForUser.clear();
     lastPoll = Instant.now();
     try {
       return userRepository.stream()
@@ -212,7 +220,8 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
           .header("Authorization", "Bearer " + userRepository.getAccessToken(user))
           .build();
       return new FitbitRestRequest(this, request, user, getPartition(user),
-          generator.getClient(user), dateRange);
+          generator.getClient(user), dateRange,
+          req -> !tooManyRequestsForUser.contains(((FitbitRestRequest)req).getUser()));
     } catch (NotAuthorizedException | IOException ex) {
       logger.warn("User {} does not have a configured access token: {}. Skipping.",
           user, ex.toString());
@@ -259,7 +268,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
 
   /**
    * URL String format. The format arguments should be provided to
-   * {@link #newRequest(User, Instant, Instant, Object...)}
+   * {@link #newRequest(User, DateRange, Object...)}
    */
   protected abstract String getUrlFormat(String baseUrl);
 
@@ -268,6 +277,10 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
    */
   protected Duration getPollIntervalPerUser() {
     return pollIntervalPerUser;
+  }
+
+  protected Duration getTooManyRequestsCooldown() {
+    return tooManyRequestsCooldown;
   }
 
   /**
@@ -283,9 +296,9 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
   protected Instant nextPoll(User user) {
     Instant offset = getOffset(user);
     if (offset.isAfter(user.getEndDate())) {
-      return Instant.MAX;
+      return nearFuture();
     } else {
-      Instant nextPoll = lastPollPerUser.getOrDefault(user.getId(), Instant.MIN)
+      Instant nextPoll = lastPollPerUser.getOrDefault(user.getId(), MIN_INSTANT)
           .plus(getPollIntervalPerUser());
       return PollingRequestRoute.max(offset.plus(getLookbackTime()), nextPoll);
     }
@@ -294,7 +307,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
   /**
    * Generate one date per day, using UTC time zone. The first date will have the time from the
    * given startDate. Following time stamps will start at 00:00. This will not up to the date of
-   * {@code getLookbackTime()} (exclusive).
+   * {@link #getLookbackTime()} (exclusive).
    */
   Stream<DateRange> startDateGenerator(Instant startDate) {
     Instant lookBack = lastPoll.minus(getLookbackTime());

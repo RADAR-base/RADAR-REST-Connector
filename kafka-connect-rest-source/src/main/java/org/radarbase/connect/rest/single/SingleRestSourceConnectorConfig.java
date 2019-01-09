@@ -48,15 +48,16 @@ public class SingleRestSourceConnectorConfig extends RestSourceConnectorConfig {
   private final Map<String, String> requestProperties;
 
   @SuppressWarnings("unchecked")
-  private SingleRestSourceConnectorConfig(ConfigDef config, Map<String, String> parsedConfig) {
-    super(config, parsedConfig);
+  private SingleRestSourceConnectorConfig(ConfigDef config, Map<String, String> parsedConfig,
+      boolean doLog) {
+    super(config, parsedConfig, doLog);
     requestProperties = getPropertiesList().stream()
         .map(COLON_PATTERN::split)
         .collect(Collectors.toMap(a -> a[0], a -> a[1]));
   }
 
-  public SingleRestSourceConnectorConfig(Map<String, String> parsedConfig) {
-    this(SingleRestSourceConnectorConfig.conf(), parsedConfig);
+  public SingleRestSourceConnectorConfig(Map<String, String> parsedConfig, boolean doLog) {
+    this(SingleRestSourceConnectorConfig.conf(), parsedConfig, doLog);
   }
 
   public static ConfigDef conf() {

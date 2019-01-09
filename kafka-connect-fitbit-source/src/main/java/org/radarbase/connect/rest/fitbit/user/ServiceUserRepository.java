@@ -17,6 +17,7 @@
 
 package org.radarbase.connect.rest.fitbit.user;
 
+import static org.radarbase.connect.rest.converter.PayloadToSourceRecordConverter.MIN_INSTANT;
 import static org.radarbase.connect.rest.fitbit.request.FitbitRequestGenerator.JSON_READER;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -62,7 +63,7 @@ public class ServiceUserRepository implements UserRepository {
   private final Map<String, OAuth2UserCredentials> cachedCredentials;
   private HashSet<String> containedUsers;
   private Set< ? extends User> timedCachedUsers = new HashSet<>();
-  private final AtomicReference<Instant> nextFetch = new AtomicReference<>(Instant.MIN);
+  private final AtomicReference<Instant> nextFetch = new AtomicReference<>(MIN_INSTANT);
   private static final Duration FETCH_THRESHOLD = Duration.ofMinutes(1L);
 
   public ServiceUserRepository() {
