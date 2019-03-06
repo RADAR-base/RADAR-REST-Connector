@@ -7,7 +7,7 @@ dependencies {
     testImplementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
     testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.3.2'
     testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.3.2'
-    testImplementation group: 'org.mockito', name: 'mockito-core', version: '2.23.4'
+    testImplementation group: 'org.mockito', name: 'mockito-core', version: '2.25.0'
     testImplementation group: 'com.github.tomakehurst', name: 'wiremock', version: '2.20.0'
 
     testImplementation group: 'org.apache.kafka', name: 'connect-api', version: kafkaVersion
