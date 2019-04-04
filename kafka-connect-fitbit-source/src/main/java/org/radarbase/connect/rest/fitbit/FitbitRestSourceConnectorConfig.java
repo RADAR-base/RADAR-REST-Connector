@@ -126,7 +126,7 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
       }
     } catch (IllegalAccessException | InstantiationException
         | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
-      throw new ConnectException("Invalid class for: " + SOURCE_PAYLOAD_CONVERTER_CONFIG, e);
+      throw new ConnectException("Invalid class(es) for: " + FITBIT_USER_REPOSITORIES_CONFIG, e);
     }
 
     String credentialString = getFitbitClient() + ":" + getFitbitClientSecret();
