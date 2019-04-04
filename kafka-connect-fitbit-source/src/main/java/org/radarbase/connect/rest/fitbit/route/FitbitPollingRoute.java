@@ -226,6 +226,9 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
       logger.warn("User {} does not have a configured access token: {}. Skipping.",
           user, ex.toString());
       return null;
+    } catch (NoSuchMethodException ex) {
+      logger.warn("User not found: {}. Skipping.", ex.toString());
+      return null;
     }
   }
 
