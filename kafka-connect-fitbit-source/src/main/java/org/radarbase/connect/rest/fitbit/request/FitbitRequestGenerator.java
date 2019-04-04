@@ -23,12 +23,7 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.confluent.connect.avro.AvroData;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import okhttp3.OkHttpClient;
@@ -96,15 +91,11 @@ public class FitbitRequestGenerator extends RequestGeneratorRouter {
     return localRoutes;
   }
 
-  public OkHttpClient getClient(User user) throws IOException, NoSuchMethodException {
-    for(UserRepository userRepository: userRepositories) {
-      if(userRepository.stream().distinct().anyMatch(u -> u.equals(user))) {
-        return clients.computeIfAbsent(user.getId(), u -> baseClient.newBuilder()
-            .authenticator(new TokenAuthenticator(user, userRepository))
-            .build());
-      }
-    }
-    throw new NoSuchMethodException("User " + user + " is not present in any user repository.");
+  public OkHttpClient getClient(User user, UserRepository userRepository) {
+
+    return clients.computeIfAbsent(user.getId(), u -> baseClient.newBuilder()
+        .authenticator(new TokenAuthenticator(user, userRepository))
+        .build());
   }
 
   public Map<String, Map<String, Object>> getPartitions(String route) {
