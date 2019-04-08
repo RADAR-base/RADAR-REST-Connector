@@ -7,5 +7,5 @@ rest.source.request.generator.class=org.radarbase.connect.rest.fitbit.request.Fi
 fitbit.api.client=?
 fitbit.api.secret=?
 fitbit.max.users.per.poll=10
-fitbit.user.repository.classes=org.radarbase.connect.rest.fitbit.user.YamlUserRepository,org.radarbase.connect.rest.fitbit.user.ServiceUserRepository
-fitbit.user.repository.url=http://localhost:8080/
+fitbit.user.repository.class=org.radarbase.connect.rest.fitbit.user.ServiceUserRepository
+fitbit.user.repository.url=http://radar-device-auth-backend:8080/

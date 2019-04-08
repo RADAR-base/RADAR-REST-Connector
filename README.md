@@ -55,7 +55,7 @@ your Fitbit App client ID and client secret. The following tables shows the poss
 <tr>
 <td>fitbit.api.intraday</td></td><td>Set to true if the client has permissions to Fitbit Intraday API, false otherwise.</td></td><td>boolean</td></td><td>true</td></td><td></td></td><td>medium</td></td></tr>
 <tr>
-<td>fitbit.user.repository.classes</td></td><td>Class(es) for managing users and authentication. Comma separate for using multiple repositories</td></td><td>list</td></td><td>org.radarbase.connect.rest.fitbit.user.YamlUserRepository</td></td><td>Classes extending org.radarbase.connect.rest.fitbit.user.UserRepository</td></td><td>medium</td></td></tr>
+<td>fitbit.user.repository.class</td></td><td>Class for managing users and authentication.</td></td><td>class</td></td><td>org.radarbase.connect.rest.fitbit.user.YamlUserRepository</td></td><td>Class extending org.radarbase.connect.rest.fitbit.user.UserRepository</td></td><td>medium</td></td></tr>
 <tr>
 <td>fitbit.user.dir</td></td><td>Directory containing Fitbit user information and credentials. Only used if a file-based user repository is configured.</td></td><td>string</td></td><td>/var/lib/kafka-connect-fitbit-source/users</td></td><td></td></td><td>low</td></td></tr>
 <tr>

@@ -6,4 +6,3 @@ out/
 .gradle/
 docker/users
 docker/source-fitbit.properties
-docker/rest-source-authorizer/etc/rest_source_clients_configs.yml

@@ -31,7 +31,12 @@ import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAmount;
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -215,7 +220,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
           .header("Authorization", "Bearer " + userRepository.getAccessToken(user))
           .build();
       return new FitbitRestRequest(this, request, user, getPartition(user),
-          generator.getClient(user, userRepository), dateRange,
+          generator.getClient(user), dateRange,
           req -> !tooManyRequestsForUser.contains(((FitbitRestRequest)req).getUser()));
     } catch (NotAuthorizedException | IOException ex) {
       logger.warn("User {} does not have a configured access token: {}. Skipping.",

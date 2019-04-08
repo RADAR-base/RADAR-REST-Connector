@@ -23,7 +23,12 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.confluent.connect.avro.AvroData;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import okhttp3.OkHttpClient;
@@ -53,7 +58,7 @@ public class FitbitRequestGenerator extends RequestGeneratorRouter {
 
   private OkHttpClient baseClient;
   private final Map<String, OkHttpClient> clients;
-  private List<UserRepository> userRepositories;
+  private UserRepository userRepository;
   private List<RequestRoute> routes;
 
   public FitbitRequestGenerator() {
@@ -70,7 +75,7 @@ public class FitbitRequestGenerator extends RequestGeneratorRouter {
     FitbitRestSourceConnectorConfig fitbitConfig = (FitbitRestSourceConnectorConfig) config;
     this.baseClient = new OkHttpClient();
 
-    this.userRepositories = fitbitConfig.getUserRepositories();
+    this.userRepository = fitbitConfig.getUserRepository();
     this.routes = getRoutes(fitbitConfig);
 
     super.initialize(config);
@@ -78,34 +83,27 @@ public class FitbitRequestGenerator extends RequestGeneratorRouter {
 
   private List<RequestRoute> getRoutes(FitbitRestSourceConnectorConfig config) {
     AvroData avroData = new AvroData(20);
-    List<RequestRoute> localRoutes = new ArrayList<>(5 * userRepositories.size());
-    for(UserRepository userRepository : userRepositories) {
-      localRoutes.add(new FitbitSleepRoute(this, userRepository, avroData));
-      localRoutes.add(new FitbitTimeZoneRoute(this, userRepository, avroData));
-      localRoutes.add(new FitbitActivityLogRoute(this, userRepository, avroData));
-      if (config.hasIntradayAccess()) {
-        localRoutes.add(new FitbitIntradayStepsRoute(this, userRepository, avroData));
-        localRoutes.add(new FitbitIntradayHeartRateRoute(this, userRepository, avroData));
-      }
+    List<RequestRoute> localRoutes = new ArrayList<>(5);
+    localRoutes.add(new FitbitSleepRoute(this, userRepository, avroData));
+    localRoutes.add(new FitbitTimeZoneRoute(this, userRepository, avroData));
+    localRoutes.add(new FitbitActivityLogRoute(this, userRepository, avroData));
+    if (config.hasIntradayAccess()) {
+      localRoutes.add(new FitbitIntradayStepsRoute(this, userRepository, avroData));
+      localRoutes.add(new FitbitIntradayHeartRateRoute(this, userRepository, avroData));
     }
     return localRoutes;
   }
 
-  public OkHttpClient getClient(User user, UserRepository userRepository) {
-
+  public OkHttpClient getClient(User user) {
     return clients.computeIfAbsent(user.getId(), u -> baseClient.newBuilder()
-        .authenticator(new TokenAuthenticator(user, userRepository))
-        .build());
+          .authenticator(new TokenAuthenticator(user, userRepository))
+          .build());
   }
 
   public Map<String, Map<String, Object>> getPartitions(String route) {
     try {
-      Map<String, Map<String, Object>> partitions = new HashMap<>();
-      for(UserRepository userRepository : userRepositories) {
-        partitions.putAll(userRepository.stream()
-            .collect(Collectors.toMap(User::getId, u -> getPartition(route, u))));
-      }
-      return partitions;
+      return userRepository.stream()
+          .collect(Collectors.toMap(User::getId, u -> getPartition(route, u)));
     } catch (IOException e) {
       logger.warn("Failed to initialize user partitions for route {}: {}", route, e.toString());
       return Collections.emptyMap();
