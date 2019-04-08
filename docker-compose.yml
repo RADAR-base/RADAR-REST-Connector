@@ -163,6 +163,8 @@ services:
       - kafka-2
       - kafka-3
       - schema-registry-1
+    networks:
+      - default
     environment:
       CONNECT_BOOTSTRAP_SERVERS: PLAINTEXT://kafka-1:9092,PLAINTEXT://kafka-2:9092,PLAINTEXT://kafka-3:9092
       CONNECT_REST_PORT: 8083
@@ -181,5 +183,6 @@ services:
       CONNECT_ZOOKEEPER_CONNECT: zookeeper-1:2181,zookeeper-2:2181,zookeeper-3:2181
       CONNECTOR_PROPERTY_FILE_PREFIX: "source-fitbit"
       KAFKA_HEAP_OPTS: "-Xms256m -Xmx768m"
+      CONNECT_LOG4J_ROOT_LOGLEVEL: DEBUG
       KAFKA_BROKERS: 3
       CONNECT_LOG4J_LOGGERS: "org.reflections=ERROR"
