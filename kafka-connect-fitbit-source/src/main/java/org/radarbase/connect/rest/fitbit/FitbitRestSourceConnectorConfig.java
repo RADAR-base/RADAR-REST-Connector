@@ -23,11 +23,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.Duration;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
 import okhttp3.Headers;
 import okhttp3.HttpUrl;
 import org.apache.kafka.common.config.ConfigDef;
@@ -40,7 +37,6 @@ import org.apache.kafka.common.config.ConfigDef.Width;
 import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.connect.errors.ConnectException;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
-import org.radarbase.connect.rest.config.ValidClass;
 import org.radarbase.connect.rest.fitbit.user.UserRepository;
 import org.radarbase.connect.rest.fitbit.user.YamlUserRepository;
 
@@ -61,9 +57,9 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
   private static final String FITBIT_API_SECRET_DOC = "Secret for the Fitbit API client set in fitbit.api.client.";
   private static final String FITBIT_API_SECRET_DISPLAY = "Fitbit API client secret";
 
-  public static final String FITBIT_USER_REPOSITORY_CONFIG = "fitbit.user.repository.class";
-  private static final String FITBIT_USER_REPOSITORY_DOC = "Class for managing users and authentication.";
-  private static final String FITBIT_USER_REPOSITORY_DISPLAY = "User repository class";
+  public static final String FITBIT_USER_REPOSITORIES_CONFIG = "fitbit.user.repository.classes";
+  private static final String FITBIT_USER_REPOSITORIES_DOC = "Classes for managing users and authentication. Can be a Comma-separated list for multiple repositories.";
+  private static final String FITBIT_USER_REPOSITORIES_DISPLAY = "User repository classes";
 
   public static final String FITBIT_API_INTRADAY_ACCESS_CONFIG = "fitbit.api.intraday";
   private static final String FITBIT_API_INTRADAY_ACCESS_DOC = "Set to true if the client has permissions to Fitbit Intraday API, false otherwise.";
@@ -115,19 +111,22 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
   private static final String FITBIT_ACTIVITY_LOG_TOPIC_DEFAULT = "connect_fitbit_activity_log";
   private static final String FITBIT_ACTIVITY_LOG_TOPIC_DISPLAY = "Activity log topic";
 
-  private final UserRepository userRepository;
+  private final List<UserRepository> userRepositories;
   private final Headers clientCredentials;
 
   @SuppressWarnings("unchecked")
   public FitbitRestSourceConnectorConfig(ConfigDef config, Map<String, String> parsedConfig, boolean doLog) {
     super(config, parsedConfig, doLog);
+    userRepositories = new ArrayList<>();
 
     try {
-      userRepository = ((Class<? extends UserRepository>)
-          getClass(FITBIT_USER_REPOSITORY_CONFIG)).getDeclaredConstructor().newInstance();
+      for(String c: getList(FITBIT_USER_REPOSITORIES_CONFIG)) {
+        userRepositories.add(
+            ((Class<? extends UserRepository>) Class.forName(c)).getDeclaredConstructor().newInstance());
+      }
     } catch (IllegalAccessException | InstantiationException
-        | InvocationTargetException | NoSuchMethodException e) {
-      throw new ConnectException("Invalid class for: " + SOURCE_PAYLOAD_CONVERTER_CONFIG, e);
+        | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
+      throw new ConnectException("Invalid class(es) for: " + FITBIT_USER_REPOSITORIES_CONFIG, e);
     }
 
     String credentialString = getFitbitClient() + ":" + getFitbitClientSecret();
@@ -194,16 +193,15 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
             Width.SHORT,
             FITBIT_API_INTRADAY_ACCESS_DISPLAY)
 
-        .define(FITBIT_USER_REPOSITORY_CONFIG,
-            Type.CLASS,
-            YamlUserRepository.class,
-            ValidClass.isSubclassOf(UserRepository.class),
+        .define(FITBIT_USER_REPOSITORIES_CONFIG,
+            Type.LIST,
+            YamlUserRepository.class.getName(),
             Importance.MEDIUM,
-            FITBIT_USER_REPOSITORY_DOC,
+            FITBIT_USER_REPOSITORIES_DOC,
             group,
             ++orderInGroup,
             Width.SHORT,
-            FITBIT_USER_REPOSITORY_DISPLAY)
+            FITBIT_USER_REPOSITORIES_DISPLAY)
 
         .define(FITBIT_USER_CREDENTIALS_DIR_CONFIG,
             Type.STRING,
@@ -316,9 +314,9 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
     return getPassword(FITBIT_API_SECRET_CONFIG).value();
   }
 
-  public UserRepository getUserRepository() {
-    userRepository.initialize(this);
-    return userRepository;
+  public List<UserRepository> getUserRepositories() {
+    userRepositories.forEach(u -> u.initialize(this));
+    return userRepositories;
   }
 
   public String getFitbitIntradayStepsTopic() {
