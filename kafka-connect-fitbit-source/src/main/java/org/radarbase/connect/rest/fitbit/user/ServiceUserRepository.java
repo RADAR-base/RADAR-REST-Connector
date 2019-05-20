@@ -96,13 +96,10 @@ public class ServiceUserRepository implements UserRepository {
     Request request = requestFor("users" + "?source-type=FitBit").build();
     this.timedCachedUsers =
         this.<Users>makeRequest(request, USER_LIST_READER).getUsers().stream()
-            .filter(u -> containedUsers.isEmpty() || containedUsers.contains(u.getId()))
-            .filter( // Filter for when a partial update is ongoing
-                (User u) ->
-                    u.getEndDate() != null
-                        && u.getStartDate() != null
-                        && u.getProjectId() != null
-                        && u.getUserId() != null)
+            .filter(
+                u ->
+                    (containedUsers.isEmpty() || containedUsers.contains(u.getId()))
+                        && u.isComplete())
             .collect(Collectors.toSet());
 
     return this.timedCachedUsers.stream();

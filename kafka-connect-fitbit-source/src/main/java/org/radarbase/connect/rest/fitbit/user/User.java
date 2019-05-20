@@ -23,18 +23,32 @@ import org.apache.kafka.connect.data.SchemaAndValue;
 import org.radarcns.kafka.ObservationKey;
 
 public interface User {
-  String getId();
-  String getExternalUserId();
-  String getProjectId();
-  String getUserId();
-  Instant getStartDate();
-  Instant getEndDate();
-  String getSourceId();
-  SchemaAndValue getObservationKey(AvroData avroData);
-
   static SchemaAndValue computeObservationKey(AvroData avroData, User user) {
     return avroData.toConnectData(
-          ObservationKey.getClassSchema(),
-          new ObservationKey(user.getProjectId(), user.getUserId(), user.getSourceId()));
+        ObservationKey.getClassSchema(),
+        new ObservationKey(user.getProjectId(), user.getUserId(), user.getSourceId()));
+  }
+
+  String getId();
+
+  String getExternalUserId();
+
+  String getProjectId();
+
+  String getUserId();
+
+  Instant getStartDate();
+
+  Instant getEndDate();
+
+  String getSourceId();
+
+  SchemaAndValue getObservationKey(AvroData avroData);
+
+  default Boolean isComplete() {
+    return getEndDate() != null
+        && getStartDate() != null
+        && getProjectId() != null
+        && getUserId() != null;
   }
 }
