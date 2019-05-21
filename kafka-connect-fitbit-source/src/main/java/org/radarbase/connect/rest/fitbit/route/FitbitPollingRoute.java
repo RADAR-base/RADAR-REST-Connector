@@ -109,7 +109,6 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
   private Duration pollInterval;
   private Instant lastPoll;
   private String baseUrl;
-  private long maxUsersPerPoll;
   private Duration pollIntervalPerUser;
   private final Set<User> tooManyRequestsForUser;
   private Duration tooManyRequestsCooldown;
@@ -133,7 +132,6 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
     FitbitRestSourceConnectorConfig fitbitConfig = (FitbitRestSourceConnectorConfig) config;
     this.pollInterval = fitbitConfig.getPollInterval();
     this.baseUrl = fitbitConfig.getUrl();
-    this.maxUsersPerPoll = fitbitConfig.getMaxUsersPerPoll();
     this.pollIntervalPerUser = fitbitConfig.getPollIntervalPerUser();
     this.tooManyRequestsCooldown = fitbitConfig.getTooManyRequestsCooldownInterval()
         .minus(getPollIntervalPerUser());
@@ -187,7 +185,6 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
           .map(u -> new AbstractMap.SimpleImmutableEntry<>(u, nextPoll(u)))
           .filter(u -> lastPoll.isAfter(u.getValue()))
           .sorted(Comparator.comparing(Map.Entry::getValue))
-          .limit(maxUsersPerPoll)
           .flatMap(u -> {
             lastPollPerUser.put(u.getKey().getId(), lastPoll);
             return this.createRequests(u.getKey());
@@ -197,6 +194,15 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
       logger.warn("Cannot read users");
       return Stream.empty();
     }
+  }
+
+
+  /** Get the time that this route should be polled again. */
+  @Override
+  public Instant getTimeOfNextRequest() {
+    return nextPolls()
+            .min(Comparator.naturalOrder())
+            .orElse(nearFuture());
   }
 
   private Map<String, Object> getPartition(User user) {
