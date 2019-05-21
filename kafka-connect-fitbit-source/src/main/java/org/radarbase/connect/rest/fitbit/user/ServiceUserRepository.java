@@ -30,13 +30,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.ws.rs.NotAuthorizedException;
-
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -56,15 +53,17 @@ public class ServiceUserRepository implements UserRepository {
   private static final ObjectReader USER_LIST_READER = JSON_READER.forType(Users.class);
   private static final ObjectReader USER_READER = JSON_READER.forType(User.class);
   private static final ObjectReader OAUTH_READER = JSON_READER.forType(OAuth2UserCredentials.class);
-  private static final RequestBody EMPTY_BODY = RequestBody.create(
-      MediaType.parse("application/json; charset=utf-8"), "");
-  private final OkHttpClient client;
-  private HttpUrl baseUrl;
-  private final Map<String, OAuth2UserCredentials> cachedCredentials;
-  private HashSet<String> containedUsers;
-  private Set< ? extends User> timedCachedUsers = new HashSet<>();
-  private final AtomicReference<Instant> nextFetch = new AtomicReference<>(MIN_INSTANT);
+  private static final RequestBody EMPTY_BODY =
+      RequestBody.create(MediaType.parse("application/json; charset=utf-8"), "");
   private static final Duration FETCH_THRESHOLD = Duration.ofMinutes(1L);
+
+  private final OkHttpClient client;
+  private final Map<String, OAuth2UserCredentials> cachedCredentials;
+  private final AtomicReference<Instant> nextFetch = new AtomicReference<>(MIN_INSTANT);
+
+  private HttpUrl baseUrl;
+  private HashSet<String> containedUsers;
+  private Set<? extends User> timedCachedUsers = new HashSet<>();
 
   public ServiceUserRepository() {
     this.client = new OkHttpClient();
@@ -97,10 +96,11 @@ public class ServiceUserRepository implements UserRepository {
 
     logger.info("Requesting user information from webservice");
     Request request = requestFor("users" + "?source-type=FitBit").build();
-    this.timedCachedUsers = this.<Users>makeRequest(request, USER_LIST_READER)
-        .getUsers().stream()
-        .filter(u -> containedUsers.isEmpty() || containedUsers.contains(u.getId()))
-        .collect(Collectors.toSet());
+    this.timedCachedUsers =
+        this.<Users>makeRequest(request, USER_LIST_READER).getUsers().stream()
+            .filter(u -> u.isComplete()
+                && (containedUsers.isEmpty() || containedUsers.contains(u.getId())))
+            .collect(Collectors.toSet());
 
     return this.timedCachedUsers.stream();
   }
@@ -118,9 +118,7 @@ public class ServiceUserRepository implements UserRepository {
 
   @Override
   public String refreshAccessToken(User user) throws IOException, NotAuthorizedException {
-    Request request = requestFor("users/" + user.getId() + "/token")
-      .post(EMPTY_BODY)
-      .build();
+    Request request = requestFor("users/" + user.getId() + "/token").post(EMPTY_BODY).build();
     OAuth2UserCredentials credentials = makeRequest(request, OAUTH_READER);
     cachedCredentials.put(user.getId(), credentials);
     return credentials.getAccessToken();
