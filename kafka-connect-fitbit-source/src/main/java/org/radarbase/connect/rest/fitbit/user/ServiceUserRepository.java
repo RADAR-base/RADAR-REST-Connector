@@ -56,9 +56,11 @@ public class ServiceUserRepository implements UserRepository {
   private static final RequestBody EMPTY_BODY =
       RequestBody.create(MediaType.parse("application/json; charset=utf-8"), "");
   private static final Duration FETCH_THRESHOLD = Duration.ofMinutes(1L);
+
   private final OkHttpClient client;
   private final Map<String, OAuth2UserCredentials> cachedCredentials;
   private final AtomicReference<Instant> nextFetch = new AtomicReference<>(MIN_INSTANT);
+
   private HttpUrl baseUrl;
   private HashSet<String> containedUsers;
   private Set<? extends User> timedCachedUsers = new HashSet<>();
@@ -96,10 +98,8 @@ public class ServiceUserRepository implements UserRepository {
     Request request = requestFor("users" + "?source-type=FitBit").build();
     this.timedCachedUsers =
         this.<Users>makeRequest(request, USER_LIST_READER).getUsers().stream()
-            .filter(
-                u ->
-                    (containedUsers.isEmpty() || containedUsers.contains(u.getId()))
-                        && u.isComplete())
+            .filter(u -> u.isComplete()
+                && (containedUsers.isEmpty() || containedUsers.contains(u.getId())))
             .collect(Collectors.toSet());
 
     return this.timedCachedUsers.stream();
