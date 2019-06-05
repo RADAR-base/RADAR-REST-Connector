@@ -105,11 +105,6 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
   private static final String FITBIT_TIME_ZONE_TOPIC_DEFAULT = "connect_fitbit_time_zone";
   private static final String FITBIT_TIME_ZONE_TOPIC_DISPLAY = "Time zone topic";
 
-  private static final String FITBIT_MAX_USERS_PER_POLL_CONFIG = "fitbit.max.users.per.poll";
-  private static final String FITBIT_MAX_USERS_PER_POLL_DOC = "Maximum number of users to query in a single poll operation. Decrease this if memory constrains are pressing.";
-  private static final int FITBIT_MAX_USERS_PER_POLL_DEFAULT = 100;
-  private static final String FITBIT_MAX_USERS_PER_POLL_DISPLAY = "Maximum users per poll";
-
   private static final String FITBIT_ACTIVITY_LOG_TOPIC_CONFIG = "fitbit.activity.log.topic";
   private static final String FITBIT_ACTIVITY_LOG_TOPIC_DOC = "Topic for Fitbit activity log.";
   private static final String FITBIT_ACTIVITY_LOG_TOPIC_DEFAULT = "connect_fitbit_activity_log";
@@ -152,7 +147,6 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
     };
 
     return RestSourceConnectorConfig.conf()
-
         .define(FITBIT_USERS_CONFIG,
             Type.LIST,
             Collections.emptyList(),
@@ -224,17 +218,6 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
             ++orderInGroup,
             Width.SHORT,
             FITBIT_USER_REPOSITORY_URL_DISPLAY)
-
-        .define(FITBIT_MAX_USERS_PER_POLL_CONFIG,
-            Type.INT,
-            FITBIT_MAX_USERS_PER_POLL_DEFAULT,
-            Range.atLeast(1),
-            Importance.LOW,
-            FITBIT_MAX_USERS_PER_POLL_DOC,
-            group,
-            ++orderInGroup,
-            Width.SHORT,
-            FITBIT_MAX_USERS_PER_POLL_DISPLAY)
 
         .define(FITBIT_INTRADAY_STEPS_TOPIC_CONFIG,
             Type.STRING,
@@ -360,10 +343,6 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
 
   public Headers getClientCredentials() {
     return clientCredentials;
-  }
-
-  public long getMaxUsersPerPoll() {
-    return getInt(FITBIT_MAX_USERS_PER_POLL_CONFIG);
   }
 
   public String getActivityLogTopic() {

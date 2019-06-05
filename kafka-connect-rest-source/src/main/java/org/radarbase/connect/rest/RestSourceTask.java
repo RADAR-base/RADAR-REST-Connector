@@ -22,10 +22,13 @@ import static org.radarbase.connect.rest.util.ThrowingFunction.tryOrNull;
 
 import java.lang.reflect.InvocationTargetException;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.LongAdder;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.kafka.connect.errors.ConnectException;
 import org.apache.kafka.connect.source.SourceRecord;
@@ -60,24 +63,30 @@ public class RestSourceTask extends SourceTask {
 
   @Override
   public List<SourceRecord> poll() throws InterruptedException {
-    long timeout = MILLIS.between(Instant.now(), requestGenerator.getTimeOfNextRequest());
-    if (timeout > 0) {
-      logger.info("Waiting {} milliseconds for next available request", timeout);
-      Thread.sleep(timeout);
-    }
-
     LongAdder requestsGenerated = new LongAdder();
+    List<SourceRecord> requests;
 
-    List<SourceRecord> requests = requestGenerator.requests()
-        .filter(RestRequest::isStillValid)
-        .peek(r -> {
-          logger.info("Requesting {}", r.getRequest().url());
-          requestsGenerated.increment();
-        })
-        .flatMap(tryOrNull(RestRequest::handleRequest,
-            (r, ex) -> logger.warn("Failed to make request: {}", ex.toString())))
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
+    do {
+      long timeout = MILLIS.between(Instant.now(), requestGenerator.getTimeOfNextRequest());
+      if (timeout > 0) {
+        logger.info("Waiting {} milliseconds for next available request", timeout);
+        Thread.sleep(timeout);
+      }
+
+      requests = requestGenerator.requests()
+          .filter(RestRequest::isStillValid)
+          .peek(r -> {
+            logger.info("Requesting {}", r.getRequest().url());
+            requestsGenerated.increment();
+          })
+          .map(tryOrNull(RestRequest::handleRequest,
+              (r, ex) -> logger.warn("Failed to make request: {}", ex.toString())))
+          .filter(Objects::nonNull)
+          .map(s -> s.collect(Collectors.toList()))
+          .filter(l -> !l.isEmpty())
+          .findAny()
+          .orElse(Collections.emptyList());
+    } while (requests.isEmpty());
 
     logger.info("Processed {} records from {} URLs", requests.size(), requestsGenerated.sum());
 

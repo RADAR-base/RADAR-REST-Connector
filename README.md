@@ -61,8 +61,6 @@ your Fitbit App client ID and client secret. The following tables shows the poss
 <tr>
 <td>fitbit.user.repository.url</td></td><td>URL for webservice containing user credentials. Only used if a webservice-based user repository is configured.</td></td><td>string</td></td><td>""</td></td><td></td></td><td>low</td></td></tr>
 <tr>
-<td>fitbit.max.users.per.poll</td></td><td>Maximum number of users to query in a single poll operation. Decrease this if memory constrains are pressing.</td></td><td>int</td></td><td>100</td></td><td>[1,...]</td></td><td>low</td></td></tr>
-<tr>
 <td>fitbit.intraday.steps.topic</td></td><td>Topic for Fitbit intraday steps</td></td><td>string</td></td><td>connect_fitbit_intraday_steps</td></td><td>non-empty string without control characters</td></td><td>low</td></td></tr>
 <tr>
 <td>fitbit.intraday.heart.rate.topic</td></td><td>Topic for Fitbit intraday heart_rate</td></td><td>string</td></td><td>connect_fitbit_intraday_heart_rate</td></td><td>non-empty string without control characters</td></td><td>low</td></td></tr>
