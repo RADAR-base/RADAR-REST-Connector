@@ -2,16 +2,16 @@ description = 'kafka-connect-rest-source'
 
 subprojects {
     ext {
-        kafkaVersion = '2.1.0-cp1'
-        confluentVersion = '5.1.0'
-        jacksonVersion = '2.9.8'
+        kafkaVersion = '2.2.0-cp2'
+        confluentVersion = '5.2.1'
+        jacksonVersion = '2.9.9'
     }
 
     apply plugin: 'java'
     apply plugin: 'java-library'
 
     group = 'org.radarcns'
-    version = '0.2.1'
+    version = '0.2.2'
 
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
@@ -26,7 +26,7 @@ subprojects {
 }
 
 wrapper {
-    gradleVersion '4.10.2'
+    gradleVersion '5.4.1'
 }
 
 evaluationDependsOnChildren()
