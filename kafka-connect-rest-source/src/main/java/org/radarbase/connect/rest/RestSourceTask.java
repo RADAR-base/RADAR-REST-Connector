@@ -74,6 +74,7 @@ public class RestSourceTask extends SourceTask {
       }
 
       requests = requestGenerator.requests()
+          .sequential()
           .filter(RestRequest::isStillValid)
           .peek(r -> {
             logger.info("Requesting {}", r.getRequest().url());
@@ -84,7 +85,7 @@ public class RestSourceTask extends SourceTask {
           .filter(Objects::nonNull)
           .map(s -> s.collect(Collectors.toList()))
           .filter(l -> !l.isEmpty())
-          .findAny()
+          .findFirst()
           .orElse(Collections.emptyList());
     } while (requests.isEmpty());
 
