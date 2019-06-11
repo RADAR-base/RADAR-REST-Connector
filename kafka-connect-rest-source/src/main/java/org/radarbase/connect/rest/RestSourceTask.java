@@ -20,10 +20,12 @@ package org.radarbase.connect.rest;
 import static java.time.temporal.ChronoUnit.MILLIS;
 import static org.radarbase.connect.rest.util.ThrowingFunction.tryOrNull;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -63,8 +65,8 @@ public class RestSourceTask extends SourceTask {
 
   @Override
   public List<SourceRecord> poll() throws InterruptedException {
-    LongAdder requestsGenerated = new LongAdder();
-    List<SourceRecord> requests;
+    long requestsGenerated = 0;
+    List<SourceRecord> requests = Collections.emptyList();
 
     do {
       long timeout = MILLIS.between(Instant.now(), requestGenerator.getTimeOfNextRequest());
@@ -73,23 +75,27 @@ public class RestSourceTask extends SourceTask {
         Thread.sleep(timeout);
       }
 
-      requests = requestGenerator.requests()
-          .sequential()
+      Iterator<? extends RestRequest> requestIterator = requestGenerator.requests()
           .filter(RestRequest::isStillValid)
-          .peek(r -> {
-            logger.info("Requesting {}", r.getRequest().url());
-            requestsGenerated.increment();
-          })
-          .map(tryOrNull(RestRequest::handleRequest,
-              (r, ex) -> logger.warn("Failed to make request: {}", ex.toString())))
-          .filter(Objects::nonNull)
-          .map(s -> s.collect(Collectors.toList()))
-          .filter(l -> !l.isEmpty())
-          .findFirst()
-          .orElse(Collections.emptyList());
+          .iterator();
+
+
+      while (requests.isEmpty() && requestIterator.hasNext()) {
+        RestRequest request = requestIterator.next();
+
+        logger.info("Requesting {}", request.getRequest().url());
+        requestsGenerated++;
+
+        try {
+          requests = request.handleRequest()
+              .collect(Collectors.toList());
+        } catch (IOException ex) {
+          logger.warn("Failed to make request: {}", ex.toString());
+        }
+      }
     } while (requests.isEmpty());
 
-    logger.info("Processed {} records from {} URLs", requests.size(), requestsGenerated.sum());
+    logger.info("Processed {} records from {} URLs", requests.size(), requestsGenerated);
 
     return requests;
   }
