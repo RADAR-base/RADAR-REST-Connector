@@ -70,6 +70,14 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
   private static final boolean FITBIT_API_INTRADAY_ACCESS_DEFAULT = false;
   private static final String FITBIT_API_INTRADAY_ACCESS_DISPLAY = "Is Fitbit Intraday API available?";
 
+  public static final String FITBIT_USER_POLL_INTERVAL = "fitbit.user.poll.interval";
+  private static final String FITBIT_USER_POLL_INTERVAL_DOC = "Polling interval per Fitbit user per request route in seconds.";
+  // 150 requests per hour -> 2.5 per minute. There are currently 5 paths, that limits us to 1
+  // call per route per 2 minutes.
+  private static final int FITBIT_USER_POLL_INTERVAL_DEFAULT = 150;
+  private static final String FITBIT_USER_POLL_INTERVAL_DISPLAY = "Per-user per-route polling interval.";
+
+
   public static final String FITBIT_USER_CREDENTIALS_DIR_CONFIG = "fitbit.user.dir";
   private static final String FITBIT_USER_CREDENTIALS_DIR_DOC = "Directory containing Fitbit user information and credentials. Only used if a file-based user repository is configured.";
   private static final String FITBIT_USER_CREDENTIALS_DIR_DISPLAY = "User directory";
@@ -178,9 +186,19 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
             Width.SHORT,
             FITBIT_API_SECRET_DISPLAY)
 
+        .define(FITBIT_USER_POLL_INTERVAL,
+            Type.INT,
+            FITBIT_USER_POLL_INTERVAL_DEFAULT,
+            Importance.MEDIUM,
+            FITBIT_USER_POLL_INTERVAL_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            FITBIT_USER_POLL_INTERVAL_DISPLAY)
+
         .define(FITBIT_API_INTRADAY_ACCESS_CONFIG,
             Type.BOOLEAN,
-            true,
+            FITBIT_API_INTRADAY_ACCESS_DEFAULT,
             Importance.MEDIUM,
             FITBIT_API_INTRADAY_ACCESS_DOC,
             group,
@@ -351,5 +369,13 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
 
   public boolean hasIntradayAccess() {
     return getBoolean(FITBIT_API_INTRADAY_ACCESS_CONFIG);
+  }
+
+  public Duration getPollIntervalPerUser() {
+    return Duration.ofSeconds(getInt(FITBIT_USER_POLL_INTERVAL));
+  }
+
+  public Duration getTooManyRequestsCooldownInterval() {
+    return Duration.ofHours(1);
   }
 }

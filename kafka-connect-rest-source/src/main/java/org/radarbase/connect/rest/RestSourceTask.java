@@ -76,12 +76,15 @@ public class RestSourceTask extends SourceTask {
       }
 
       Iterator<? extends RestRequest> requestIterator = requestGenerator.requests()
-          .filter(RestRequest::isStillValid)
           .iterator();
 
 
       while (requests.isEmpty() && requestIterator.hasNext()) {
         RestRequest request = requestIterator.next();
+
+        if (!request.isStillValid()) {
+          continue;
+        }
 
         logger.info("Requesting {}", request.getRequest().url());
         requestsGenerated++;
