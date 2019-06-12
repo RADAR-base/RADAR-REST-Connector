@@ -140,6 +140,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
 
   @Override
   public void requestSucceeded(RestRequest request, SourceRecord record) {
+    lastPollPerUser.put(((FitbitRestRequest) request).getUser().getId(), lastPoll);
     String userKey = ((FitbitRestRequest) request).getUser().getId();
     Instant offset = Instant.ofEpochMilli((Long) record.sourceOffset().get(TIMESTAMP_OFFSET_KEY));
     offsets.put(userKey, offset);
@@ -147,6 +148,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
 
   @Override
   public void requestEmpty(RestRequest request) {
+    lastPollPerUser.put(((FitbitRestRequest) request).getUser().getId(), lastPoll);
     FitbitRestRequest fitbitRequest = (FitbitRestRequest) request;
     Instant endOffset = fitbitRequest.getDateRange().end().toInstant();
     if (DAYS.between(endOffset, lastPoll) >= HISTORICAL_TIME_DAYS) {
@@ -160,7 +162,16 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
     if (response != null && response.code() == 429) {
       User user = ((FitbitRestRequest)request).getUser();
       tooManyRequestsForUser.add(user);
-      Instant backOff = lastPoll.plus(getTooManyRequestsCooldown());
+      String cooldownString = response.header("Retry-After");
+      Duration cooldown = getTooManyRequestsCooldown();
+      if (cooldownString != null) {
+        try {
+          cooldown = Duration.ofSeconds(Long.parseLong(cooldownString));
+        } catch (NumberFormatException ex) {
+          cooldown = getTooManyRequestsCooldown();
+        }
+      }
+      Instant backOff = lastPoll.plus(cooldown);
       lastPollPerUser.put(user.getId(), backOff);
       logger.info("Too many requests for user {}. Backing off until {}",
           user, backOff.plus(getPollIntervalPerUser()));
@@ -185,10 +196,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
           .map(u -> new AbstractMap.SimpleImmutableEntry<>(u, nextPoll(u)))
           .filter(u -> lastPoll.isAfter(u.getValue()))
           .sorted(Comparator.comparing(Map.Entry::getValue))
-          .flatMap(u -> {
-            lastPollPerUser.put(u.getKey().getId(), lastPoll);
-            return this.createRequests(u.getKey());
-          })
+          .flatMap(u -> this.createRequests(u.getKey()))
           .filter(Objects::nonNull);
     } catch (IOException e) {
       logger.warn("Cannot read users");

@@ -72,7 +72,7 @@ public class RestRequest {
 
   /**
    * Handle the request using the internal client, using the request route converter.
-   * @return stream of resulting source records, or {@code null} if the response was not successful.
+   * @return stream of resulting source records.
    * @throws IOException if making or parsing the request failed.
    */
   public Stream<SourceRecord> handleRequest() throws IOException {
@@ -83,7 +83,7 @@ public class RestRequest {
     try (Response response = client.newCall(request).execute()) {
       if (!response.isSuccessful()) {
         route.requestFailed(this, response);
-        return null;
+        return Stream.empty();
       }
 
       Collection<SourceRecord> records = route.converter().convert(this, response);

@@ -90,12 +90,12 @@ public class ServiceUserRepository implements UserRepository {
     Instant now = Instant.now();
     if (!now.isAfter(nextFetchTime)
         || !nextFetch.compareAndSet(nextFetchTime, now.plus(FETCH_THRESHOLD))) {
-      logger.info("Providing cached user information...");
+      logger.debug("Providing cached user information...");
       return timedCachedUsers.stream();
     }
 
     logger.info("Requesting user information from webservice");
-    Request request = requestFor("users" + "?source-type=FitBit").build();
+    Request request = requestFor("users?source-type=FitBit").build();
     this.timedCachedUsers =
         this.<Users>makeRequest(request, USER_LIST_READER).getUsers().stream()
             .filter(u -> u.isComplete()

@@ -214,12 +214,4 @@ public class RestSourceConnectorConfig extends AbstractConfig {
     requestGenerator.initialize(this);
     return requestGenerator;
   }
-
-  public Duration getPollIntervalPerUser() {
-    return Duration.ofMinutes(30);
-  }
-
-  public Duration getTooManyRequestsCooldownInterval() {
-    return Duration.ofHours(1);
-  }
 }

@@ -29,12 +29,11 @@ import org.radarbase.connect.rest.fitbit.user.User;
 import org.radarbase.connect.rest.fitbit.user.UserRepository;
 
 public class FitbitIntradayHeartRateRoute extends FitbitPollingRoute {
-  private static final String ROUTE_NAME = "heart_rate";
   private final FitbitIntradayHeartRateAvroConverter converter;
 
   public FitbitIntradayHeartRateRoute(FitbitRequestGenerator generator,
       UserRepository userRepository, AvroData avroData) {
-    super(generator, userRepository, ROUTE_NAME);
+    super(generator, userRepository, "heart_rate");
     this.converter = new FitbitIntradayHeartRateAvroConverter(avroData);
   }
 
