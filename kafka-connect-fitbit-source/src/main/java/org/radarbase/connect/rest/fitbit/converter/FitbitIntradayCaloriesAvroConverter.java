@@ -51,7 +51,7 @@ public class FitbitIntradayCaloriesAvroConverter extends FitbitAvroConverter {
                   Instant time =
                       startDate.with(LocalTime.parse(activity.get("time").asText())).toInstant();
 
-                  FitbitIntradayCalories steps =
+                  FitbitIntradayCalories calories =
                       new FitbitIntradayCalories(
                           time.toEpochMilli() / 1000d,
                           timeReceived,
@@ -60,7 +60,7 @@ public class FitbitIntradayCaloriesAvroConverter extends FitbitAvroConverter {
                           activity.get("level").asInt(),
                           activity.get("mets").asDouble());
 
-                  return new TopicData(time, caloriesTopic, steps);
+                  return new TopicData(time, caloriesTopic, calories);
                 },
                 (a, ex) ->
                     logger.warn(
