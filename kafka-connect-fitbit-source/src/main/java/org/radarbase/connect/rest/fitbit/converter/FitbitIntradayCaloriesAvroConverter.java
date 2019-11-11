@@ -58,7 +58,7 @@ public class FitbitIntradayCaloriesAvroConverter extends FitbitAvroConverter {
                           interval,
                           activity.get("value").asDouble(),
                           activity.get("level").asInt(),
-                          activity.get("mets").asInt());
+                          activity.get("mets").asDouble());
 
                   return new TopicData(time, caloriesTopic, steps);
                 },
