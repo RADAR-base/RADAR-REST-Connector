@@ -64,7 +64,7 @@ public class FitbitIntradayCaloriesAvroConverter extends FitbitAvroConverter {
                 },
                 (a, ex) ->
                     logger.warn(
-                        "Failed to convert steps from request {} of user {}, {}",
+                        "Failed to convert calories from request {} of user {}, {}",
                         request.getRequest().url(),
                         request.getUser(),
                         a,
