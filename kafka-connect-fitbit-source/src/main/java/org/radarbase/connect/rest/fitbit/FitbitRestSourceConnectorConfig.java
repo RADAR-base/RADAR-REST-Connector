@@ -121,7 +121,7 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
   private static final String FITBIT_INTRADAY_CALORIES_TOPIC_CONFIG = "fitbit.intraday.calories.topic";
   private static final String FITBIT_INTRADAY_CALORIES_TOPIC_DOC = "Topic for Fitbit intraday calories";
   private static final String FITBIT_INTRADAY_CALORIES_TOPIC_DISPLAY = "Intraday calories topic";
-  private static final String FITBIT_INTRADAY_CALORIES_TOPIC_DEFAULT = "connect_fitbit_calories_steps";
+  private static final String FITBIT_INTRADAY_CALORIES_TOPIC_DEFAULT = "connect_fitbit_intraday_calories";
 
   private final UserRepository userRepository;
   private final Headers clientCredentials;

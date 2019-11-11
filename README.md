@@ -53,7 +53,7 @@ your Fitbit App client ID and client secret. The following tables shows the poss
 <tr>
 <td>fitbit.api.secret</td></td><td>Secret for the Fitbit API client set in fitbit.api.client.</td></td><td>password</td></td><td></td></td><td></td></td><td>high</td></td></tr>
 <tr>
-<td>fitbit.api.intraday</td></td><td>Set to true if the client has permissions to Fitbit Intraday API, false otherwise.</td></td><td>boolean</td></td><td>true</td></td><td></td></td><td>medium</td></td></tr>
+<td>fitbit.api.intraday</td></td><td>Set to true if the client has permissions to Fitbit Intraday API, false otherwise.</td></td><td>boolean</td></td><td>false</td></td><td></td></td><td>medium</td></td></tr>
 <tr>
 <td>fitbit.user.repository.class</td></td><td>Class for managing users and authentication.</td></td><td>class</td></td><td>org.radarbase.connect.rest.fitbit.user.YamlUserRepository</td></td><td>Class extending org.radarbase.connect.rest.fitbit.user.UserRepository</td></td><td>medium</td></td></tr>
 <tr>
@@ -72,6 +72,8 @@ your Fitbit App client ID and client secret. The following tables shows the poss
 <td>fitbit.time.zone.topic</td></td><td>Topic for Fitbit profile time zone</td></td><td>string</td></td><td>connect_fitbit_time_zone</td></td><td>non-empty string without control characters</td></td><td>low</td></td></tr>
 <tr>
 <td>fitbit.activity.log.topic</td></td><td>Topic for Fitbit activity log.</td></td><td>string</td></td><td>connect_fitbit_activity_log</td></td><td>non-empty string without control characters</td></td><td>low</td></td></tr>
+<tr>
+<td>fitbit.intraday.calories.topic</td></td><td>Topic for Fitbit intraday calories</td></td><td>string</td></td><td>connect_fitbit_intraday_calories</td></td><td>non-empty string without control characters</td></td><td>low</td></td></tr>
 </tbody></table>
 
 Now you can run a full Kafka stack using

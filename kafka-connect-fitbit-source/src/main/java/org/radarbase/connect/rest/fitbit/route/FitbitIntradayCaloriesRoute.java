@@ -42,6 +42,6 @@ public class FitbitIntradayCaloriesRoute extends FitbitPollingRoute {
 
   @Override
   public PayloadToSourceRecordConverter converter() {
-    return converter();
+    return caloriesAvroConverter;
   }
 }
