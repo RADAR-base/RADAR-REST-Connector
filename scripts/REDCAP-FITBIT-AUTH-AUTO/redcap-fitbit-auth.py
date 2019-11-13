@@ -149,7 +149,7 @@ def format_file_name(name, extension):
 
 def register_users():
     with open("config.yml", "r") as fi:
-        config = yaml.load(fi)
+        config = yaml.load(fi, Loader=yaml.SafeLoader)
 
     output_data_dict = []
     # to generalize the storeage replace this getRedcapRecords with any

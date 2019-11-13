@@ -10,7 +10,7 @@ subprojects {
     apply plugin: 'java'
     apply plugin: 'java-library'
 
-    group = 'org.radarcns'
+    group = 'org.radarbase'
     version = '0.2.4'
 
     sourceCompatibility = 1.8
