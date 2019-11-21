@@ -118,6 +118,11 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
   private static final String FITBIT_ACTIVITY_LOG_TOPIC_DEFAULT = "connect_fitbit_activity_log";
   private static final String FITBIT_ACTIVITY_LOG_TOPIC_DISPLAY = "Activity log topic";
 
+  private static final String FITBIT_INTRADAY_CALORIES_TOPIC_CONFIG = "fitbit.intraday.calories.topic";
+  private static final String FITBIT_INTRADAY_CALORIES_TOPIC_DOC = "Topic for Fitbit intraday calories";
+  private static final String FITBIT_INTRADAY_CALORIES_TOPIC_DISPLAY = "Intraday calories topic";
+  private static final String FITBIT_INTRADAY_CALORIES_TOPIC_DEFAULT = "connect_fitbit_intraday_calories";
+
   private final UserRepository userRepository;
   private final Headers clientCredentials;
 
@@ -302,6 +307,17 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
             ++orderInGroup,
             Width.SHORT,
             FITBIT_ACTIVITY_LOG_TOPIC_DISPLAY)
+
+        .define(FITBIT_INTRADAY_CALORIES_TOPIC_CONFIG,
+            Type.STRING,
+            FITBIT_INTRADAY_CALORIES_TOPIC_DEFAULT,
+            nonControlChar,
+            Importance.LOW,
+            FITBIT_INTRADAY_CALORIES_TOPIC_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            FITBIT_INTRADAY_CALORIES_TOPIC_DISPLAY)
         ;
   }
 
@@ -377,5 +393,9 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
 
   public Duration getTooManyRequestsCooldownInterval() {
     return Duration.ofHours(1);
+  }
+
+  public String getFitbitIntradayCaloriesTopic() {
+    return getString(FITBIT_INTRADAY_CALORIES_TOPIC_CONFIG);
   }
 }

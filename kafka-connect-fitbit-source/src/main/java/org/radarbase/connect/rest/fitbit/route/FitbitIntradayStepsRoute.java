@@ -29,8 +29,6 @@ import org.radarbase.connect.rest.fitbit.user.User;
 import org.radarbase.connect.rest.fitbit.user.UserRepository;
 
 public class FitbitIntradayStepsRoute extends FitbitPollingRoute {
-  private static final TemporalAmount ONE_MINUTE = MINUTES.getDuration();
-
   private final FitbitIntradayStepsAvroConverter converter;
 
   public FitbitIntradayStepsRoute(FitbitRequestGenerator generator,

@@ -19,6 +19,7 @@ package org.radarbase.connect.rest.fitbit.route;
 
 import static java.time.ZoneOffset.UTC;
 import static java.time.temporal.ChronoUnit.DAYS;
+import static java.time.temporal.ChronoUnit.MINUTES;
 import static java.time.temporal.ChronoUnit.NANOS;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.radarbase.connect.rest.converter.PayloadToSourceRecordConverter.MIN_INSTANT;
@@ -95,6 +96,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
   protected static final Duration ONE_DAY = DAYS.getDuration();
   protected static final Duration ONE_NANO = NANOS.getDuration();
   protected static final TemporalAmount ONE_SECOND = SECONDS.getDuration();
+  protected static final TemporalAmount ONE_MINUTE = MINUTES.getDuration();
 
   private static final Logger logger = LoggerFactory.getLogger(FitbitSleepRoute.class);
 

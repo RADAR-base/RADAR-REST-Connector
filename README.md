@@ -74,6 +74,8 @@ your Fitbit App client ID and client secret. The following tables shows the poss
 <td>fitbit.time.zone.topic</td></td><td>Topic for Fitbit profile time zone</td></td><td>string</td></td><td>connect_fitbit_time_zone</td></td><td>non-empty string without control characters</td></td><td>low</td></td></tr>
 <tr>
 <td>fitbit.activity.log.topic</td></td><td>Topic for Fitbit activity log.</td></td><td>string</td></td><td>connect_fitbit_activity_log</td></td><td>non-empty string without control characters</td></td><td>low</td></td></tr>
+<tr>
+<td>fitbit.intraday.calories.topic</td></td><td>Topic for Fitbit intraday calories</td></td><td>string</td></td><td>connect_fitbit_intraday_calories</td></td><td>non-empty string without control characters</td></td><td>low</td></td></tr>
 </tbody></table>
 
 Now you can run a full Kafka stack using
