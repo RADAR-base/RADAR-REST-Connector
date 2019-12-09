@@ -98,7 +98,7 @@ public class FitbitSourceConnector extends AbstractRestSourceConnector {
     try {
 
       List<Map<String, String>> userTasks = fitbitConfig.getUserRepository().stream()
-          .map(User::getId)
+          .map(User::getVersionedId)
           // group users based on their hashCode
           // in principle this allows for more efficient reconfigurations for a fixed number of tasks,
           // since that allows existing tasks to only handle small modifications users to handle.

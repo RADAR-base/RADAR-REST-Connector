@@ -99,7 +99,7 @@ public class ServiceUserRepository implements UserRepository {
     this.timedCachedUsers =
         this.<Users>makeRequest(request, USER_LIST_READER).getUsers().stream()
             .filter(u -> u.isComplete()
-                && (containedUsers.isEmpty() || containedUsers.contains(u.getId())))
+                && (containedUsers.isEmpty() || containedUsers.contains(u.getVersionedId())))
             .collect(Collectors.toSet());
 
     return this.timedCachedUsers.stream();

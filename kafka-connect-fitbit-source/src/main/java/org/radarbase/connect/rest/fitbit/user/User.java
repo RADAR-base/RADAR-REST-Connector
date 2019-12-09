@@ -31,6 +31,8 @@ public interface User {
 
   String getId();
 
+  String getVersion();
+
   String getExternalUserId();
 
   String getProjectId();
@@ -42,6 +44,15 @@ public interface User {
   Instant getEndDate();
 
   String getSourceId();
+
+  default String getVersionedId() {
+    String version = getVersion();
+    if (version == null) {
+      return getId();
+    } else {
+      return getId() + "#" + version;
+    }
+  }
 
   SchemaAndValue getObservationKey(AvroData avroData);
 

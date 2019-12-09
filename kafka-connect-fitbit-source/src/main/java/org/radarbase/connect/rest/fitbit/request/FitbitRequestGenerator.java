@@ -105,7 +105,7 @@ public class FitbitRequestGenerator extends RequestGeneratorRouter {
   public Map<String, Map<String, Object>> getPartitions(String route) {
     try {
       return userRepository.stream()
-          .collect(Collectors.toMap(User::getId, u -> getPartition(route, u)));
+          .collect(Collectors.toMap(User::getVersionedId, u -> getPartition(route, u)));
     } catch (IOException e) {
       logger.warn("Failed to initialize user partitions for route {}: {}", route, e.toString());
       return Collections.emptyMap();
@@ -114,7 +114,7 @@ public class FitbitRequestGenerator extends RequestGeneratorRouter {
 
   public Map<String, Object> getPartition(String route, User user) {
     Map<String, Object> partition = new HashMap<>(4);
-    partition.put("user", user.getId());
+    partition.put("user", user.getVersionedId());
     partition.put("route", route);
     return partition;
   }

@@ -34,6 +34,7 @@ import org.apache.kafka.connect.data.SchemaAndValue;
 public class LocalUser implements User {
   private static final Pattern ILLEGAL_CHARACTERS_PATTERN = Pattern.compile("[^a-zA-Z0-9_-]");
   private String id;
+  private String version;
   private String externalUserId;
   private String projectId;
   private String userId;
@@ -94,9 +95,19 @@ public class LocalUser implements User {
     this.externalUserId = id;
   }
 
+  @Override
+  public String getVersion() {
+    return version;
+  }
+
+  public void setVersion(String version) {
+    this.version = version;
+  }
+
   public LocalUser copy() {
     LocalUser copy = new LocalUser();
     copy.id = id;
+    copy.version = version;
     copy.externalUserId = externalUserId;
     copy.projectId = projectId;
     copy.userId = userId;
@@ -116,7 +127,8 @@ public class LocalUser implements User {
 
   @Override
   public String toString() {
-    return "LocalUser{" + "id='" + id + '\''
+    return "LocalUser{id='" + id + '\''
+        + ", version='" + version + '\''
         + ", externalUserId='" + externalUserId + '\''
         + ", projectId='" + projectId + '\''
         + ", userId='" + userId + '\''
@@ -134,19 +146,17 @@ public class LocalUser implements User {
     }
     LocalUser localUser = (LocalUser) o;
     return Objects.equals(id, localUser.id)
+        && Objects.equals(version, localUser.version)
         && Objects.equals(externalUserId, localUser.externalUserId)
         && Objects.equals(projectId, localUser.projectId)
         && Objects.equals(userId, localUser.userId)
         && Objects.equals(sourceId, localUser.sourceId)
         && Objects.equals(startDate, localUser.startDate)
-        && Objects.equals(endDate, localUser.endDate)
-        && Objects.equals(observationKey, localUser.observationKey);
+        && Objects.equals(endDate, localUser.endDate);
   }
 
   @Override
   public int hashCode() {
-
-    return Objects
-        .hash(id, externalUserId, projectId, userId, sourceId, startDate, endDate, observationKey);
+    return Objects.hash(id, version);
   }
 }

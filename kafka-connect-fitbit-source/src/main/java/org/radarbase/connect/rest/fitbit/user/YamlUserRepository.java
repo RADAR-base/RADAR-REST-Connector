@@ -134,7 +134,7 @@ public class YamlUserRepository implements UserRepository {
     Stream<LockedUser> users = this.users.values().stream()
         .filter(lockedTest(u -> u.getOAuth2Credentials().hasRefreshToken()));
     if (!configuredUsers.isEmpty()) {
-      users = users.filter(lockedTest(u -> configuredUsers.contains(u.getId())));
+      users = users.filter(lockedTest(u -> configuredUsers.contains(u.getVersionedId())));
     }
     return users.map(lockedApply(LocalUser::copy));
   }
@@ -297,7 +297,7 @@ public class YamlUserRepository implements UserRepository {
    * Local user that is protected by a multi-threading lock to avoid simultaneous IO
    * and modifications.
    */
-  private final class LockedUser {
+  private static final class LockedUser {
     final Lock lock = new ReentrantLock();
     final LocalUser user;
     final Path path;
