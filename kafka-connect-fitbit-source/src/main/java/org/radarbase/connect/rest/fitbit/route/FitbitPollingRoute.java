@@ -143,7 +143,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
   @Override
   public void requestSucceeded(RestRequest request, SourceRecord record) {
     lastPollPerUser.put(((FitbitRestRequest) request).getUser().getId(), lastPoll);
-    String userKey = ((FitbitRestRequest) request).getUser().getId();
+    String userKey = ((FitbitRestRequest) request).getUser().getVersionedId();
     Instant offset = Instant.ofEpochMilli((Long) record.sourceOffset().get(TIMESTAMP_OFFSET_KEY));
     offsets.put(userKey, offset);
   }
@@ -154,7 +154,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
     FitbitRestRequest fitbitRequest = (FitbitRestRequest) request;
     Instant endOffset = fitbitRequest.getDateRange().end().toInstant();
     if (DAYS.between(endOffset, lastPoll) >= HISTORICAL_TIME_DAYS) {
-      String key = fitbitRequest.getUser().getId();
+      String key = fitbitRequest.getUser().getVersionedId();
       offsets.put(key, endOffset);
     }
   }
@@ -197,7 +197,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
       return userRepository.stream()
           .map(u -> new AbstractMap.SimpleImmutableEntry<>(u, nextPoll(u)))
           .filter(u -> lastPoll.isAfter(u.getValue()))
-          .sorted(Comparator.comparing(Map.Entry::getValue))
+          .sorted(Map.Entry.comparingByValue())
           .flatMap(u -> this.createRequests(u.getKey()))
           .filter(Objects::nonNull);
     } catch (IOException e) {
@@ -216,7 +216,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
   }
 
   private Map<String, Object> getPartition(User user) {
-    return partitions.computeIfAbsent(user.getId(),
+    return partitions.computeIfAbsent(user.getVersionedId(),
         k -> generator.getPartition(routeName, user));
   }
 
@@ -279,7 +279,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
   }
 
   protected Instant getOffset(User user) {
-    return offsets.getOrDefault(user.getId(), user.getStartDate().minus(ONE_NANO));
+    return offsets.getOrDefault(user.getVersionedId(), user.getStartDate().minus(ONE_NANO));
   }
 
   /**
