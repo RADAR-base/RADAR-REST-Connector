@@ -18,10 +18,10 @@ subprojects {
 
     repositories {
         mavenCentral()
-        maven { url "http://packages.confluent.io/maven/" }
-        maven { url "http://repo.maven.apache.org/maven2" }
+        maven { url "https://packages.confluent.io/maven/" }
+        maven { url "https://repo.maven.apache.org/maven2" }
         jcenter()
-        maven { url  'http://oss.jfrog.org/artifactory/oss-snapshot-local/' }
+        maven { url  'https://oss.jfrog.org/artifactory/oss-snapshot-local/' }
     }
 }
 
