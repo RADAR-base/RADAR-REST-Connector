@@ -33,7 +33,6 @@ import okhttp3.HttpUrl;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.config.ConfigDef.Importance;
 import org.apache.kafka.common.config.ConfigDef.NonEmptyString;
-import org.apache.kafka.common.config.ConfigDef.Range;
 import org.apache.kafka.common.config.ConfigDef.Type;
 import org.apache.kafka.common.config.ConfigDef.Validator;
 import org.apache.kafka.common.config.ConfigDef.Width;
@@ -123,20 +122,21 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
   private static final String FITBIT_INTRADAY_CALORIES_TOPIC_DISPLAY = "Intraday calories topic";
   private static final String FITBIT_INTRADAY_CALORIES_TOPIC_DEFAULT = "connect_fitbit_intraday_calories";
 
-  private final UserRepository userRepository;
+  public static final String FITBIT_USER_REPOSITORY_FIRESTORE_FITBIT_COLLECTION_CONFIG = "fitbit.user.firebase.collection.fitbit.name";
+  private static final String FITBIT_USER_REPOSITORY_FIRESTORE_FITBIT_COLLECTION_DOC = "Firestore Collection for retrieving Fitbit Auth details. Only used when a Firebase based user repository is used.";
+  private static final String FITBIT_USER_REPOSITORY_FIRESTORE_FITBIT_COLLECTION_DISPLAY = "Firebase Fitbit collection name.";
+  private static final String FITBIT_USER_REPOSITORY_FIRESTORE_FITBIT_COLLECTION_DEFAULT = "fitbit";
+
+  public static final String FITBIT_USER_REPOSITORY_FIRESTORE_USER_COLLECTION_CONFIG = "fitbit.user.firebase.collection.user.name";
+  private static final String FITBIT_USER_REPOSITORY_FIRESTORE_USER_COLLECTION_DOC = "Firestore Collection for retrieving User details. Only used when a Firebase based user repository is used.";
+  private static final String FITBIT_USER_REPOSITORY_FIRESTORE_USER_COLLECTION_DISPLAY = "Firebase User collection name.";
+  private static final String FITBIT_USER_REPOSITORY_FIRESTORE_USER_COLLECTION_DEFAULT = "users";
+
+  private UserRepository userRepository;
   private final Headers clientCredentials;
 
-  @SuppressWarnings("unchecked")
   public FitbitRestSourceConnectorConfig(ConfigDef config, Map<String, String> parsedConfig, boolean doLog) {
     super(config, parsedConfig, doLog);
-
-    try {
-      userRepository = ((Class<? extends UserRepository>)
-          getClass(FITBIT_USER_REPOSITORY_CONFIG)).getDeclaredConstructor().newInstance();
-    } catch (IllegalAccessException | InstantiationException
-        | InvocationTargetException | NoSuchMethodException e) {
-      throw new ConnectException("Invalid class for: " + SOURCE_PAYLOAD_CONVERTER_CONFIG, e);
-    }
 
     String credentialString = getFitbitClient() + ":" + getFitbitClientSecret();
     String credentialsBase64 = Base64.getEncoder().encodeToString(
@@ -318,6 +318,26 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
             ++orderInGroup,
             Width.SHORT,
             FITBIT_INTRADAY_CALORIES_TOPIC_DISPLAY)
+
+        .define(FITBIT_USER_REPOSITORY_FIRESTORE_FITBIT_COLLECTION_CONFIG,
+            Type.STRING,
+            FITBIT_USER_REPOSITORY_FIRESTORE_FITBIT_COLLECTION_DEFAULT,
+            Importance.LOW,
+            FITBIT_USER_REPOSITORY_FIRESTORE_FITBIT_COLLECTION_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            FITBIT_USER_REPOSITORY_FIRESTORE_FITBIT_COLLECTION_DISPLAY)
+
+        .define(FITBIT_USER_REPOSITORY_FIRESTORE_USER_COLLECTION_CONFIG,
+            Type.STRING,
+            FITBIT_USER_REPOSITORY_FIRESTORE_USER_COLLECTION_DEFAULT,
+            Importance.LOW,
+            FITBIT_USER_REPOSITORY_FIRESTORE_USER_COLLECTION_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            FITBIT_USER_REPOSITORY_FIRESTORE_USER_COLLECTION_DISPLAY)
         ;
   }
 
@@ -333,9 +353,30 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
     return getPassword(FITBIT_API_SECRET_CONFIG).value();
   }
 
+  public UserRepository getUserRepository(UserRepository reuse) {
+    if (reuse != null &&  reuse.getClass().equals(getClass(FITBIT_USER_REPOSITORY_CONFIG))) {
+      userRepository = reuse;
+    } else {
+      userRepository = createUserRepository();
+    }
+    userRepository.initialize(this);
+    return userRepository;
+  }
+
   public UserRepository getUserRepository() {
     userRepository.initialize(this);
     return userRepository;
+  }
+
+  @SuppressWarnings("unchecked")
+  public UserRepository createUserRepository() {
+    try {
+      return ((Class<? extends UserRepository>)
+          getClass(FITBIT_USER_REPOSITORY_CONFIG)).getDeclaredConstructor().newInstance();
+    } catch (IllegalAccessException | InstantiationException
+        | InvocationTargetException | NoSuchMethodException e) {
+      throw new ConnectException("Invalid class for: " + SOURCE_PAYLOAD_CONVERTER_CONFIG, e);
+    }
   }
 
   public String getFitbitIntradayStepsTopic() {
@@ -397,5 +438,13 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
 
   public String getFitbitIntradayCaloriesTopic() {
     return getString(FITBIT_INTRADAY_CALORIES_TOPIC_CONFIG);
+  }
+
+  public String getFitbitUserRepositoryFirestoreFitbitCollection() {
+    return getString(FITBIT_USER_REPOSITORY_FIRESTORE_FITBIT_COLLECTION_CONFIG);
+  }
+
+  public String getFitbitUserRepositoryFirestoreUserCollection() {
+    return getString(FITBIT_USER_REPOSITORY_FIRESTORE_USER_COLLECTION_CONFIG);
   }
 }

@@ -10,8 +10,9 @@ insert_final_newline = true
 charset = utf-8
 indent_style = space
 indent_size = 2
-continuation_indent_size = 4
+ij_continuation_indent_size = 4
+max_line_length=100
 
-[*.gradle,*.py]
+[{*.gradle, *.py}]
 indent_size = 4
-continuation_indent_size = 8
+ij_continuation_indent_size = 8
