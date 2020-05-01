@@ -76,7 +76,7 @@ public class FitbitTokenService {
     }
   }
 
-  public synchronized FitbitOAuth2UserCredentials refreshToken(String oldToken) throws IOException {
+  public FitbitOAuth2UserCredentials refreshToken(String oldToken) throws IOException {
     FormBody form =
         new FormBody.Builder()
             .add("grant_type", "refresh_token")

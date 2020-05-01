@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import javax.ws.rs.NotAuthorizedException;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
 import org.radarbase.connect.rest.fitbit.user.UserRepository;
 import org.slf4j.Logger;
@@ -81,7 +80,7 @@ public abstract class FirebaseUserRepository implements UserRepository {
    * @param object The POJO to write to the document
    * @throws IOException If there was a problem updating the document
    */
-  protected synchronized void updateDocument(DocumentReference documentReference, Object object)
+  protected void updateDocument(DocumentReference documentReference, Object object)
       throws IOException {
     try {
       documentReference.set(object, SetOptions.merge()).get(20, TimeUnit.SECONDS);
