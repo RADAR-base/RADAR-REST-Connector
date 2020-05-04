@@ -55,7 +55,7 @@ public class TokenAuthenticator implements Authenticator {
           .header("Authorization", "Bearer " + newAccessToken)
           .build();
     } catch (NotAuthorizedException ex) {
-      logger.error("Cannot get a new refresh token for user {}. Cancelling request.", user);
+      logger.error("Cannot get a new refresh token for user {}. Cancelling request.", user, ex);
       return null;
     }
   }
