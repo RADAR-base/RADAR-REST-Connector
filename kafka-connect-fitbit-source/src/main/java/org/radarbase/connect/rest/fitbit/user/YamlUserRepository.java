@@ -112,7 +112,10 @@ public class YamlUserRepository implements UserRepository {
         || !nextFetch.compareAndSet(nextFetchTime, now.plus(FETCH_THRESHOLD))) {
       return;
     }
+    forceUpdateUsers();
+  }
 
+  private void forceUpdateUsers() {
     try {
       Map<String, LockedUser> newMap = Files.walk(credentialsDir)
           .filter(p -> Files.isRegularFile(p)
@@ -129,12 +132,10 @@ public class YamlUserRepository implements UserRepository {
 
   @Override
   public Stream<LocalUser> stream() {
-    updateUsers();
-
     Stream<LockedUser> users = this.users.values().stream()
         .filter(lockedTest(u -> u.getOAuth2Credentials().hasRefreshToken()));
     if (!configuredUsers.isEmpty()) {
-      users = users.filter(lockedTest(u -> configuredUsers.contains(u.getId())));
+      users = users.filter(lockedTest(u -> configuredUsers.contains(u.getVersionedId())));
     }
     return users.map(lockedApply(LocalUser::copy));
   }
@@ -175,6 +176,19 @@ public class YamlUserRepository implements UserRepository {
   @Override
   public String refreshAccessToken(User user) throws IOException {
     return refreshAccessToken(user, NUM_RETRIES);
+  }
+
+  @Override
+  public boolean hasPendingUpdates() {
+    Instant nextFetchTime = nextFetch.get();
+    Instant now = Instant.now();
+    return now.isAfter(nextFetchTime);
+  }
+
+  @Override
+  public void applyPendingUpdates() {
+    forceUpdateUsers();
+    nextFetch.set(Instant.now().plus(FETCH_THRESHOLD));
   }
 
   /**
@@ -297,7 +311,7 @@ public class YamlUserRepository implements UserRepository {
    * Local user that is protected by a multi-threading lock to avoid simultaneous IO
    * and modifications.
    */
-  private final class LockedUser {
+  private static final class LockedUser {
     final Lock lock = new ReentrantLock();
     final LocalUser user;
     final Path path;

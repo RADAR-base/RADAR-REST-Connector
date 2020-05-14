@@ -58,4 +58,19 @@ public interface UserRepository extends RestSourceTool {
    * @throws java.util.NoSuchElementException if the user does not exists in this repository.
    */
   String refreshAccessToken(User user) throws IOException, NotAuthorizedException;
+
+  /**
+   * The functions allows the repository to supply when there are pending updates.
+   * This gives more control to the user repository in updating and caching users.
+   * @return {@code true} if there are new updates available, {@code false} otherwise.
+   */
+  boolean hasPendingUpdates();
+
+  /**
+   * Apply any pending updates to users. This could include, for instance, refreshing a cache
+   * of users with latest information.
+   * This is called when {@link #hasPendingUpdates()} is {@code true}.
+   * @throws IOException if there was an error when applying updates.
+   */
+  void applyPendingUpdates() throws IOException;
 }

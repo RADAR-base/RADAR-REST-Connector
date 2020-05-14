@@ -85,23 +85,7 @@ public class ServiceUserRepository implements UserRepository {
   }
 
   @Override
-  public Stream<? extends User> stream() throws IOException {
-    Instant nextFetchTime = nextFetch.get();
-    Instant now = Instant.now();
-    if (!now.isAfter(nextFetchTime)
-        || !nextFetch.compareAndSet(nextFetchTime, now.plus(FETCH_THRESHOLD))) {
-      logger.debug("Providing cached user information...");
-      return timedCachedUsers.stream();
-    }
-
-    logger.info("Requesting user information from webservice");
-    Request request = requestFor("users?source-type=FitBit").build();
-    this.timedCachedUsers =
-        this.<Users>makeRequest(request, USER_LIST_READER).getUsers().stream()
-            .filter(u -> u.isComplete()
-                && (containedUsers.isEmpty() || containedUsers.contains(u.getId())))
-            .collect(Collectors.toSet());
-
+  public Stream<? extends User> stream() {
     return this.timedCachedUsers.stream();
   }
 
@@ -122,6 +106,28 @@ public class ServiceUserRepository implements UserRepository {
     OAuth2UserCredentials credentials = makeRequest(request, OAUTH_READER);
     cachedCredentials.put(user.getId(), credentials);
     return credentials.getAccessToken();
+  }
+
+  @Override
+  public boolean hasPendingUpdates() {
+    Instant nextFetchTime = nextFetch.get();
+    Instant now = Instant.now();
+    return now.isAfter(nextFetchTime);
+  }
+
+  @Override
+  public void applyPendingUpdates() throws IOException {
+    logger.info("Requesting user information from webservice");
+    Request request = requestFor("users?source-type=FitBit").build();
+    this.timedCachedUsers =
+        this.<Users>makeRequest(request, USER_LIST_READER).getUsers().stream()
+            .filter(
+                u ->
+                    u.isComplete()
+                        && (containedUsers.isEmpty()
+                            || containedUsers.contains(u.getVersionedId())))
+            .collect(Collectors.toSet());
+    nextFetch.set(Instant.now().plus(FETCH_THRESHOLD));
   }
 
   private Request.Builder requestFor(String relativeUrl) {
