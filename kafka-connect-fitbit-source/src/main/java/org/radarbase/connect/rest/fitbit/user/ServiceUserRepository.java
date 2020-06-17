@@ -22,7 +22,10 @@ import static org.radarbase.connect.rest.fitbit.request.FitbitRequestGenerator.J
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectReader;
+import io.confluent.common.config.ConfigException;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
@@ -34,6 +37,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.ws.rs.NotAuthorizedException;
+import okhttp3.Credentials;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -41,8 +45,11 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import org.apache.kafka.connect.errors.ConnectException;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
 import org.radarbase.connect.rest.fitbit.FitbitRestSourceConnectorConfig;
+import org.radarcns.exception.TokenException;
+import org.radarcns.oauth.OAuth2Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,8 +69,10 @@ public class ServiceUserRepository implements UserRepository {
   private final AtomicReference<Instant> nextFetch = new AtomicReference<>(MIN_INSTANT);
 
   private HttpUrl baseUrl;
-  private HashSet<String> containedUsers;
+  private final HashSet<String> containedUsers;
   private Set<? extends User> timedCachedUsers = new HashSet<>();
+  private OAuth2Client repositoryClient;
+  private String basicCredentials;
 
   public ServiceUserRepository() {
     this.client = new OkHttpClient();
@@ -82,6 +91,24 @@ public class ServiceUserRepository implements UserRepository {
     FitbitRestSourceConnectorConfig fitbitConfig = (FitbitRestSourceConnectorConfig) config;
     this.baseUrl = fitbitConfig.getFitbitUserRepositoryUrl();
     this.containedUsers.addAll(fitbitConfig.getFitbitUsers());
+
+    URL tokenUrl = fitbitConfig.getFitbitUserRepositoryTokenUrl();
+    String clientId = fitbitConfig.getFitbitUserRepositoryClientId();
+    String clientSecret = fitbitConfig.getFitbitUserRepositoryClientSecret();
+
+    if (tokenUrl != null) {
+      if (clientId.isEmpty()) {
+        throw new ConfigException("Client ID for user repository is not set.");
+      }
+      this.repositoryClient = new OAuth2Client.Builder()
+          .credentials(clientId, clientSecret)
+          .endpoint(tokenUrl)
+          .scopes("SUBJECT.READ")
+          .httpClient(client)
+          .build();
+    } else if (clientId != null) {
+      basicCredentials = Credentials.basic(clientId, clientSecret);
+    }
   }
 
   @Override
@@ -121,21 +148,39 @@ public class ServiceUserRepository implements UserRepository {
     Request request = requestFor("users?source-type=FitBit").build();
     this.timedCachedUsers =
         this.<Users>makeRequest(request, USER_LIST_READER).getUsers().stream()
-            .filter(
-                u ->
-                    u.isComplete()
-                        && (containedUsers.isEmpty()
-                            || containedUsers.contains(u.getVersionedId())))
+            .filter(u -> u.isComplete()
+                && (containedUsers.isEmpty()
+                || containedUsers.contains(u.getVersionedId())))
             .collect(Collectors.toSet());
     nextFetch.set(Instant.now().plus(FETCH_THRESHOLD));
   }
 
-  private Request.Builder requestFor(String relativeUrl) {
+  private Request.Builder requestFor(String relativeUrl) throws IOException {
     HttpUrl url = baseUrl.resolve(relativeUrl);
     if (url == null) {
       throw new IllegalArgumentException("Relative URL is invalid");
     }
-    return new Request.Builder().url(url);
+    Request.Builder builder = new Request.Builder().url(url);
+    String authorization = requestAuthorization();
+    if (authorization != null) {
+      builder.addHeader("Authorization", authorization);
+    }
+
+    return builder;
+  }
+
+  private String requestAuthorization() throws IOException {
+    if (repositoryClient != null) {
+      try {
+        return "Bearer " + repositoryClient.getValidToken().getAccessToken();
+      } catch (TokenException ex) {
+        throw new IOException(ex);
+      }
+    } else if (basicCredentials != null) {
+      return basicCredentials;
+    } else {
+      return null;
+    }
   }
 
   private <T> T makeRequest(Request request, ObjectReader reader) throws IOException {

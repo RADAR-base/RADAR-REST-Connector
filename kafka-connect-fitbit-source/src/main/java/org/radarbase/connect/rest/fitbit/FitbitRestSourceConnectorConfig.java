@@ -20,6 +20,8 @@ package org.radarbase.connect.rest.fitbit;
 import static org.apache.kafka.common.config.ConfigDef.NO_DEFAULT_VALUE;
 
 import java.lang.reflect.InvocationTargetException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -121,6 +123,19 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
   private static final String FITBIT_INTRADAY_CALORIES_TOPIC_DOC = "Topic for Fitbit intraday calories";
   private static final String FITBIT_INTRADAY_CALORIES_TOPIC_DISPLAY = "Intraday calories topic";
   private static final String FITBIT_INTRADAY_CALORIES_TOPIC_DEFAULT = "connect_fitbit_intraday_calories";
+
+
+  public static final String FITBIT_USER_REPOSITORY_CLIENT_ID_CONFIG = "fitbit.user.repository.client.id";
+  private static final String FITBIT_USER_REPOSITORY_CLIENT_ID_DOC = "Client ID for connecting to the service repository.";
+  private static final String FITBIT_USER_REPOSITORY_CLIENT_ID_DISPLAY = "Client ID for user repository.";
+
+  public static final String FITBIT_USER_REPOSITORY_CLIENT_SECRET_CONFIG = "fitbit.user.repository.client.secret";
+  private static final String FITBIT_USER_REPOSITORY_CLIENT_SECRET_DOC = "Client secret for connecting to the service repository.";
+  private static final String FITBIT_USER_REPOSITORY_CLIENT_SECRET_DISPLAY = "Client Secret for user repository.";
+
+  public static final String FITBIT_USER_REPOSITORY_TOKEN_URL_CONFIG = "fitbit.user.repository.oauth2.token.url";
+  private static final String FITBIT_USER_REPOSITORY_TOKEN_URL_DOC = "OAuth 2.0 token url for retrieving client credentials.";
+  private static final String FITBIT_USER_REPOSITORY_TOKEN_URL_DISPLAY = "OAuth 2.0 token URL.";
 
   public static final String FITBIT_USER_REPOSITORY_FIRESTORE_FITBIT_COLLECTION_CONFIG = "fitbit.user.firebase.collection.fitbit.name";
   private static final String FITBIT_USER_REPOSITORY_FIRESTORE_FITBIT_COLLECTION_DOC = "Firestore Collection for retrieving Fitbit Auth details. Only used when a Firebase based user repository is used.";
@@ -241,6 +256,37 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
             ++orderInGroup,
             Width.SHORT,
             FITBIT_USER_REPOSITORY_URL_DISPLAY)
+
+
+        .define(FITBIT_USER_REPOSITORY_CLIENT_ID_CONFIG,
+            Type.STRING,
+            "",
+            Importance.MEDIUM,
+            FITBIT_USER_REPOSITORY_CLIENT_ID_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            FITBIT_USER_REPOSITORY_CLIENT_ID_DISPLAY)
+
+        .define(FITBIT_USER_REPOSITORY_CLIENT_SECRET_CONFIG,
+            Type.STRING,
+            "",
+            Importance.MEDIUM,
+            FITBIT_USER_REPOSITORY_CLIENT_SECRET_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            FITBIT_USER_REPOSITORY_CLIENT_SECRET_DISPLAY)
+
+        .define(FITBIT_USER_REPOSITORY_TOKEN_URL_CONFIG,
+            Type.STRING,
+            "",
+            Importance.MEDIUM,
+            FITBIT_USER_REPOSITORY_TOKEN_URL_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            FITBIT_USER_REPOSITORY_TOKEN_URL_DISPLAY)
 
         .define(FITBIT_INTRADAY_STEPS_TOPIC_CONFIG,
             Type.STRING,
@@ -446,5 +492,26 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
 
   public String getFitbitUserRepositoryFirestoreUserCollection() {
     return getString(FITBIT_USER_REPOSITORY_FIRESTORE_USER_COLLECTION_CONFIG);
+  }
+
+  public String getFitbitUserRepositoryClientId() {
+    return getString(FITBIT_USER_REPOSITORY_CLIENT_ID_CONFIG);
+  }
+
+  public String getFitbitUserRepositoryClientSecret() {
+    return getString(FITBIT_USER_REPOSITORY_CLIENT_SECRET_CONFIG);
+  }
+
+  public URL getFitbitUserRepositoryTokenUrl() {
+    String value = getString(FITBIT_USER_REPOSITORY_TOKEN_URL_CONFIG);
+    if (value == null || value.isEmpty()) {
+      return null;
+    } else {
+      try {
+        return new URL(getString(FITBIT_USER_REPOSITORY_TOKEN_URL_CONFIG));
+      } catch (MalformedURLException e) {
+        throw new ConfigException("Fitbit user repository token URL is invalid.");
+      }
+    }
   }
 }
