@@ -2,9 +2,9 @@ description = 'kafka-connect-rest-source'
 
 subprojects {
     ext {
-        kafkaVersion = '2.2.0-cp2'
-        confluentVersion = '5.2.1'
-        jacksonVersion = '2.9.9'
+        kafkaVersion = '2.5.0'
+        confluentVersion = '5.5.0'
+        jacksonVersion = '2.11.0'
     }
 
     apply plugin: 'java'
@@ -27,7 +27,7 @@ subprojects {
 }
 
 wrapper {
-    gradleVersion '5.4.1'
+    gradleVersion '6.4.1'
 }
 
 evaluationDependsOnChildren()

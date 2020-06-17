@@ -40,7 +40,7 @@ COPY ./kafka-connect-fitbit-source/src/ /code/kafka-connect-fitbit-source/src
 
 RUN ./gradlew jar
 
-FROM confluentinc/cp-kafka-connect-base:5.1.0
+FROM confluentinc/cp-kafka-connect-base:5.5.0
 
 MAINTAINER Joris Borgdorff <joris@thehyve.nl>
 

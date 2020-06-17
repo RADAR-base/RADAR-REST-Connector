@@ -85,7 +85,7 @@ public class FitbitActivityLogAvroConverter extends FitbitAvroConverter {
         .setLogType(optString(s, "logType").orElse(null))
         .setType(optLong(s, "activityType").orElse(null))
         .setSpeed(optDouble(s, "speed").orElse(null))
-        .setDistance(optDouble(s, "distance").map(Float::new).orElse(null))
+        .setDistance(optDouble(s, "distance").map(Double::floatValue).orElse(null))
         .setSteps(optInt(s, "steps").orElse(null))
         .setEnergy(optInt(s, "calories").map(e -> e * FOOD_CAL_TO_KJOULE_FACTOR)
             .orElse(null))
