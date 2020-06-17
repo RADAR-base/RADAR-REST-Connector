@@ -502,12 +502,16 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
     return getString(FITBIT_USER_REPOSITORY_CLIENT_SECRET_CONFIG);
   }
 
-  public URL getFitbitUserRepositoryTokenUrl() throws MalformedURLException {
+  public URL getFitbitUserRepositoryTokenUrl() {
     String value = getString(FITBIT_USER_REPOSITORY_TOKEN_URL_CONFIG);
     if (value == null || value.isEmpty()) {
       return null;
     } else {
-      return new URL(getString(FITBIT_USER_REPOSITORY_TOKEN_URL_CONFIG));
+      try {
+        return new URL(getString(FITBIT_USER_REPOSITORY_TOKEN_URL_CONFIG));
+      } catch (MalformedURLException e) {
+        throw new ConfigException("Fitbit user repository token URL is invalid.");
+      }
     }
   }
 }

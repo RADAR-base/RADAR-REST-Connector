@@ -22,6 +22,7 @@ import static org.radarbase.connect.rest.fitbit.request.FitbitRequestGenerator.J
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectReader;
+import io.confluent.common.config.ConfigException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -91,30 +92,22 @@ public class ServiceUserRepository implements UserRepository {
     this.baseUrl = fitbitConfig.getFitbitUserRepositoryUrl();
     this.containedUsers.addAll(fitbitConfig.getFitbitUsers());
 
-    try {
-      URL tokenUrl = fitbitConfig.getFitbitUserRepositoryTokenUrl();
-      String clientId = fitbitConfig.getFitbitUserRepositoryClientId();
-      String clientSecret = fitbitConfig.getFitbitUserRepositoryClientSecret();
+    URL tokenUrl = fitbitConfig.getFitbitUserRepositoryTokenUrl();
+    String clientId = fitbitConfig.getFitbitUserRepositoryClientId();
+    String clientSecret = fitbitConfig.getFitbitUserRepositoryClientSecret();
 
-      if (tokenUrl != null) {
-        if (clientId.isEmpty()) {
-          throw new ConnectException("Client ID for user repository is not set.");
-        }
-        this.repositoryClient = new OAuth2Client.Builder()
-            .credentials(
-                fitbitConfig
-                    .getString(FitbitRestSourceConnectorConfig.FITBIT_USER_REPOSITORY_CLIENT_ID_CONFIG),
-                fitbitConfig.getString(
-                    FitbitRestSourceConnectorConfig.FITBIT_USER_REPOSITORY_CLIENT_SECRET_CONFIG))
-            .endpoint(tokenUrl)
-            .scopes("SUBJECT.READ")
-            .httpClient(client)
-            .build();
-      } else if (clientId != null) {
-        basicCredentials = Credentials.basic(clientId, clientSecret);
+    if (tokenUrl != null) {
+      if (clientId.isEmpty()) {
+        throw new ConfigException("Client ID for user repository is not set.");
       }
-    } catch (MalformedURLException ex) {
-      throw new ConnectException("OAuth 2.0 server URL is malformed", ex);
+      this.repositoryClient = new OAuth2Client.Builder()
+          .credentials(clientId, clientSecret)
+          .endpoint(tokenUrl)
+          .scopes("SUBJECT.READ")
+          .httpClient(client)
+          .build();
+    } else if (clientId != null) {
+      basicCredentials = Credentials.basic(clientId, clientSecret);
     }
   }
 
