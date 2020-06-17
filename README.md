@@ -63,6 +63,12 @@ your Fitbit App client ID and client secret. The following tables shows the poss
 <tr>
 <td>fitbit.user.repository.url</td></td><td>URL for webservice containing user credentials. Only used if a webservice-based user repository is configured.</td></td><td>string</td></td><td>""</td></td><td></td></td><td>low</td></td></tr>
 <tr>
+<td>fitbit.user.repository.client.id</td></td><td>Client ID for connecting to the service repository.</td></td><td>string</td></td><td>""</td></td><td></td></td><td>medium</td></td></tr>
+<tr>
+<td>fitbit.user.repository.client.secret</td></td><td>Client secret for connecting to the service repository.</td></td><td>string</td></td><td>""</td></td><td></td></td><td>medium</td></td></tr>
+<tr>
+<td>fitbit.user.repository.oauth2.token.url</td></td><td>OAuth 2.0 token url for retrieving client credentials.</td></td><td>string</td></td><td>""</td></td><td></td></td><td>medium</td></td></tr>
+<tr>
 <td>fitbit.intraday.steps.topic</td></td><td>Topic for Fitbit intraday steps</td></td><td>string</td></td><td>connect_fitbit_intraday_steps</td></td><td>non-empty string without control characters</td></td><td>low</td></td></tr>
 <tr>
 <td>fitbit.intraday.heart.rate.topic</td></td><td>Topic for Fitbit intraday heart_rate</td></td><td>string</td></td><td>connect_fitbit_intraday_heart_rate</td></td><td>non-empty string without control characters</td></td><td>low</td></td></tr>
@@ -76,7 +82,25 @@ your Fitbit App client ID and client secret. The following tables shows the poss
 <td>fitbit.activity.log.topic</td></td><td>Topic for Fitbit activity log.</td></td><td>string</td></td><td>connect_fitbit_activity_log</td></td><td>non-empty string without control characters</td></td><td>low</td></td></tr>
 <tr>
 <td>fitbit.intraday.calories.topic</td></td><td>Topic for Fitbit intraday calories</td></td><td>string</td></td><td>connect_fitbit_intraday_calories</td></td><td>non-empty string without control characters</td></td><td>low</td></td></tr>
+<tr>
+<td>fitbit.user.firebase.collection.fitbit.name</td></td><td>Firestore Collection for retrieving Fitbit Auth details. Only used when a Firebase based user repository is used.</td></td><td>string</td></td><td>fitbit</td></td><td></td></td><td>low</td></td></tr>
+<tr>
+<td>fitbit.user.firebase.collection.user.name</td></td><td>Firestore Collection for retrieving User details. Only used when a Firebase based user repository is used.</td></td><td>string</td></td><td>users</td></td><td></td></td><td>low</td></td></tr>
 </tbody></table>
+
+If the ManagementPortal is used to authenticate against the user repository, please add an OAuth client to ManagementPortal with the following properties:
+
+```
+Client ID: fitbit.user.repository.client.id
+Client Secret: fitbit.user.repository.client.secret
+Scope: SUBJECT.READ
+Resources: res_restAuthorizer
+Grant types: client_credentials
+Access Token validity: 600
+Refresh Token validity: 0
+```
+
+Finally set the `fitbit.user.repository.oauth.token.url` to `http://managementportal-app:8080/managementportal/oauth/token`.
 
 Now you can run a full Kafka stack using
 
