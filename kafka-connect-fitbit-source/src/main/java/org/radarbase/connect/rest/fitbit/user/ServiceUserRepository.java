@@ -24,7 +24,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectReader;
 import io.confluent.common.config.ConfigException;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
@@ -45,7 +44,6 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
-import org.apache.kafka.connect.errors.ConnectException;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
 import org.radarbase.connect.rest.fitbit.FitbitRestSourceConnectorConfig;
 import org.radarcns.exception.TokenException;
@@ -113,7 +111,7 @@ public class ServiceUserRepository implements UserRepository {
 
   @Override
   public Stream<? extends User> stream() {
-    if (nextFetch.get().equals(Instant.MIN)) {
+    if (nextFetch.get().equals(MIN_INSTANT)) {
       try {
         applyPendingUpdates();
       } catch (IOException ex) {
