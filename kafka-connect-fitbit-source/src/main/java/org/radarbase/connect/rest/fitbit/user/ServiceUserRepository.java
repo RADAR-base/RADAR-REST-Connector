@@ -113,6 +113,13 @@ public class ServiceUserRepository implements UserRepository {
 
   @Override
   public Stream<? extends User> stream() {
+    if (nextFetch.get().equals(Instant.MIN)) {
+      try {
+        applyPendingUpdates();
+      } catch (IOException ex) {
+        logger.error("Failed to initially get users from repository");
+      }
+    }
     return this.timedCachedUsers.stream();
   }
 
