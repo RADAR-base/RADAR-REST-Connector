@@ -21,6 +21,7 @@ subprojects {
         maven { url "https://packages.confluent.io/maven/" }
         maven { url "https://repo.maven.apache.org/maven2" }
         jcenter()
+        maven { url  "https://dl.bintray.com/radar-cns/org.radarcns" }
         maven { url  'https://oss.jfrog.org/artifactory/oss-snapshot-local/' }
     }
 }
