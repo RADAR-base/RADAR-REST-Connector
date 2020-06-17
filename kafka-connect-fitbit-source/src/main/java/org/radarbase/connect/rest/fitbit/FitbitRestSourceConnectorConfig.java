@@ -269,7 +269,7 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
             FITBIT_USER_REPOSITORY_CLIENT_ID_DISPLAY)
 
         .define(FITBIT_USER_REPOSITORY_CLIENT_SECRET_CONFIG,
-            Type.STRING,
+            Type.PASSWORD,
             "",
             Importance.MEDIUM,
             FITBIT_USER_REPOSITORY_CLIENT_SECRET_DOC,
@@ -499,7 +499,7 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
   }
 
   public String getFitbitUserRepositoryClientSecret() {
-    return getString(FITBIT_USER_REPOSITORY_CLIENT_SECRET_CONFIG);
+    return getPassword(FITBIT_USER_REPOSITORY_CLIENT_SECRET_CONFIG).value();
   }
 
   public URL getFitbitUserRepositoryTokenUrl() {
