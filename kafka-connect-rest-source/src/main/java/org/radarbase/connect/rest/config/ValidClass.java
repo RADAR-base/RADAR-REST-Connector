@@ -49,11 +49,9 @@ public final class ValidClass implements ConfigDef.Validator {
                     "Class " + obj + " must be subclass of " + superClass.getName());
         }
         try {
-            cls.newInstance();
-        } catch (InstantiationException ex) {
+            cls.getConstructor().newInstance();
+        } catch (ReflectiveOperationException ex) {
             throw new ConfigException(name, obj, "Class " + obj + " must be instantiable: " + ex);
-        } catch (IllegalAccessException ex) {
-            throw new ConfigException(name, obj, "Class " + obj + " must be accessible: " + ex);
         }
     }
 

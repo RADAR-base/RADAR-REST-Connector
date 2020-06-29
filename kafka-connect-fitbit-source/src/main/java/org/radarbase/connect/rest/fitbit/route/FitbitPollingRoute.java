@@ -25,6 +25,7 @@ import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.radarbase.connect.rest.converter.PayloadToSourceRecordConverter.MIN_INSTANT;
 import static org.radarbase.connect.rest.converter.PayloadToSourceRecordConverter.TIMESTAMP_OFFSET_KEY;
 import static org.radarbase.connect.rest.converter.PayloadToSourceRecordConverter.nearFuture;
+import static org.radarbase.connect.rest.request.PollingRequestRoute.max;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -316,7 +317,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
     } else {
       Instant nextPoll = lastPollPerUser.getOrDefault(user.getId(), MIN_INSTANT)
           .plus(getPollIntervalPerUser());
-      return PollingRequestRoute.max(offset.plus(getLookbackTime()), nextPoll);
+      return max(offset.plus(getLookbackTime()), nextPoll);
     }
   }
 

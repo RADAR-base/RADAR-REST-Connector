@@ -37,7 +37,7 @@ public class CovidCollabFirebaseUserRepository extends FirebaseUserRepository {
   private static final Logger logger =
       LoggerFactory.getLogger(CovidCollabFirebaseUserRepository.class);
 
-  private Map<String, FirebaseUser> cachedUsers = new HashMap<>();
+  private final Map<String, FirebaseUser> cachedUsers = new HashMap<>();
   private CollectionReference userCollection;
   private CollectionReference fitbitCollection;
   private FitbitTokenService fitbitTokenService;

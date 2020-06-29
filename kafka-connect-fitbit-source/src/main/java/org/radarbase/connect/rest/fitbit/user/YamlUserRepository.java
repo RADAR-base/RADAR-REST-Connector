@@ -86,7 +86,7 @@ public class YamlUserRepository implements UserRepository {
 
   private Set<String> configuredUsers;
   private Headers headers;
-  private ConcurrentMap<String, LockedUser> users = new ConcurrentHashMap<>();
+  private final ConcurrentMap<String, LockedUser> users = new ConcurrentHashMap<>();
   private final AtomicReference<Instant> nextFetch = new AtomicReference<>(MIN_INSTANT);
   private Path credentialsDir;
 
