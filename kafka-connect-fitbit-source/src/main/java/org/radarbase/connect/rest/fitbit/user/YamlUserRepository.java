@@ -276,8 +276,6 @@ public class YamlUserRepository implements UserRepository {
             .build())
         .build();
 
-    Exception exception = null;
-    JsonNode node = null;
     try (Response response = client.newCall(request).execute()) {
       ResponseBody responseBody = response.body();
 
