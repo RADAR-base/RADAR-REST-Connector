@@ -80,22 +80,25 @@ public class RestRequest {
       return Stream.empty();
     }
 
+    Collection<SourceRecord> records;
+
     try (Response response = client.newCall(request).execute()) {
       if (!response.isSuccessful()) {
         route.requestFailed(this, response);
         return Stream.empty();
       }
 
-      Collection<SourceRecord> records = route.converter().convert(this, response);
-      if (records.isEmpty()) {
-        route.requestEmpty(this);
-      } else {
-        records.forEach(r -> route.requestSucceeded(this, r));
-      }
-      return records.stream();
+      records = route.converter().convert(this, response);
     } catch (IOException ex) {
       route.requestFailed(this, null);
       throw ex;
     }
+
+    if (records.isEmpty()) {
+      route.requestEmpty(this);
+    } else {
+      records.forEach(r -> route.requestSucceeded(this, r));
+    }
+    return records.stream();
   }
 }

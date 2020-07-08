@@ -221,57 +221,19 @@ public class YamlUserRepository implements UserRepository {
             .build())
         .build();
 
+    Exception exception = null;
+    JsonNode node = null;
     try (Response response = client.newCall(request).execute()) {
       ResponseBody responseBody = response.body();
 
       if (response.isSuccessful() && responseBody != null) {
-        JsonNode node;
         try {
           node = JSON_READER.readTree(responseBody.charStream());
         } catch (IOException ex) {
-          if (retry > 0) {
-            logger.warn("Failed to read OAuth 2.0 response: {}", ex.toString());
-            return refreshAccessToken(user, retry - 1);
-          }
-          throw ex;
+          exception = ex;
         }
-
-        JsonNode expiresInNode = node.get("expires_in");
-        Long expiresIn = expiresInNode != null
-            ? expiresInNode.asLong()
-            : null;
-
-        JsonNode accessTokenNode = node.get("access_token");
-        JsonNode refreshTokenNode = node.get("refresh_token");
-        if (accessTokenNode == null || refreshTokenNode == null) {
-          if (retry > 0) {
-            logger.warn("Failed to get access token in successful OAuth 2.0 request:"
-                + " access token or refresh token are missing");
-            return refreshAccessToken(user, retry - 1);
-          } else {
-            throw new NotAuthorizedException("Did not get an access token");
-          }
-        }
-
-        actualUser.accept((u, p) -> {
-          if (!refreshToken.equals(u.getOAuth2Credentials().getRefreshToken())) {
-            // it was updated already by another thread.
-            return;
-          }
-          u.setOauth2Credentials(new OAuth2UserCredentials(
-              refreshTokenNode.asText(), accessTokenNode.asText(), expiresIn));
-          store(p, u);
-        });
       } else if (response.code() == 400 || response.code() == 401) {
-        actualUser.accept((u, p) -> {
-          if (!refreshToken.equals(u.getOAuth2Credentials().getRefreshToken())) {
-            // it was updated already by another thread.
-            return;
-          }
-          u.setOauth2Credentials(new OAuth2UserCredentials());
-          store(p, u);
-        });
-        throw new NotAuthorizedException("Refresh token is no longer valid.");
+        exception = new NotAuthorizedException("Refresh token is no longer valid.");
       } else {
         String message = "Failed to request refresh token, with response HTTP status code "
             + response.code();
@@ -281,6 +243,52 @@ public class YamlUserRepository implements UserRepository {
         throw new IOException(message);
       }
     }
+
+    if (node != null) {
+      JsonNode expiresInNode = node.get("expires_in");
+      Long expiresIn = expiresInNode != null
+          ? expiresInNode.asLong()
+          : null;
+
+      JsonNode accessTokenNode = node.get("access_token");
+      JsonNode refreshTokenNode = node.get("refresh_token");
+      if (accessTokenNode == null || refreshTokenNode == null) {
+        if (retry > 0) {
+          logger.warn("Failed to get access token in successful OAuth 2.0 request:"
+              + " access token or refresh token are missing");
+          return refreshAccessToken(user, retry - 1);
+        } else {
+          throw new NotAuthorizedException("Did not get an access token");
+        }
+      }
+
+      actualUser.accept((u, p) -> {
+        if (!refreshToken.equals(u.getOAuth2Credentials().getRefreshToken())) {
+          // it was updated already by another thread.
+          return;
+        }
+        u.setOauth2Credentials(new OAuth2UserCredentials(
+            refreshTokenNode.asText(), accessTokenNode.asText(), expiresIn));
+        store(p, u);
+      });
+    } else if (exception instanceof IOException) {
+      if (retry > 0) {
+        logger.warn("Failed to read OAuth 2.0 response: {}", exception.toString());
+        return refreshAccessToken(user, retry - 1);
+      }
+      throw (IOException) exception;
+    } else if (exception instanceof NotAuthorizedException) {
+      actualUser.accept((u, p) -> {
+        if (!refreshToken.equals(u.getOAuth2Credentials().getRefreshToken())) {
+          // it was updated already by another thread.
+          return;
+        }
+        u.setOauth2Credentials(new OAuth2UserCredentials());
+        store(p, u);
+      });
+      throw (NotAuthorizedException) exception;
+    }
+
     return actualUser.apply(u -> u.getOAuth2Credentials().getAccessToken());
   }
 
