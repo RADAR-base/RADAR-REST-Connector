@@ -27,18 +27,15 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.OptionalDouble;
-import java.util.OptionalLong;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import org.apache.avro.Schema.Field;
 import org.apache.avro.generic.IndexedRecord;
 import org.apache.kafka.connect.data.SchemaAndValue;
 import org.apache.kafka.connect.source.SourceRecord;
@@ -86,7 +83,17 @@ public abstract class FitbitAvroConverter implements PayloadToSourceRecordConver
     double timeReceived = System.currentTimeMillis() / 1000d;
 
     return processRecords((FitbitRestRequest)restRequest, activities, timeReceived)
-        .filter(Objects::nonNull)
+        .filter(t -> {
+          if (t == null) return false;
+          Instant endDate = ((FitbitRestRequest) restRequest).getUser().getEndDate();
+          if (endDate == null) return true;
+          Field timeField = t.value.getSchema().getField("time");
+          if (timeField != null) {
+            long time = (long) (((Double)t.value.get(timeField.pos()) * 1000.0));
+            return Instant.ofEpochMilli(time).isBefore(endDate);
+          }
+          return true;
+        })
         .map(t -> {
           SchemaAndValue avro = avroData.toConnectData(t.value.getSchema(), t.value);
           Map<String, ?> offset = Collections.singletonMap(
