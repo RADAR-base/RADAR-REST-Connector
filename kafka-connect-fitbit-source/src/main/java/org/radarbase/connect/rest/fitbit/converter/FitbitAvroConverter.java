@@ -33,8 +33,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
+import okhttp3.Headers;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.generic.IndexedRecord;
 import org.apache.kafka.connect.data.SchemaAndValue;
@@ -71,12 +70,11 @@ public abstract class FitbitAvroConverter implements PayloadToSourceRecordConver
 
   @Override
   public Collection<SourceRecord> convert(
-      RestRequest restRequest, Response response) throws IOException {
-    ResponseBody body = response.body();
-    if (body == null) {
+      RestRequest restRequest, Headers headers, byte[] data) throws IOException {
+    if (data == null) {
       throw new IOException("Failed to read body");
     }
-    JsonNode activities = JSON_READER.readTree(body.charStream());
+    JsonNode activities = JSON_READER.readTree(data);
 
     User user = ((FitbitRestRequest) restRequest).getUser();
     final SchemaAndValue key = user.getObservationKey(avroData);

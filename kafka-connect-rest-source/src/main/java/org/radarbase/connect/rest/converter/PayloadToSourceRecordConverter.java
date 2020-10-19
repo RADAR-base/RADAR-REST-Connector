@@ -22,7 +22,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.TemporalAmount;
 import java.util.Collection;
-import okhttp3.Response;
+import okhttp3.Headers;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.radarbase.connect.rest.config.RestSourceTool;
 import org.radarbase.connect.rest.request.RestRequest;
@@ -33,7 +33,7 @@ public interface PayloadToSourceRecordConverter extends RestSourceTool {
   TemporalAmount NEAR_FUTURE = Duration.ofDays(31L);
 
   Collection<SourceRecord> convert(
-      RestRequest request, Response response) throws IOException;
+      RestRequest request, Headers headers, byte[] data) throws IOException;
 
   static Instant nearFuture() {
     return Instant.now().plus(NEAR_FUTURE);
