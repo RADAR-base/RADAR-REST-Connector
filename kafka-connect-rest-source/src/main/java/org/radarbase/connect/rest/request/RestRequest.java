@@ -22,9 +22,11 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import okhttp3.Headers;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
 import org.apache.kafka.connect.source.SourceRecord;
 
 /**
@@ -82,17 +84,23 @@ public class RestRequest {
 
     Collection<SourceRecord> records;
 
+    byte[] data;
+    Headers headers;
     try (Response response = client.newCall(request).execute()) {
       if (!response.isSuccessful()) {
         route.requestFailed(this, response);
         return Stream.empty();
       }
 
-      records = route.converter().convert(this, response);
+      headers = response.headers();
+      ResponseBody body = response.body();
+      data = body != null ? body.bytes() : null;
     } catch (IOException ex) {
       route.requestFailed(this, null);
       throw ex;
     }
+
+    records = route.converter().convert(this, headers, data);
 
     if (records.isEmpty()) {
       route.requestEmpty(this);
