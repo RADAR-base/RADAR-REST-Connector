@@ -312,13 +312,17 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
    */
   protected Instant nextPoll(User user) {
     Instant offset = getOffset(user);
-    if (offset.isAfter(user.getEndDate())) {
+    if (offset.isAfter(user.getEndDate().minus(getEndDateThreshold()))) {
       return nearFuture();
     } else {
       Instant nextPoll = lastPollPerUser.getOrDefault(user.getId(), MIN_INSTANT)
           .plus(getPollIntervalPerUser());
       return max(offset.plus(getLookbackTime()), nextPoll);
     }
+  }
+
+  private TemporalAmount getEndDateThreshold() {
+    return Duration.ofHours(1);
   }
 
   /**
