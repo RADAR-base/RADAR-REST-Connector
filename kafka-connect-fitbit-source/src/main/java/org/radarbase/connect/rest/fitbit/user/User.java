@@ -45,6 +45,8 @@ public interface User {
 
   String getSourceId();
 
+  boolean isAuthorized();
+
   default String getVersionedId() {
     String version = getVersion();
     if (version == null) {
@@ -60,6 +62,7 @@ public interface User {
     return getEndDate() != null
         && getStartDate() != null
         && getProjectId() != null
-        && getUserId() != null;
+        && getUserId() != null
+        && isAuthorized();
   }
 }
