@@ -45,6 +45,9 @@ public class LocalUser implements User {
   @JsonProperty("oauth2")
   private OAuth2UserCredentials oauth2Credentials = new OAuth2UserCredentials();
 
+  @JsonProperty("authorized")
+  private Boolean isAuthorized;
+
   @JsonIgnore
   private SchemaAndValue observationKey;
 
@@ -96,6 +99,15 @@ public class LocalUser implements User {
   }
 
   @Override
+  public boolean isAuthorized() {
+    if(isAuthorized == null) {
+      return !oauth2Credentials.isAccessTokenExpired()
+          || oauth2Credentials.hasRefreshToken();
+    }
+    return isAuthorized;
+  }
+
+  @Override
   public String getVersion() {
     return version;
   }
@@ -115,6 +127,7 @@ public class LocalUser implements User {
     copy.endDate = endDate;
     copy.sourceId = sourceId;
     copy.oauth2Credentials = oauth2Credentials;
+    copy.isAuthorized = isAuthorized;
     return copy;
   }
 
@@ -133,6 +146,7 @@ public class LocalUser implements User {
         + ", projectId='" + projectId + '\''
         + ", userId='" + userId + '\''
         + ", sourceId='" + sourceId + '\''
+        + ", isAuthorized='" + isAuthorized() + '\''
         + '}';
   }
 
@@ -152,7 +166,8 @@ public class LocalUser implements User {
         && Objects.equals(userId, localUser.userId)
         && Objects.equals(sourceId, localUser.sourceId)
         && Objects.equals(startDate, localUser.startDate)
-        && Objects.equals(endDate, localUser.endDate);
+        && Objects.equals(endDate, localUser.endDate)
+        && Objects.equals(isAuthorized(), localUser.isAuthorized());
   }
 
   @Override

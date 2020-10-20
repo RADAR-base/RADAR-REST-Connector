@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import okhttp3.Headers;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.apache.kafka.connect.data.Schema;
@@ -36,15 +37,13 @@ public class BytesPayloadConverter implements PayloadToSourceRecordConverter {
 
   // Just bytes for incoming messages
   @Override
-  public Collection<SourceRecord> convert(RestRequest request, Response response) throws IOException {
+  public Collection<SourceRecord> convert(RestRequest request, Headers headers, byte[] data) {
     Map<String, Long> sourceOffset = Collections.singletonMap(
         TIMESTAMP_OFFSET_KEY, currentTimeMillis());
-    ResponseBody body = response.body();
-    byte[] result = body != null ? body.bytes() : null;
-    String topic = topicSelector.getTopic(request, result);
+    String topic = topicSelector.getTopic(request, data);
     return Collections.singleton(
         new SourceRecord(request.getPartition(), sourceOffset,
-            topic, Schema.BYTES_SCHEMA, result));
+            topic, Schema.BYTES_SCHEMA, data));
   }
 
   @Override

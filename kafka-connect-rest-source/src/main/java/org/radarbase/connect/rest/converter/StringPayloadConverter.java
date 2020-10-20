@@ -19,12 +19,11 @@ package org.radarbase.connect.rest.converter;
 
 import static java.lang.System.currentTimeMillis;
 
-import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
+import okhttp3.Headers;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
@@ -35,10 +34,9 @@ public class StringPayloadConverter implements PayloadToSourceRecordConverter {
   private TopicSelector topicSelector;
 
   @Override
-  public Collection<SourceRecord> convert(RestRequest request, Response response) throws IOException {
+  public Collection<SourceRecord> convert(RestRequest request, Headers headers, byte[] data) {
     Map<String, Long> sourceOffset = Collections.singletonMap(TIMESTAMP_OFFSET_KEY, currentTimeMillis());
-    ResponseBody body = response.body();
-    String result = body == null ? null : body.string();
+    String result = data == null ? null : new String(data, StandardCharsets.UTF_8);
     String topic = topicSelector.getTopic(request, result);
     return Collections.singleton(
         new SourceRecord(request.getPartition(), sourceOffset, topic,

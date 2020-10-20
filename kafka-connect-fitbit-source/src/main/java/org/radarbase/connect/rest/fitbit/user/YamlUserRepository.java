@@ -132,6 +132,9 @@ public class YamlUserRepository implements UserRepository {
 
   @Override
   public Stream<LocalUser> stream() {
+     if (nextFetch.get().equals(MIN_INSTANT)) {
+      applyPendingUpdates();
+    }
     Stream<LockedUser> users = this.users.values().stream()
         .filter(lockedTest(u -> u.getOAuth2Credentials().hasRefreshToken()));
     if (!configuredUsers.isEmpty()) {

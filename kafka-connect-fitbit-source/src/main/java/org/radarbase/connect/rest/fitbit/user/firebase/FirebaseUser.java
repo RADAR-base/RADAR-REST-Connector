@@ -70,6 +70,12 @@ public class FirebaseUser implements User {
     return fitbitAuthDetails.getSourceId();
   }
 
+  @Override
+  public boolean isAuthorized() {
+    return !fitbitAuthDetails.getOauth2Credentials().isAccessTokenExpired()
+        || fitbitAuthDetails.getOauth2Credentials().hasRefreshToken();
+  }
+
   public FirebaseUserDetails getFirebaseUserDetails() {
     return firebaseUserDetails;
   }
