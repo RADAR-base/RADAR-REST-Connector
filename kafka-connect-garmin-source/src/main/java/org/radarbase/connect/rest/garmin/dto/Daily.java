@@ -3,10 +3,11 @@ package org.radarbase.connect.rest.garmin.dto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.Map;
+import org.apache.avro.specific.SpecificRecord;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class Daily
+public class Daily implements GarminData
 {
     private String userAccessToken;
     private String summaryId;
@@ -307,4 +308,9 @@ public class Daily
     {
         this.stressQualifier = stressQualifier;
     }
+
+  @Override
+  public SpecificRecord toAvroRecord() {
+    return null;
+  }
 }

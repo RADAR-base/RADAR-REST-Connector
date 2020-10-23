@@ -58,6 +58,15 @@ public interface UserRepository extends RestSourceTool {
   String getUserAccessTokenSecret(User user) throws IOException, NotAuthorizedException;
 
   /**
+   * This is to report any deregistrations of the users.
+   * This should update the user's authorised status to false in the external repository.
+   * @throws IOException if the user's status cannot be updated in the repository.
+   * @throws java.util.NoSuchElementException if the user does not exists in this repository.
+   */
+  void reportDeregistration(User user) throws IOException;
+
+
+  /**
    * The functions allows the repository to supply when there are pending updates.
    * This gives more control to the user repository in updating and caching users.
    * @return {@code true} if there are new updates available, {@code false} otherwise.

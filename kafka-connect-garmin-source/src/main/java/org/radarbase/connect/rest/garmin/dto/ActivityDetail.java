@@ -3,14 +3,15 @@ package org.radarbase.connect.rest.garmin.dto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
+import org.apache.avro.specific.SpecificRecord;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ActivityDetail 
+public class ActivityDetail implements GarminData
 {
     private String userAccessToken;
     private String summaryId;
-    private com.garmin.gh.apps.wellnessmonitor.domain.eventpush.Activity summary;
+    private Activity summary;
     private List<Sample> samples;
     
     public String getUserAccessToken()
@@ -29,11 +30,11 @@ public class ActivityDetail
     {
         this.summaryId = summaryId;
     }
-    public com.garmin.gh.apps.wellnessmonitor.domain.eventpush.Activity getSummary()
+    public Activity getSummary()
     {
         return summary;
     }
-    public void setSummary(com.garmin.gh.apps.wellnessmonitor.domain.eventpush.Activity summary)
+    public void setSummary(Activity summary)
     {
         this.summary = summary;
     }
@@ -45,8 +46,13 @@ public class ActivityDetail
     {
         this.samples = samples;
     }
-       
-    @JsonInclude(JsonInclude.Include.NON_NULL)
+
+  @Override
+  public SpecificRecord toAvroRecord() {
+    return null;
+  }
+
+  @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Sample
     {
         private Integer startTimeInSeconds;

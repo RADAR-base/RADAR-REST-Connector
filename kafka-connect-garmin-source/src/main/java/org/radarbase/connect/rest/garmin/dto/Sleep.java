@@ -4,10 +4,11 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
 import java.util.Map;
+import org.apache.avro.specific.SpecificRecord;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class Sleep
+public class Sleep implements GarminData
 {
     private String userAccessToken;
     private String summaryId;
@@ -100,4 +101,9 @@ public class Sleep
     {
         this.validation = validation;
     }
+
+  @Override
+  public SpecificRecord toAvroRecord() {
+    return null;
+  }
 }

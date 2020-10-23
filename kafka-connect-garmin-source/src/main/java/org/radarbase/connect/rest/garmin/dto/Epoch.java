@@ -2,10 +2,11 @@ package org.radarbase.connect.rest.garmin.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import org.apache.avro.specific.SpecificRecord;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class Epoch 
+public class Epoch implements GarminData
 {
     private String userAccessToken;
     private String summaryId;
@@ -134,4 +135,9 @@ public class Epoch
     {
         this.maxMotionIntensity = maxMotionIntensity;
     }
+
+  @Override
+  public SpecificRecord toAvroRecord() {
+    return null;
+  }
 }

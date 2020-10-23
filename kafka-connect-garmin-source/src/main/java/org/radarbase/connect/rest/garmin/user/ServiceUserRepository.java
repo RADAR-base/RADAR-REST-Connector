@@ -28,6 +28,11 @@ public class ServiceUserRepository implements UserRepository{
   }
 
   @Override
+  public void reportDeregistration(User user) throws IOException {
+
+  }
+
+  @Override
   public boolean hasPendingUpdates() {
     return false;
   }

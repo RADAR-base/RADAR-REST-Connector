@@ -3,10 +3,11 @@ package org.radarbase.connect.rest.garmin.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import org.apache.avro.specific.SpecificRecord;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class UserInfo 
+public class UserInfo implements GarminData
 {
     private String userAccessToken;
     private String summaryId;
@@ -97,4 +98,9 @@ public class UserInfo
     {
         this.modifiedTimeInSeconds = modifiedTimeInSeconds;
     }
+
+  @Override
+  public SpecificRecord toAvroRecord() {
+    return null;
+  }
 }

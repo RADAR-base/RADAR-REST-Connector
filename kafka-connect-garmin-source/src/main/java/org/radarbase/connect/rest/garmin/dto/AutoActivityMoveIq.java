@@ -2,10 +2,11 @@ package org.radarbase.connect.rest.garmin.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import org.apache.avro.specific.SpecificRecord;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class AutoActivityMoveIq
+public class AutoActivityMoveIq implements GarminData
 {
     private String userAccessToken;
     private String summaryId;
@@ -88,5 +89,9 @@ public class AutoActivityMoveIq
     {
         this.offsetInSeconds = offsetInSeconds;
     }
-  
+
+  @Override
+  public SpecificRecord toAvroRecord() {
+    return null;
+  }
 }
