@@ -13,6 +13,18 @@ dependencies {
     compileOnly group: 'org.apache.kafka', name: 'connect-api', version: kafkaVersion
     compileOnly group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: jacksonVersion
 
+    compile 'com.fasterxml.jackson.module:jackson-module-parameter-names:' + jacksonVersion
+    compile 'com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:' + jacksonVersion
+    compile 'com.fasterxml.jackson.datatype:jackson-datatype-jaxrs:' + jacksonVersion
+    compile 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8:' + jacksonVersion
+    compile 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:' + jacksonVersion
+
+    compile 'org.glassfish.grizzly:grizzly-http-server:2.+'
+    compile 'org.glassfish.jersey.containers:jersey-container-grizzly2-http:2.+'
+    compile 'org.glassfish.jersey.containers:jersey-container-grizzly2-servlet:2.+'
+    runtimeOnly group: 'org.glassfish.jersey.inject', name: 'jersey-hk2', version: '2.+'
+    compile 'org.glassfish.hk2:hk2-metadata-generator:2.+'
+
     testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.4.2'
     testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.4.2'
     testRuntimeOnly group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.26'

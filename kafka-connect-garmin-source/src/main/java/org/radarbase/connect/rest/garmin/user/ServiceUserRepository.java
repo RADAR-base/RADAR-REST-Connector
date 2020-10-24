@@ -14,7 +14,7 @@ public class ServiceUserRepository implements UserRepository{
 
   @Override
   public Stream<? extends User> stream() throws IOException {
-    return null;
+    return Stream.empty();
   }
 
   @Override

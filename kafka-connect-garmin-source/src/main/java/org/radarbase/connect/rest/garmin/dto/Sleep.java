@@ -8,102 +8,110 @@ import org.apache.avro.specific.SpecificRecord;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class Sleep implements GarminData
-{
-    private String userAccessToken;
-    private String summaryId;
-    private Integer durationInSeconds;
-    private Integer startTimeInSeconds;
-    private Integer startTimeOffsetInSeconds;
-    private Integer deepSleepDurationInSeconds;
-    private Integer lightSleepDurationInSeconds;
-    private Integer awakeDurationInSeconds;
-    private Map<String, List<TimeRange>> sleepLevelsMap;
-    private String validation;
+public class Sleep implements GarminData {
+  private String userId;
+  private String userAccessToken;
+  private String summaryId;
+  private Integer durationInSeconds;
+  private Integer startTimeInSeconds;
+  private Integer startTimeOffsetInSeconds;
+  private Integer deepSleepDurationInSeconds;
+  private Integer lightSleepDurationInSeconds;
+  private Integer awakeDurationInSeconds;
+  private Map<String, List<TimeRange>> sleepLevelsMap;
+  private String validation;
 
-    public String getUserAccessToken()
-    {
-        return userAccessToken;
-    }
-    public void setUserAccessToken(String userAccessToken)
-    {
-        this.userAccessToken = userAccessToken;
-    }
-    public String getSummaryId()
-    {
-        return summaryId;
-    }
-    public void setSummaryId(String summaryId)
-    {
-        this.summaryId = summaryId;
-    }
-    public Integer getDurationInSeconds()
-    {
-        return durationInSeconds;
-    }
-    public void setDurationInSeconds(Integer durationInSeconds)
-    {
-        this.durationInSeconds = durationInSeconds;
-    }
-    public Integer getStartTimeInSeconds()
-    {
-        return startTimeInSeconds;
-    }
-    public void setStartTimeInSeconds(Integer startTimeInSeconds)
-    {
-        this.startTimeInSeconds = startTimeInSeconds;
-    }
-    public Integer getStartTimeOffsetInSeconds()
-    {
-        return startTimeOffsetInSeconds;
-    }
-    public void setStartTimeOffsetInSeconds(Integer startTimeOffsetInSeconds)
-    {
-        this.startTimeOffsetInSeconds = startTimeOffsetInSeconds;
-    }
-    public Integer getDeepSleepDurationInSeconds()
-    {
-        return deepSleepDurationInSeconds;
-    }
-    public void setDeepSleepDurationInSeconds(Integer deepSleepDurationInSeconds)
-    {
-        this.deepSleepDurationInSeconds = deepSleepDurationInSeconds;
-    }
-    public Integer getLightSleepDurationInSeconds()
-    {
-        return lightSleepDurationInSeconds;
-    }
-    public void setLightSleepDurationInSeconds(Integer lightSleepDurationInSeconds)
-    {
-        this.lightSleepDurationInSeconds = lightSleepDurationInSeconds;
-    }
-    public Integer getAwakeDurationInSeconds()
-    {
-        return awakeDurationInSeconds;
-    }
-    public void setAwakeDurationInSeconds(Integer awakeDurationInSeconds)
-    {
-        this.awakeDurationInSeconds = awakeDurationInSeconds;
-    }
-    public Map<String, List<TimeRange>> getSleepLevelsMap()
-    {
-        return sleepLevelsMap;
-    }
-    public void setSleepLevelsMap(Map<String, List<TimeRange>> sleepLevelsMap)
-    {
-        this.sleepLevelsMap = sleepLevelsMap;
-    }
-    public String getValidation()
-    {
-        return validation;
-    }
-    public void setValidation(String validation)
-    {
-        this.validation = validation;
-    }
+  public String getUserAccessToken() {
+    return userAccessToken;
+  }
+
+  public void setUserAccessToken(String userAccessToken) {
+    this.userAccessToken = userAccessToken;
+  }
+
+  public String getSummaryId() {
+    return summaryId;
+  }
+
+  public void setSummaryId(String summaryId) {
+    this.summaryId = summaryId;
+  }
+
+  public Integer getDurationInSeconds() {
+    return durationInSeconds;
+  }
+
+  public void setDurationInSeconds(Integer durationInSeconds) {
+    this.durationInSeconds = durationInSeconds;
+  }
+
+  public Integer getStartTimeInSeconds() {
+    return startTimeInSeconds;
+  }
+
+  public void setStartTimeInSeconds(Integer startTimeInSeconds) {
+    this.startTimeInSeconds = startTimeInSeconds;
+  }
+
+  public Integer getStartTimeOffsetInSeconds() {
+    return startTimeOffsetInSeconds;
+  }
+
+  public void setStartTimeOffsetInSeconds(Integer startTimeOffsetInSeconds) {
+    this.startTimeOffsetInSeconds = startTimeOffsetInSeconds;
+  }
+
+  public Integer getDeepSleepDurationInSeconds() {
+    return deepSleepDurationInSeconds;
+  }
+
+  public void setDeepSleepDurationInSeconds(Integer deepSleepDurationInSeconds) {
+    this.deepSleepDurationInSeconds = deepSleepDurationInSeconds;
+  }
+
+  public Integer getLightSleepDurationInSeconds() {
+    return lightSleepDurationInSeconds;
+  }
+
+  public void setLightSleepDurationInSeconds(Integer lightSleepDurationInSeconds) {
+    this.lightSleepDurationInSeconds = lightSleepDurationInSeconds;
+  }
+
+  public Integer getAwakeDurationInSeconds() {
+    return awakeDurationInSeconds;
+  }
+
+  public void setAwakeDurationInSeconds(Integer awakeDurationInSeconds) {
+    this.awakeDurationInSeconds = awakeDurationInSeconds;
+  }
+
+  public Map<String, List<TimeRange>> getSleepLevelsMap() {
+    return sleepLevelsMap;
+  }
+
+  public void setSleepLevelsMap(Map<String, List<TimeRange>> sleepLevelsMap) {
+    this.sleepLevelsMap = sleepLevelsMap;
+  }
+
+  public String getValidation() {
+    return validation;
+  }
+
+  public void setValidation(String validation) {
+    this.validation = validation;
+  }
 
   @Override
   public SpecificRecord toAvroRecord() {
     return null;
+  }
+
+  @Override
+  public String getUserId() {
+    return userId;
+  }
+
+  public void setUserId(String userId) {
+    this.userId = userId;
   }
 }
