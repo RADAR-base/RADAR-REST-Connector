@@ -59,7 +59,7 @@ public class ServiceUserRepository implements UserRepository {
   private static final ObjectReader USER_READER = JSON_READER.forType(User.class);
   private static final ObjectReader OAUTH_READER = JSON_READER.forType(OAuth2UserCredentials.class);
   private static final RequestBody EMPTY_BODY =
-      RequestBody.create(MediaType.parse("application/json; charset=utf-8"), "");
+      RequestBody.create("", MediaType.parse("application/json; charset=utf-8"));
   private static final Duration FETCH_THRESHOLD = Duration.ofMinutes(1L);
 
   private final OkHttpClient client;
