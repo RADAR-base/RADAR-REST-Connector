@@ -35,7 +35,7 @@ public class LocalUser implements User {
   private static final Pattern ILLEGAL_CHARACTERS_PATTERN = Pattern.compile("[^a-zA-Z0-9_-]");
   private String id;
   private String version;
-  private String externalUserId;
+  private String serviceUserId;
   private String projectId;
   private String userId;
   private String sourceId;
@@ -62,7 +62,7 @@ public class LocalUser implements User {
   }
 
   public String getExternalUserId() {
-    return externalUserId;
+    return serviceUserId;
   }
 
   public String getProjectId() {
@@ -95,7 +95,7 @@ public class LocalUser implements User {
 
   @JsonSetter("fitbitUserId")
   public void setFitbitUserId(String id) {
-    this.externalUserId = id;
+    this.serviceUserId = id;
   }
 
   @Override
@@ -120,7 +120,7 @@ public class LocalUser implements User {
     LocalUser copy = new LocalUser();
     copy.id = id;
     copy.version = version;
-    copy.externalUserId = externalUserId;
+    copy.serviceUserId = serviceUserId;
     copy.projectId = projectId;
     copy.userId = userId;
     copy.startDate = startDate;
@@ -142,7 +142,7 @@ public class LocalUser implements User {
   public String toString() {
     return "LocalUser{id='" + id + '\''
         + ", version='" + version + '\''
-        + ", externalUserId='" + externalUserId + '\''
+        + ", externalUserId='" + serviceUserId + '\''
         + ", projectId='" + projectId + '\''
         + ", userId='" + userId + '\''
         + ", sourceId='" + sourceId + '\''
@@ -161,7 +161,7 @@ public class LocalUser implements User {
     LocalUser localUser = (LocalUser) o;
     return Objects.equals(id, localUser.id)
         && Objects.equals(version, localUser.version)
-        && Objects.equals(externalUserId, localUser.externalUserId)
+        && Objects.equals(serviceUserId, localUser.serviceUserId)
         && Objects.equals(projectId, localUser.projectId)
         && Objects.equals(userId, localUser.userId)
         && Objects.equals(sourceId, localUser.sourceId)
