@@ -35,17 +35,19 @@ public class LocalUser implements User {
   private static final Pattern ILLEGAL_CHARACTERS_PATTERN = Pattern.compile("[^a-zA-Z0-9_-]");
   private String id;
   private String version;
-  private String externalUserId;
   private String projectId;
   private String userId;
   private String sourceId;
   private Instant startDate = Instant.parse("2017-01-01T00:00:00Z");
   private Instant endDate = Instant.parse("9999-12-31T23:59:59.999Z");
 
+  @JsonProperty("serviceUserId")
+  private String serviceUserId;
+
   @JsonProperty("oauth2")
   private OAuth2UserCredentials oauth2Credentials = new OAuth2UserCredentials();
 
-  @JsonProperty("authorized")
+  @JsonProperty("isAuthorized")
   private Boolean isAuthorized;
 
   @JsonIgnore
@@ -62,7 +64,7 @@ public class LocalUser implements User {
   }
 
   public String getExternalUserId() {
-    return externalUserId;
+    return serviceUserId;
   }
 
   public String getProjectId() {
@@ -95,7 +97,7 @@ public class LocalUser implements User {
 
   @JsonSetter("fitbitUserId")
   public void setFitbitUserId(String id) {
-    this.externalUserId = id;
+    this.serviceUserId = id;
   }
 
   @Override
@@ -120,7 +122,7 @@ public class LocalUser implements User {
     LocalUser copy = new LocalUser();
     copy.id = id;
     copy.version = version;
-    copy.externalUserId = externalUserId;
+    copy.serviceUserId = serviceUserId;
     copy.projectId = projectId;
     copy.userId = userId;
     copy.startDate = startDate;
@@ -142,7 +144,7 @@ public class LocalUser implements User {
   public String toString() {
     return "LocalUser{id='" + id + '\''
         + ", version='" + version + '\''
-        + ", externalUserId='" + externalUserId + '\''
+        + ", externalUserId='" + serviceUserId + '\''
         + ", projectId='" + projectId + '\''
         + ", userId='" + userId + '\''
         + ", sourceId='" + sourceId + '\''
@@ -161,7 +163,7 @@ public class LocalUser implements User {
     LocalUser localUser = (LocalUser) o;
     return Objects.equals(id, localUser.id)
         && Objects.equals(version, localUser.version)
-        && Objects.equals(externalUserId, localUser.externalUserId)
+        && Objects.equals(serviceUserId, localUser.serviceUserId)
         && Objects.equals(projectId, localUser.projectId)
         && Objects.equals(userId, localUser.userId)
         && Objects.equals(sourceId, localUser.sourceId)

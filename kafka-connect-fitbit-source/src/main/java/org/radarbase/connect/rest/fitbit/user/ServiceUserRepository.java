@@ -101,7 +101,7 @@ public class ServiceUserRepository implements UserRepository {
       this.repositoryClient = new OAuth2Client.Builder()
           .credentials(clientId, clientSecret)
           .endpoint(tokenUrl)
-          .scopes("SUBJECT.READ")
+          .scopes("SUBJECT.READ MEASUREMENT.CREATE")
           .httpClient(client)
           .build();
     } else if (clientId != null) {
