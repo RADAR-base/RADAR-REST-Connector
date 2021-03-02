@@ -18,21 +18,19 @@
 package org.radarbase.connect.rest.fitbit.user;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.radarbase.connect.rest.fitbit.util.Page;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Users {
   private final List<LocalUser> users;
-  private final Page metadata;
-
 
   @JsonCreator
-  public Users(@JsonProperty("users") List<LocalUser> users, @JsonProperty("metadata") Page metadata) {
+  public Users(@JsonProperty("users") List<LocalUser> users) {
     this.users = new ArrayList<>(users);
-    this.metadata = metadata;
   }
 
   public List<? extends User> getUsers() {
