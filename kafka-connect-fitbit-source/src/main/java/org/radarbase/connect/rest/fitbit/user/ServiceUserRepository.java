@@ -150,7 +150,7 @@ public class ServiceUserRepository implements UserRepository {
   @Override
   public void applyPendingUpdates() throws IOException {
     logger.info("Requesting user information from webservice");
-    Request request = requestFor("users?source-type=FitBit?page=1&size=" + Integer.MAX_VALUE).build();
+    Request request = requestFor("users?source-type=FitBit&page=1&size=" + Integer.MAX_VALUE).build();
     this.timedCachedUsers =
         this.<Users>makeRequest(request, USER_LIST_READER).getUsers().stream()
             .filter(u -> u.isComplete()
