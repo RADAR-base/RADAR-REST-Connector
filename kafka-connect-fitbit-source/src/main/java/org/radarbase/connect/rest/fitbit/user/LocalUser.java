@@ -35,17 +35,19 @@ public class LocalUser implements User {
   private static final Pattern ILLEGAL_CHARACTERS_PATTERN = Pattern.compile("[^a-zA-Z0-9_-]");
   private String id;
   private String version;
-  private String serviceUserId;
   private String projectId;
   private String userId;
   private String sourceId;
   private Instant startDate = Instant.parse("2017-01-01T00:00:00Z");
   private Instant endDate = Instant.parse("9999-12-31T23:59:59.999Z");
 
+  @JsonProperty("serviceUserId")
+  private String serviceUserId;
+
   @JsonProperty("oauth2")
   private OAuth2UserCredentials oauth2Credentials = new OAuth2UserCredentials();
 
-  @JsonProperty("authorized")
+  @JsonProperty("isAuthorized")
   private Boolean isAuthorized;
 
   @JsonIgnore
