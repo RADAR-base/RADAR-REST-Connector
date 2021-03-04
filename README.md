@@ -93,7 +93,7 @@ If the ManagementPortal is used to authenticate against the user repository, ple
 ```
 Client ID: fitbit.user.repository.client.id
 Client Secret: fitbit.user.repository.client.secret
-Scope: SUBJECT.READ
+Scope: SUBJECT.READ MEASUREMENT.CREATE
 Resources: res_restAuthorizer
 Grant types: client_credentials
 Access Token validity: 600

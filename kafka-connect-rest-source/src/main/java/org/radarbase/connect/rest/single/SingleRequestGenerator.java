@@ -81,7 +81,7 @@ public class SingleRequestGenerator implements RequestRoute {
       } else {
         mediaType = MediaType.parse(contentType);
       }
-      body = RequestBody.create(mediaType, singleConfig.getData());
+      body = RequestBody.create(singleConfig.getData(), mediaType);
     }
 
     converter = config.getPayloadToSourceRecordConverter();

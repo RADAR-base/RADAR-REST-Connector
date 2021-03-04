@@ -2,16 +2,16 @@ description = 'kafka-connect-rest-source'
 
 subprojects {
     ext {
-        kafkaVersion = '2.5.0'
-        confluentVersion = '5.5.0'
-        jacksonVersion = '2.11.0'
+        kafkaVersion = '2.5.1'
+        confluentVersion = '5.5.2'
+        jacksonVersion = '2.11.3'
     }
 
     apply plugin: 'java'
     apply plugin: 'java-library'
 
     group = 'org.radarbase'
-    version = '0.3.2'
+    version = '0.3.3'
 
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
@@ -27,7 +27,7 @@ subprojects {
 }
 
 wrapper {
-    gradleVersion '6.4.1'
+    gradleVersion '6.6.1'
 }
 
 evaluationDependsOnChildren()
