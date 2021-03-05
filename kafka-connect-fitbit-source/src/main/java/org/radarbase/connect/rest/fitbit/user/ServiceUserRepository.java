@@ -61,7 +61,8 @@ public class ServiceUserRepository implements UserRepository {
   private static final RequestBody EMPTY_BODY =
       RequestBody.create("", MediaType.parse("application/json; charset=utf-8"));
   private static final Duration FETCH_THRESHOLD = Duration.ofMinutes(1L);
-  private static final Duration CONNECTION_TIMEOUT = Duration.ofSeconds(30);
+  private static final Duration CONNECTION_TIMEOUT = Duration.ofSeconds(60);
+  private static final Duration CONNECTION_READ_TIMEOUT = Duration.ofSeconds(60);
 
   private final OkHttpClient client;
   private final Map<String, OAuth2UserCredentials> cachedCredentials;
@@ -74,7 +75,7 @@ public class ServiceUserRepository implements UserRepository {
   private String basicCredentials;
 
   public ServiceUserRepository() {
-    this.client = new OkHttpClient.Builder().connectTimeout(CONNECTION_TIMEOUT).readTimeout(CONNECTION_TIMEOUT).build();
+    this.client = new OkHttpClient.Builder().connectTimeout(CONNECTION_TIMEOUT).readTimeout(CONNECTION_READ_TIMEOUT).build();
     this.cachedCredentials = new HashMap<>();
     this.containedUsers = new HashSet<>();
   }
