@@ -61,6 +61,7 @@ public class ServiceUserRepository implements UserRepository {
   private static final RequestBody EMPTY_BODY =
       RequestBody.create("", MediaType.parse("application/json; charset=utf-8"));
   private static final Duration FETCH_THRESHOLD = Duration.ofMinutes(1L);
+  private static final Duration CONNECTION_TIMEOUT = Duration.ofSeconds(30);
 
   private final OkHttpClient client;
   private final Map<String, OAuth2UserCredentials> cachedCredentials;
@@ -73,7 +74,7 @@ public class ServiceUserRepository implements UserRepository {
   private String basicCredentials;
 
   public ServiceUserRepository() {
-    this.client = new OkHttpClient();
+    this.client = new OkHttpClient.Builder().connectTimeout(CONNECTION_TIMEOUT).readTimeout(CONNECTION_TIMEOUT).build();
     this.cachedCredentials = new HashMap<>();
     this.containedUsers = new HashSet<>();
   }
@@ -115,7 +116,7 @@ public class ServiceUserRepository implements UserRepository {
       try {
         applyPendingUpdates();
       } catch (IOException ex) {
-        logger.error("Failed to initially get users from repository");
+        logger.error("Failed to initially get users from repository", ex);
       }
     }
     return this.timedCachedUsers.stream();
