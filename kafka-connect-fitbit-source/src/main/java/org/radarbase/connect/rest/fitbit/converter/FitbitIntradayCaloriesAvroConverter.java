@@ -45,6 +45,7 @@ public class FitbitIntradayCaloriesAvroConverter extends FitbitAvroConverter {
     ZonedDateTime startDate = request.getDateRange().end();
 
     return iterableToStream(dataset)
+        .filter(activity -> activity.get("value") != null && activity.get("value").asDouble() != 0)
         .map(
             tryOrNull(
                 activity -> {

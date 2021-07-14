@@ -66,6 +66,7 @@ public class FitbitIntradayHeartRateAvroConverter extends FitbitAvroConverter {
     ZonedDateTime startDate = request.getDateRange().start();
 
     return iterableToStream(dataset)
+        .filter(activity -> activity.get("value") != null && activity.get("value").asInt() != 0)
         .map(tryOrNull(activity -> {
           Instant time = startDate.with(LocalTime.parse(activity.get("time").asText()))
               .toInstant();
