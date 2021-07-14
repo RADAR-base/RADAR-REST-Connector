@@ -20,14 +20,11 @@ subprojects {
         mavenCentral()
         maven { url "https://packages.confluent.io/maven/" }
         maven { url "https://repo.maven.apache.org/maven2" }
-        jcenter()
-        maven { url  "https://dl.bintray.com/radar-cns/org.radarcns" }
-        maven { url  'https://oss.jfrog.org/artifactory/oss-snapshot-local/' }
     }
 }
 
 wrapper {
-    gradleVersion '6.6.1'
+    gradleVersion '7.1.1'
 }
 
 evaluationDependsOnChildren()

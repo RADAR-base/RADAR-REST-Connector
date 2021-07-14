@@ -46,8 +46,8 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
 import org.radarbase.connect.rest.fitbit.FitbitRestSourceConnectorConfig;
-import org.radarcns.exception.TokenException;
-import org.radarcns.oauth.OAuth2Client;
+import org.radarbase.exception.TokenException;
+import org.radarbase.oauth.OAuth2Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -214,7 +214,7 @@ public class ServiceUserRepository implements UserRepository {
       try {
         return reader.readValue(bodyString);
       } catch (JsonProcessingException ex) {
-        logger.error("Failed to parse JSON: {}\n{}", ex.toString(), bodyString);
+        logger.error("Failed to parse JSON: {}\n{}", ex, bodyString);
         throw ex;
       }
     }
