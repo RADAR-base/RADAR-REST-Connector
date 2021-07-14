@@ -1,26 +1,34 @@
+import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
+
+plugins {
+    id("com.github.ben-manes.versions") version "0.39.0"
+}
+
 description = 'kafka-connect-rest-source'
 
-subprojects {
-    ext {
-        kafkaVersion = '2.5.1'
-        confluentVersion = '5.5.2'
-        jacksonVersion = '2.11.3'
-    }
-
-    apply plugin: 'java'
-    apply plugin: 'java-library'
-
-    group = 'org.radarbase'
-    version = '0.3.4-SNAPSHOT'
-
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
+allprojects {
+    group = "org.radarbase"
+    version = "3.2.0"
 
     repositories {
         mavenCentral()
         maven { url "https://packages.confluent.io/maven/" }
         maven { url "https://repo.maven.apache.org/maven2" }
     }
+}
+
+subprojects {
+    ext {
+        kafkaVersion = '2.8.0'
+        confluentVersion = '6.2.0'
+        jacksonVersion = '2.12.4'
+    }
+
+    apply plugin: 'java'
+    apply plugin: 'java-library'
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
 }
 
 wrapper {
@@ -37,5 +45,18 @@ task downloadDependencies {
 
     doLast {
         println 'Downloaded REST code dependencies'
+    }
+}
+
+
+def isNonStable = { String version ->
+    def stableKeyword = ["RELEASE", "FINAL", "GA"].any { version.toUpperCase().contains(it) }
+    def regex = /^[0-9,.v-]+(-r)?$/
+    return !stableKeyword && !(version ==~ regex)
+}
+
+tasks.named("dependencyUpdates").configure {
+    rejectVersionIf {
+        isNonStable(it.candidate.version)
     }
 }
