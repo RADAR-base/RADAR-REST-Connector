@@ -50,4 +50,3 @@ echo "===> Launching ${COMPONENT} ..."
 
 # execute connector in standalone mode
 exec connect-standalone /etc/"${COMPONENT}"/"${COMPONENT}".properties /etc/"${COMPONENT}"/"${CONNECTOR_PROPERTY_FILE_PREFIX}"*.properties
-
