@@ -95,6 +95,10 @@ public class LocalUser implements User {
     this.oauth2Credentials = oauth2Credentials;
   }
 
+  public void setIsAuthorized(Boolean isAuthorized) {
+    this.isAuthorized = isAuthorized;
+  }
+
   @JsonSetter("fitbitUserId")
   public void setFitbitUserId(String id) {
     this.serviceUserId = id;
