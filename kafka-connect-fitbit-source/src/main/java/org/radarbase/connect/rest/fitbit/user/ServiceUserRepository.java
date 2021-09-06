@@ -131,7 +131,7 @@ public class ServiceUserRepository implements UserRepository {
     OAuth2UserCredentials credentials = cachedCredentials.get(user.getId());
     if (credentials == null || credentials.isAccessTokenExpired()) {
       Request request = requestFor("users/" + user.getId() + "/token").build();
-      credentials = makeRequest(request, OAUTH_READER);
+      credentials = makeRequest(request, OAUTH_READER);:
       cachedCredentials.put(user.getId(), credentials);
     }
     return credentials.getAccessToken();
@@ -200,6 +200,8 @@ public class ServiceUserRepository implements UserRepository {
 
       if (response.code() == 404) {
         throw new NoSuchElementException("URL " + request.url() + " does not exist");
+      } else if (response.code() == 407) {
+        throw new NotAuthorizedException("Refresh token cannot be retrieved for unauthorized user");
       } else if (!response.isSuccessful() || body == null) {
         String message = "Failed to make request";
         if (response.code() > 0) {
