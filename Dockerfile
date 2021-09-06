@@ -12,16 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM openjdk:8-alpine as builder
+FROM gradle:7.2-jdk8 as builder
 
 RUN mkdir /code
 WORKDIR /code
 
-ENV GRADLE_OPTS -Dorg.gradle.daemon=false
-
-COPY ./gradle/wrapper /code/gradle/wrapper
-COPY ./gradlew /code/
-RUN ./gradlew --version
+ENV GRADLE_USER_HOME=/code/.gradlecache
 
 COPY ./build.gradle ./settings.gradle /code/
 COPY kafka-connect-rest-source/build.gradle /code/kafka-connect-rest-source/
@@ -40,7 +36,7 @@ COPY ./kafka-connect-fitbit-source/src/ /code/kafka-connect-fitbit-source/src
 
 RUN ./gradlew jar
 
-FROM confluentinc/cp-kafka-connect-base:5.5.2
+FROM confluentinc/cp-kafka-connect-base:6.2.0-3-ubi8
 
 MAINTAINER Joris Borgdorff <joris@thehyve.nl>
 
