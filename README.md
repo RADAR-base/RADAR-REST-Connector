@@ -8,9 +8,11 @@ Fitbit in particular. The documentation of the Kafka Connect REST source still n
 ### Installation
 
 This repository relies on a recent version of docker and docker-compose as well as an installation
-of Java 8 or later.
+of Java 11 or later.
 
 ### Usage
+
+Generally, this component is installed with [RADAR-Kubernetes](https://github.com/RADAR-base/RADAR-Kubernetes). It uses Docker image [radarbase/kafka-connect-rest-fitbit-source](https://hub.docker.com/r/radarbase/kafka-connect-rest-fitbit-source).
 
 First, [register a Fitbit App](https://dev.fitbit.com/apps) with Fitbit. It should be either a
 server app, for multiple users, or a personal app for a single user. With the server app, you need
