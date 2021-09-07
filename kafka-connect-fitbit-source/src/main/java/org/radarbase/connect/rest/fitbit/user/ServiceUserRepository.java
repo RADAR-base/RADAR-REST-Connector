@@ -123,26 +123,49 @@ public class ServiceUserRepository implements UserRepository {
         logger.error("Failed to initially get users from repository", ex);
       }
     }
-    return this.timedCachedUsers.stream();
+    return this.timedCachedUsers.stream()
+        .filter(User::isComplete);
   }
 
   @Override
   public String getAccessToken(User user) throws IOException, NotAuthorizedException {
+    if (!user.isAuthorized()) {
+      throw new NotAuthorizedException("User is not authorized");
+    }
     OAuth2UserCredentials credentials = cachedCredentials.get(user.getId());
     if (credentials == null || credentials.isAccessTokenExpired()) {
-      Request request = requestFor("users/" + user.getId() + "/token").build();
-      credentials = makeRequest(request, OAUTH_READER);
-      cachedCredentials.put(user.getId(), credentials);
+      try {
+        Request request = requestFor("users/" + user.getId() + "/token").build();
+        credentials = makeRequest(request, OAUTH_READER);
+        cachedCredentials.put(user.getId(), credentials);
+      } catch (NotAuthorizedException ex) {
+        cachedCredentials.remove(user.getId());
+        if (user instanceof LocalUser) {
+          ((LocalUser) user).setIsAuthorized(false);
+        }
+        throw ex;
+      }
     }
     return credentials.getAccessToken();
   }
 
   @Override
   public String refreshAccessToken(User user) throws IOException, NotAuthorizedException {
+    if (!user.isAuthorized()) {
+      throw new NotAuthorizedException("User is not authorized");
+    }
     Request request = requestFor("users/" + user.getId() + "/token").post(EMPTY_BODY).build();
-    OAuth2UserCredentials credentials = makeRequest(request, OAUTH_READER);
-    cachedCredentials.put(user.getId(), credentials);
-    return credentials.getAccessToken();
+    try {
+      OAuth2UserCredentials credentials = makeRequest(request, OAUTH_READER);
+      cachedCredentials.put(user.getId(), credentials);
+      return credentials.getAccessToken();
+    } catch (NotAuthorizedException ex) {
+      cachedCredentials.remove(user.getId());
+      if (user instanceof LocalUser) {
+        ((LocalUser) user).setIsAuthorized(false);
+      }
+      throw ex;
+    }
   }
 
   @Override
@@ -200,6 +223,8 @@ public class ServiceUserRepository implements UserRepository {
 
       if (response.code() == 404) {
         throw new NoSuchElementException("URL " + request.url() + " does not exist");
+      } else if (response.code() == 407) {
+        throw new NotAuthorizedException("Refresh token cannot be retrieved for unauthorized user");
       } else if (!response.isSuccessful() || body == null) {
         String message = "Failed to make request";
         if (response.code() > 0) {

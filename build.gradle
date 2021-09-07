@@ -21,18 +21,18 @@ subprojects {
     ext {
         kafkaVersion = '2.8.0'
         confluentVersion = '6.2.0'
-        jacksonVersion = '2.12.4'
+        jacksonVersion = '2.12.5'
     }
 
     apply plugin: 'java'
     apply plugin: 'java-library'
 
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
+    sourceCompatibility = 11
+    targetCompatibility = 11
 }
 
 wrapper {
-    gradleVersion '7.1.1'
+    gradleVersion '7.2'
 }
 
 evaluationDependsOnChildren()
