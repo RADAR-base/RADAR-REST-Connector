@@ -17,21 +17,16 @@ FROM gradle:7.2-jdk11 as builder
 RUN mkdir /code
 WORKDIR /code
 
-ENV GRADLE_USER_HOME=/code/.gradlecache
+ENV GRADLE_USER_HOME=/code/.gradlecache \
+  GRADLE_OPTS="-Dorg.gradle.vfs.watch=false"
 
-COPY ./build.gradle ./settings.gradle /code/
+COPY ./build.gradle ./settings.gradle ./gradle.properties /code/
 COPY kafka-connect-rest-source/build.gradle /code/kafka-connect-rest-source/
-
-RUN gradle downloadDependencies copyDependencies
-
 COPY kafka-connect-fitbit-source/build.gradle /code/kafka-connect-fitbit-source/
 
 RUN gradle downloadDependencies copyDependencies
 
 COPY ./kafka-connect-rest-source/src/ /code/kafka-connect-rest-source/src
-
-RUN gradle jar
-
 COPY ./kafka-connect-fitbit-source/src/ /code/kafka-connect-fitbit-source/src
 
 RUN gradle jar
@@ -42,7 +37,7 @@ MAINTAINER Joris Borgdorff <joris@thehyve.nl>
 
 LABEL description="Kafka REST API Source connector"
 
-ENV CONNECT_PLUGIN_PATH /usr/share/java/kafka-connect/plugins
+ENV CONNECT_PLUGIN_PATH=/usr/share/java/kafka-connect/plugins
 
 # To isolate the classpath from the plugin path as recommended
 COPY --from=builder /code/kafka-connect-rest-source/build/third-party/*.jar ${CONNECT_PLUGIN_PATH}/kafka-connect-rest-source/
