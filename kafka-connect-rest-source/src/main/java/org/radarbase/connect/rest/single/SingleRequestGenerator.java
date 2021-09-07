@@ -17,6 +17,7 @@
 
 package org.radarbase.connect.rest.single;
 
+import static java.util.Objects.requireNonNullElse;
 import static org.radarbase.connect.rest.converter.PayloadToSourceRecordConverter.MIN_INSTANT;
 import static org.radarbase.connect.rest.converter.PayloadToSourceRecordConverter.TIMESTAMP_OFFSET_KEY;
 import static org.radarbase.connect.rest.request.PollingRequestRoute.max;
@@ -25,6 +26,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Stream;
 import okhttp3.Headers;
 import okhttp3.HttpUrl;
@@ -75,12 +77,8 @@ public class SingleRequestGenerator implements RequestRoute {
 
     if (singleConfig.getData() != null && !singleConfig.getData().isEmpty()) {
       String contentType = headers.get("Content-Type");
-      MediaType mediaType;
-      if (contentType == null) {
-        mediaType = MediaType.parse("text/plain; charset=utf-8");
-      } else {
-        mediaType = MediaType.parse(contentType);
-      }
+      MediaType mediaType = MediaType.parse(
+          requireNonNullElse(contentType, "text/plain; charset=utf-8"));
       body = RequestBody.create(singleConfig.getData(), mediaType);
     }
 

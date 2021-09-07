@@ -19,13 +19,10 @@ package org.radarbase.connect.rest.converter;
 
 import static java.lang.System.currentTimeMillis;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import okhttp3.Headers;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;

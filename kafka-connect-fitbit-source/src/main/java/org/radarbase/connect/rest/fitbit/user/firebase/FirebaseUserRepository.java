@@ -34,10 +34,9 @@ public abstract class FirebaseUserRepository implements UserRepository {
     // See https://firebase.google.com/docs/admin/setup#initialize-sdk for more details.
     FirebaseOptions options;
     try {
-      options =
-          new FirebaseOptions.Builder()
-              .setCredentials(GoogleCredentials.getApplicationDefault())
-              .build();
+      options = FirebaseOptions.builder()
+          .setCredentials(GoogleCredentials.getApplicationDefault())
+          .build();
     } catch (IOException exc) {
       logger.error("Failed to get credentials for Firebase app.", exc);
       throw new IllegalStateException(exc);

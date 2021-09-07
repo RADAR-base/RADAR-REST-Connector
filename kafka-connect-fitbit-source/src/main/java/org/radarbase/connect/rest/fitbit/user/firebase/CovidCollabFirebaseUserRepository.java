@@ -122,7 +122,7 @@ public class CovidCollabFirebaseUserRepository extends FirebaseUserRepository {
             fitbitConfig.getFitbitClientSecret(),
             FITBIT_TOKEN_ENDPOINT);
 
-    /**
+    /*
      * Currently, we only listen for the fitbit collection, as it contains most information while
      * the user collection only contains project Id which is not supposed to change. The user
      * document is pulled every time the corresponding fitbit document is pulled, so it will be

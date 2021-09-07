@@ -19,9 +19,9 @@ public class FitbitTokenService {
   private static final Logger logger = LoggerFactory.getLogger(FitbitTokenService.class);
   private final OkHttpClient client;
   private final ObjectMapper mapper;
-  private String clientId;
-  private String clientSecret;
-  private String tokenEndpoint;
+  private final String clientId;
+  private final String clientSecret;
+  private final String tokenEndpoint;
 
   public FitbitTokenService(String clientId, String clientSecret, String tokenEndpoint) {
     this.clientId = clientId;
