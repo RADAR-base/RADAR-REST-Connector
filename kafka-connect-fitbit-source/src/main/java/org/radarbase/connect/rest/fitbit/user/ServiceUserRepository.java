@@ -23,6 +23,7 @@ import static org.radarbase.connect.rest.fitbit.request.FitbitRequestGenerator.J
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectReader;
 import java.io.IOException;
+import java.net.ProtocolException;
 import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
@@ -242,6 +243,8 @@ public class ServiceUserRepository implements UserRepository {
         logger.error("Failed to parse JSON: {}\n{}", ex, bodyString);
         throw ex;
       }
+    } catch (ProtocolException ex) {
+      throw new NotAuthorizedException("Refresh token cannot be retrieved for unauthorized user");
     }
   }
 }
