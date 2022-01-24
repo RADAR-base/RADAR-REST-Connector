@@ -69,8 +69,8 @@ public class RestRequest {
     return partition;
   }
 
-  public boolean isStillValid() {
-    return isValid == null || isValid.test(this);
+  public boolean isNoLongerValid() {
+    return isValid != null && !isValid.test(this);
   }
 
   /**
@@ -79,7 +79,7 @@ public class RestRequest {
    * @throws IOException if making or parsing the request failed.
    */
   public Stream<SourceRecord> handleRequest() throws IOException {
-    if (!isStillValid()) {
+    if (isNoLongerValid()) {
       return Stream.empty();
     }
 

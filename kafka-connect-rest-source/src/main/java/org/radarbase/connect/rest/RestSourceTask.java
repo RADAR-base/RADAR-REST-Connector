@@ -77,7 +77,7 @@ public class RestSourceTask extends SourceTask {
       while (requests.isEmpty() && requestIterator.hasNext()) {
         RestRequest request = requestIterator.next();
 
-        if (!request.isStillValid()) {
+        if (request.isNoLongerValid()) {
           continue;
         }
 
