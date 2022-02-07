@@ -31,7 +31,9 @@ data class FitbitEndpointConfig(
     val fitbit: FitbitConfig = FitbitConfig(),
     val auth: AuthConfig = AuthConfig(jwtResourceName = "res_fitbitEndpoint"),
 ) {
-    fun copyFromEnv(): FitbitEndpointConfig = copyOnChange(fitbit, { it.copyFromEnv() }) { copy(fitbit = it) }
+    fun withEnv(): FitbitEndpointConfig = this
+        .copyOnChange(auth, { it.withEnv() }) { copy(auth = it) }
+        .copyOnChange(fitbit, { it.withEnv() }) { copy(fitbit = it) }
 
     fun validate() {
         fitbit.validate()

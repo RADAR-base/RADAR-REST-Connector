@@ -18,6 +18,7 @@ package org.radarbase.fitbit.endpoint.resource
 
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.Context
+import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
 import org.radarbase.fitbit.endpoint.config.FitbitEndpointConfig
 import org.radarbase.fitbit.endpoint.filter.ClientDomainVerification
@@ -25,6 +26,8 @@ import org.radarbase.fitbit.endpoint.service.FitbitVerificationService
 import org.radarbase.fitbit.endpoint.service.NotificationService
 
 @Path("webhook")
+@Consumes(MediaType.APPLICATION_JSON)
+@Produces(MediaType.APPLICATION_JSON)
 class WebhookResource(
     @Context private val fitbitVerificationService: FitbitVerificationService,
     @Context private val notificationService: NotificationService,

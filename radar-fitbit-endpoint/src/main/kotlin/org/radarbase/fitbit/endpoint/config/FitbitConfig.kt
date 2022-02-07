@@ -24,7 +24,7 @@ data class FitbitConfig(
     val clientId: String? = null,
     val clientSecret: String? = null,
 ) {
-    fun copyFromEnv(): FitbitConfig = this
+    fun withEnv(): FitbitConfig = this
         .copyEnv("FITBIT_CLIENT_ID") { copy(clientId = it) }
         .copyEnv("FITBIT_CLIENT_SECRET") { copy(clientSecret = it) }
         .copyEnv("FITBIT_VERIFICATION_CODE") { copy(verificationCode = it) }

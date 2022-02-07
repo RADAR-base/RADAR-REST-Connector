@@ -17,8 +17,33 @@
 
 package org.radarbase.fitbit.endpoint.service
 
-class NotificationService {
+import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.databind.ObjectMapper
+import jakarta.ws.rs.core.Context
+import org.radarbase.fitbit.endpoint.api.FitbitNotification
+import org.radarbase.fitbit.endpoint.api.NotificationFilter
+import org.radarbase.fitbit.endpoint.api.NotificationSelection
+
+class NotificationService(
+    @Context objectMapper: ObjectMapper
+) {
+    private val contentReader = objectMapper.readerFor(object : TypeReference<List<FitbitNotification>>() {})
+
     fun add(contents: String) {
-        // TODO add to redis
+        val notifications = contentReader.readValue<List<FitbitNotification>>(contents)
+
+        TODO("Add notifications to redis")
+    }
+
+    fun makeSelection(filter: NotificationFilter): NotificationSelection {
+        TODO("Retrieve notifications from redis and mark them for being currently processing")
+    }
+
+    fun getSelection(selectionId: String): NotificationSelection {
+        TODO("Retrieve selection by ID")
+    }
+
+    fun deleteSelection(selectionId: String) {
+        TODO("Delete selection and associated notifications by ID")
     }
 }

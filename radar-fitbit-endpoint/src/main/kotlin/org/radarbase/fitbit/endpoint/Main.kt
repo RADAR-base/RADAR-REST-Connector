@@ -34,7 +34,7 @@ fun main(args: Array<String>) {
                 "/etc/radar-fitbit-endpoint/fitbit.yml"
             ),
             args,
-        ).copyFromEnv()
+        ).withEnv()
     } catch (ex: IllegalArgumentException) {
         logger.error("No configuration file was found.")
         logger.error("Usage: radar-fitbit-endpoint <config-file>")
