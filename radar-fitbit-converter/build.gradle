@@ -3,7 +3,10 @@ plugins {
 }
 
 dependencies {
-    implementation("org.slf4j:slf4j-api:1.7.32")
+    implementation('org.slf4j:slf4j-api:1.7.36')
+    api("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    api group: 'org.radarbase', name: 'radar-schemas-commons', version: '0.7.3'
+    api("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
 }
 
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {

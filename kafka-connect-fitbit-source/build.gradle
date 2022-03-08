@@ -1,7 +1,13 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version '1.6.10'
+}
+
 dependencies {
     api project(':kafka-connect-rest-source')
     api group: 'io.confluent', name: 'kafka-connect-avro-converter', version: confluentVersion
     api group: 'org.radarbase', name: 'radar-schemas-commons', version: '0.7.3'
+
+    implementation(project(":radar-fitbit-converter"))
 
     implementation group: 'org.radarbase', name: 'oauth-client-util', version: '0.8.0'
 

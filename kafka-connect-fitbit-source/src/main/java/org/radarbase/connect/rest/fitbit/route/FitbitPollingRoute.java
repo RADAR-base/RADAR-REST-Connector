@@ -43,19 +43,23 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.ws.rs.NotAuthorizedException;
+
+import io.confluent.connect.avro.AvroData;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.apache.kafka.connect.storage.OffsetStorageReader;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
 import org.radarbase.connect.rest.fitbit.FitbitRestSourceConnectorConfig;
+import org.radarbase.connect.rest.fitbit.converter.FitbitAvroConverter;
 import org.radarbase.connect.rest.fitbit.request.FitbitRequestGenerator;
 import org.radarbase.connect.rest.fitbit.request.FitbitRestRequest;
 import org.radarbase.connect.rest.fitbit.user.User;
 import org.radarbase.connect.rest.fitbit.user.UserRepository;
-import org.radarbase.connect.rest.fitbit.util.DateRange;
 import org.radarbase.connect.rest.request.PollingRequestRoute;
 import org.radarbase.connect.rest.request.RestRequest;
+import org.radarbase.convert.fitbit.DateRange;
+import org.radarbase.convert.fitbit.FitbitDataConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -115,11 +119,13 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
   private Duration pollIntervalPerUser;
   private final Set<User> tooManyRequestsForUser;
   private Duration tooManyRequestsCooldown;
+  private FitbitAvroConverter converter;
 
   public FitbitPollingRoute(
       FitbitRequestGenerator generator,
       UserRepository userRepository,
-      String routeName) {
+      String routeName,
+      AvroData avroData) {
     this.generator = generator;
     this.userRepository = userRepository;
     this.offsets = new HashMap<>();
@@ -127,8 +133,11 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
     this.routeName = routeName;
     this.lastPoll = MIN_INSTANT;
     this.lastPollPerUser = new HashMap<>();
+    this.converter = new FitbitAvroConverter(avroData, this::createConverter);
     this.tooManyRequestsForUser = ConcurrentHashMap.newKeySet();
   }
+
+  protected abstract FitbitDataConverter createConverter(FitbitRestSourceConnectorConfig config);
 
   @Override
   public void initialize(RestSourceConnectorConfig config) {
@@ -138,7 +147,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
     this.pollIntervalPerUser = fitbitConfig.getPollIntervalPerUser();
     this.tooManyRequestsCooldown = fitbitConfig.getTooManyRequestsCooldownInterval()
         .minus(getPollIntervalPerUser());
-    this.converter().initialize(fitbitConfig);
+    this.converter.initialize(fitbitConfig);
   }
 
   @Override
@@ -153,7 +162,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
   public void requestEmpty(RestRequest request) {
     lastPollPerUser.put(((FitbitRestRequest) request).getUser().getId(), lastPoll);
     FitbitRestRequest fitbitRequest = (FitbitRestRequest) request;
-    Instant endOffset = fitbitRequest.getDateRange().end().toInstant();
+    Instant endOffset = fitbitRequest.getDateRange().getEnd().toInstant();
     if (DAYS.between(endOffset, lastPoll) >= HISTORICAL_TIME_DAYS) {
       String key = fitbitRequest.getUser().getVersionedId();
       offsets.put(key, endOffset);
@@ -361,5 +370,10 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
             Stream.of(new DateRange(lookBackDateStart, lookBackDate)));
       }
     }
+  }
+
+  @Override
+  public FitbitAvroConverter converter() {
+    return this.converter;
   }
 }

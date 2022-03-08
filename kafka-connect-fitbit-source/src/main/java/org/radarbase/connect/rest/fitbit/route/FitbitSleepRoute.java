@@ -25,24 +25,24 @@ import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.stream.Stream;
-import org.radarbase.connect.rest.fitbit.converter.FitbitSleepAvroConverter;
+
+import org.radarbase.connect.rest.fitbit.FitbitRestSourceConnectorConfig;
 import org.radarbase.connect.rest.fitbit.request.FitbitRequestGenerator;
 import org.radarbase.connect.rest.fitbit.request.FitbitRestRequest;
 import org.radarbase.connect.rest.fitbit.user.User;
 import org.radarbase.connect.rest.fitbit.user.UserRepository;
-import org.radarbase.connect.rest.fitbit.util.DateRange;
+import org.radarbase.convert.fitbit.DateRange;
+import org.radarbase.convert.fitbit.FitbitDataConverter;
+import org.radarbase.convert.fitbit.FitbitSleepDataConverter;
 
 public class FitbitSleepRoute extends FitbitPollingRoute {
   public static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE_TIME
       .withZone(UTC);
   private static final Duration SLEEP_POLL_INTERVAL = Duration.ofDays(1);
 
-  private final FitbitSleepAvroConverter converter;
-
   public FitbitSleepRoute(FitbitRequestGenerator generator, UserRepository userRepository,
       AvroData avroData) {
-    super(generator, userRepository, "sleep");
-    converter = new FitbitSleepAvroConverter(avroData);
+    super(generator, userRepository, "sleep", avroData);
   }
 
   @Override
@@ -64,14 +64,14 @@ public class FitbitSleepRoute extends FitbitPollingRoute {
         user.getExternalUserId(), DATE_TIME_FORMAT.format(startDate)));
   }
 
+  @Override
+  protected FitbitDataConverter createConverter(FitbitRestSourceConnectorConfig config) {
+    return new FitbitSleepDataConverter(config.getFitbitSleepStagesTopic(),
+            config.getFitbitSleepClassicTopic());
+  }
 
   @Override
   protected Duration getPollIntervalPerUser() {
     return SLEEP_POLL_INTERVAL;
-  }
-
-  @Override
-  public FitbitSleepAvroConverter converter() {
-    return converter;
   }
 }

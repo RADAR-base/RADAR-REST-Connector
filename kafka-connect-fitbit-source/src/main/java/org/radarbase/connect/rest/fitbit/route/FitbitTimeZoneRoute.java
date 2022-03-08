@@ -17,28 +17,28 @@
 
 package org.radarbase.connect.rest.fitbit.route;
 
-import static java.time.ZoneOffset.UTC;
-
 import io.confluent.connect.avro.AvroData;
-import java.time.Duration;
-import java.time.ZonedDateTime;
-import java.util.stream.Stream;
-import org.radarbase.connect.rest.fitbit.converter.FitbitTimeZoneAvroConverter;
+import org.radarbase.connect.rest.fitbit.FitbitRestSourceConnectorConfig;
 import org.radarbase.connect.rest.fitbit.request.FitbitRequestGenerator;
 import org.radarbase.connect.rest.fitbit.request.FitbitRestRequest;
 import org.radarbase.connect.rest.fitbit.user.User;
 import org.radarbase.connect.rest.fitbit.user.UserRepository;
-import org.radarbase.connect.rest.fitbit.util.DateRange;
+import org.radarbase.convert.fitbit.DateRange;
+import org.radarbase.convert.fitbit.FitbitDataConverter;
+import org.radarbase.convert.fitbit.FitbitTimeZoneDataConverter;
+
+import java.time.Duration;
+import java.time.ZonedDateTime;
+import java.util.stream.Stream;
+
+import static java.time.ZoneOffset.UTC;
 
 public class FitbitTimeZoneRoute extends FitbitPollingRoute {
   protected static final Duration TIME_ZONE_POLL_INTERVAL = Duration.ofHours(1);
 
-  private final FitbitTimeZoneAvroConverter converter;
-
   public FitbitTimeZoneRoute(FitbitRequestGenerator generator,
       UserRepository userRepository, AvroData avroData) {
-    super(generator, userRepository, "timezone");
-    this.converter = new FitbitTimeZoneAvroConverter(avroData);
+    super(generator, userRepository, "timezone", avroData);
   }
 
   @Override
@@ -46,14 +46,14 @@ public class FitbitTimeZoneRoute extends FitbitPollingRoute {
     return baseUrl + "/1/user/%s/profile.json";
   }
 
+  @Override
+  protected FitbitDataConverter createConverter(FitbitRestSourceConnectorConfig config) {
+    return new FitbitTimeZoneDataConverter(config.getFitbitTimeZoneTopic());
+  }
+
   protected Stream<FitbitRestRequest> createRequests(User user) {
     ZonedDateTime now = ZonedDateTime.now(UTC);
     return Stream.of(newRequest(user, new DateRange(now, now), user.getExternalUserId()));
-  }
-
-  @Override
-  public FitbitTimeZoneAvroConverter converter() {
-    return converter;
   }
 
   @Override

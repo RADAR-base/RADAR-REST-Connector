@@ -22,9 +22,9 @@ import java.util.function.Predicate;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import org.radarbase.connect.rest.fitbit.user.User;
-import org.radarbase.connect.rest.fitbit.util.DateRange;
 import org.radarbase.connect.rest.request.RequestRoute;
 import org.radarbase.connect.rest.request.RestRequest;
+import org.radarbase.convert.fitbit.DateRange;
 
 /**
  * REST request taking into account the user and offsets queried. The offsets are useful for
