@@ -33,7 +33,7 @@ class FitbitSleepDataConverter(
     private val sleepClassicTopic: String,
 ) : FitbitDataConverter {
     override fun processRecords(
-        context: ConverterContext, root: JsonNode, timeReceived: Double,
+        dateRange: DateRange, root: JsonNode, timeReceived: Double,
     ): Sequence<Result<TopicData>> {
         val meta = root.optObject("meta")
         if (meta != null && meta["state"]?.asText() == "pending") {

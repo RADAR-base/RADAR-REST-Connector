@@ -27,7 +27,7 @@ class FitbitActivityLogDataConverter(
     private val activityLogTopic: String
 ) : FitbitDataConverter {
     override fun processRecords(
-        context: ConverterContext, root: JsonNode, timeReceived: Double
+        dateRange: DateRange, root: JsonNode, timeReceived: Double
     ): Sequence<Result<TopicData>> {
         val array = root.optArray("activities")
             ?: return emptySequence()

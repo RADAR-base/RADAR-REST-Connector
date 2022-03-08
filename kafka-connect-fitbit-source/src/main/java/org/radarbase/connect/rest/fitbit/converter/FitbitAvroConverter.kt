@@ -25,7 +25,6 @@ import org.radarbase.connect.rest.fitbit.FitbitRestSourceConnectorConfig
 import org.radarbase.connect.rest.fitbit.request.FitbitRequestGenerator
 import org.radarbase.connect.rest.fitbit.request.FitbitRestRequest
 import org.radarbase.connect.rest.request.RestRequest
-import org.radarbase.convert.fitbit.ConverterContext
 import org.radarbase.convert.fitbit.FitbitDataConverter
 import org.radarbase.convert.fitbit.TopicData
 import org.slf4j.LoggerFactory
@@ -54,9 +53,7 @@ class FitbitAvroConverter(
         val key = user.getObservationKey(avroData)
         val timeReceived = System.currentTimeMillis() / 1000.0
         return converter.processRecords(
-            ConverterContext(user.userId,
-                restRequest.getRequest().url.toString(),
-                restRequest.dateRange),
+            restRequest.dateRange,
             activities,
             timeReceived)
             .mapNotNull { r -> r.fold(

@@ -24,7 +24,7 @@ import kotlin.Result.Companion.success
 
 class FitbitTimeZoneDataConverter(private val timeZoneTopic: String) : FitbitDataConverter {
     override fun processRecords(
-        context: ConverterContext,
+        dateRange: DateRange,
         root: JsonNode,
         timeReceived: Double,
     ): Sequence<Result<TopicData>> {
@@ -37,7 +37,7 @@ class FitbitTimeZoneDataConverter(private val timeZoneTopic: String) : FitbitDat
         return sequenceOf(
             success(
                 TopicData(
-                    sourceOffset = context.dateRange.start.toInstant(),
+                    sourceOffset = dateRange.start.toInstant(),
                     topic = timeZoneTopic,
                     value = FitbitTimeZone(timeReceived, offset),
                 )

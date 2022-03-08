@@ -26,7 +26,7 @@ class FitbitIntradayHeartRateDataConverter(
     private val heartRateTopic: String
 ) : FitbitDataConverter {
     override fun processRecords(
-        context: ConverterContext, root: JsonNode, timeReceived: Double
+        dateRange: DateRange, root: JsonNode, timeReceived: Double
     ): Sequence<Result<TopicData>> {
         val intraday = root.optObject("activities-heart-intraday")
             ?: return emptySequence()
@@ -35,7 +35,7 @@ class FitbitIntradayHeartRateDataConverter(
         val interval: Int = intraday.getRecordInterval(1)
 
         // Used as the date to convert the local times in the dataset to absolute times.
-        val startDate: ZonedDateTime = context.dateRange.end
+        val startDate: ZonedDateTime = dateRange.end
         return dataset.asSequence()
             .mapCatching { activity ->
                 val localTime = LocalTime.parse(activity.get("time").asText())

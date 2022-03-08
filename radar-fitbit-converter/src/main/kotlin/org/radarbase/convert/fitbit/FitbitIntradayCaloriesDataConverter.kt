@@ -10,7 +10,7 @@ class FitbitIntradayCaloriesDataConverter(
 ) : FitbitDataConverter {
 
     override fun processRecords(
-        context: ConverterContext, root: JsonNode, timeReceived: Double
+        dateRange: DateRange, root: JsonNode, timeReceived: Double
     ): Sequence<Result<TopicData>> {
         val intraday = root.optObject("activities-calories-intraday")
             ?: return emptySequence()
@@ -19,7 +19,7 @@ class FitbitIntradayCaloriesDataConverter(
         val interval: Int = intraday.getRecordInterval(60)
 
         // Used as the date to convert the local times in the dataset to absolute times.
-        val startDate: ZonedDateTime = context.dateRange.end
+        val startDate: ZonedDateTime = dateRange.end
         return dataset.asSequence()
             .mapCatching { activity ->
                 val localTime = LocalTime.parse(activity.get("time").asText())
