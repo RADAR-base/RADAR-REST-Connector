@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit
 private val logger = LoggerFactory.getLogger("org.radarbase.convert.fitbit.JsonNodeExtensionsKt")
 
 /** Get Fitbit dataset interval used in some intraday API calls.  */
-fun JsonNode.getRecordInterval(defaultValue: Int): Int {
+internal fun JsonNode.getRecordInterval(defaultValue: Int): Int {
     val type = this["datasetType"]
     val interval = this["datasetInterval"]
     if (type == null || interval == null) {
@@ -47,34 +47,34 @@ fun JsonNode.getRecordInterval(defaultValue: Int): Int {
     }.toSeconds(interval.asLong()).toInt()
 }
 
-fun JsonNode.optLong(fieldName: String): Long? = this[fieldName]
+internal fun JsonNode.optLong(fieldName: String): Long? = this[fieldName]
     ?.takeIf { it.canConvertToLong() }
     ?.longValue()
 
-fun JsonNode.optDouble(fieldName: String): Double? = this[fieldName]
+internal fun JsonNode.optDouble(fieldName: String): Double? = this[fieldName]
     ?.takeIf { it.isNumber }
     ?.doubleValue()
 
-fun JsonNode.optInt(fieldName: String): Int? = this[fieldName]
+internal fun JsonNode.optInt(fieldName: String): Int? = this[fieldName]
     ?.takeIf { it.canConvertToInt() }
     ?.intValue()
 
-fun JsonNode.optString(fieldName: String?): String? = this[fieldName]
+internal fun JsonNode.optString(fieldName: String?): String? = this[fieldName]
     ?.takeIf { it.isTextual }
     ?.textValue()
 
-fun JsonNode.optBoolean(fieldName: String?): Boolean? = this[fieldName]
+internal fun JsonNode.optBoolean(fieldName: String?): Boolean? = this[fieldName]
     ?.takeIf { it.isBoolean }
     ?.booleanValue()
 
-fun JsonNode.optObject(fieldName: String?): ObjectNode? = this[fieldName]
+internal fun JsonNode.optObject(fieldName: String?): ObjectNode? = this[fieldName]
     ?.takeIf { it.isObject } as ObjectNode?
 
-fun JsonNode.optArray(fieldName: String?): Iterable<JsonNode>? = this[fieldName]
+internal fun JsonNode.optArray(fieldName: String?): Iterable<JsonNode>? = this[fieldName]
     ?.takeIf { it.isArray && it.size() > 0 }
 
 
-fun <S, T> Sequence<T>.mapCatching(fn: (T) -> S): Sequence<Result<S>> = map { t ->
+internal fun <S, T> Sequence<T>.mapCatching(fn: (T) -> S): Sequence<Result<S>> = map { t ->
     runCatching {
         fn(t)
     }
