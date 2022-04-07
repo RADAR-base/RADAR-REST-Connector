@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.confluent.connect.avro.AvroData;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import okhttp3.OkHttpClient;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
 import org.radarbase.connect.rest.fitbit.FitbitRestSourceConnectorConfig;
@@ -37,6 +39,7 @@ import org.radarbase.connect.rest.fitbit.route.FitbitActivityLogRoute;
 import org.radarbase.connect.rest.fitbit.route.FitbitIntradayCaloriesRoute;
 import org.radarbase.connect.rest.fitbit.route.FitbitIntradayHeartRateRoute;
 import org.radarbase.connect.rest.fitbit.route.FitbitIntradayStepsRoute;
+import org.radarbase.connect.rest.fitbit.route.FitbitRestingHeartRateRoute;
 import org.radarbase.connect.rest.fitbit.route.FitbitSleepRoute;
 import org.radarbase.connect.rest.fitbit.route.FitbitTimeZoneRoute;
 import org.radarbase.connect.rest.fitbit.user.User;
@@ -92,13 +95,14 @@ public class FitbitRequestGenerator extends RequestGeneratorRouter {
       localRoutes.add(new FitbitIntradayHeartRateRoute(this, userRepository, avroData));
       localRoutes.add(new FitbitIntradayCaloriesRoute(this, userRepository, avroData));
     }
+    localRoutes.add(new FitbitRestingHeartRateRoute(this, userRepository, avroData));
     return localRoutes;
   }
 
   public OkHttpClient getClient(User user) {
     return clients.computeIfAbsent(user.getId(), u -> baseClient.newBuilder()
-          .authenticator(new TokenAuthenticator(user, userRepository))
-          .build());
+        .authenticator(new TokenAuthenticator(user, userRepository))
+        .build());
   }
 
   public Map<String, Map<String, Object>> getPartitions(String route) {
