@@ -52,26 +52,26 @@ public class FitbitRestingHeartRateAvroConverter extends FitbitAvroConverter {
       FitbitRestRequest request, JsonNode root, double timeReceived) {
     JsonNode resting = root.get("activities-heart");
     if (resting == null || !resting.isObject()) {
-      logger.warn("Failed to get resting heart rate from {}, {}", request.getRequest().url(), root);
+      logger.warn("Failed to get resting heart rate from {}, {} : the 'activities-heart' node is missing.", request.getRequest().url(), root);
       return Stream.empty();
     }
 
     JsonNode dateTimeNode = resting.get("dateTime");
     if (dateTimeNode == null) {
-      logger.warn("Failed to get resting heart rate from {}, {}", request.getRequest().url(), root);
+      logger.warn("Failed to get resting heart rate from {}, {} : the 'dateTime' node is missing.", request.getRequest().url(), root);
       return Stream.empty();
     }
     String date = dateTimeNode.asText();
 
     JsonNode value = resting.get("value");
     if (value == null || !value.isObject()) {
-      logger.warn("Failed to get resting heart rate from {}, {}", request.getRequest().url(), root);
+      logger.warn("Failed to get resting heart rate from {}, {} : the 'value' node is missing.", request.getRequest().url(), root);
       return Stream.empty();
     }
 
     JsonNode restingHeartRateNode = value.get("restingHeartRate");
     if (restingHeartRateNode == null) {
-      logger.warn("Failed to get resting heart rate from {}, {}", request.getRequest().url(), root);
+      logger.warn("Failed to get resting heart rate from {}, {} : the 'restingHeartRate' node is missing.", request.getRequest().url(), root);
       return Stream.empty();
     }
     int restingHeartRate = restingHeartRateNode.asInt();
