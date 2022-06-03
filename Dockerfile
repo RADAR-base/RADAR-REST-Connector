@@ -48,7 +48,7 @@ COPY --from=builder /code/kafka-connect-rest-source/build/libs/*.jar ${CONNECT_P
 COPY --from=builder /code/kafka-connect-fitbit-source/build/libs/*.jar ${CONNECT_PLUGIN_PATH}/kafka-connect-fitbit-source/
 
 # Load topics validator
-COPY ./docker/kafka-wait /usr/bin/kafka-wait
+COPY  --chown=appuser:appuser ./docker/kafka-wait /usr/bin/kafka-wait
 
 # Load modified launcher
-COPY ./docker/launch /etc/confluent/docker/launch
+COPY  --chown=appuser:appuser ./docker/launch /etc/confluent/docker/launch
