@@ -1,13 +1,14 @@
 dependencies {
-    api group: 'com.squareup.okhttp3', name: 'okhttp', version: '4.9.1'
+    api group: 'com.squareup.okhttp3', name: 'okhttp', version: '4.10.0'
 
     // Included in connector runtime
     compileOnly group: 'org.apache.kafka', name: 'connect-api', version: kafkaVersion
+    compileOnly group: 'org.slf4j', name: 'slf4j-api', version: '1.7.36'
 
-    testImplementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.5'
-    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.7.2'
-    testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.7.2'
-    testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.12.4'
+    testImplementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.11'
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.9.1'
+    testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.9.1'
+    testImplementation group: 'org.mockito', name: 'mockito-core', version: '4.8.1'
     testImplementation group: 'com.github.tomakehurst', name: 'wiremock', version: '2.27.2'
 
     testImplementation group: 'org.apache.kafka', name: 'connect-api', version: kafkaVersion

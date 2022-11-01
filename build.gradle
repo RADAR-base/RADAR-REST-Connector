@@ -1,7 +1,7 @@
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 
 plugins {
-    id("com.github.ben-manes.versions") version "0.39.0"
+    id("com.github.ben-manes.versions") version "0.43.0"
 }
 
 description = 'kafka-connect-rest-source'
@@ -19,9 +19,9 @@ allprojects {
 
 subprojects {
     ext {
-        kafkaVersion = '2.8.0'
-        confluentVersion = '6.2.0'
-        jacksonVersion = '2.12.5'
+        kafkaVersion = '7.2.2-ce'
+        confluentVersion = '7.2.2'
+        jacksonVersion = '2.13.2'
     }
 
     apply plugin: 'java'
@@ -32,7 +32,7 @@ subprojects {
 }
 
 wrapper {
-    gradleVersion '7.2'
+    gradleVersion '7.5.1'
 }
 
 evaluationDependsOnChildren()
@@ -50,7 +50,7 @@ task downloadDependencies {
 
 
 def isNonStable = { String version ->
-    def stableKeyword = ["RELEASE", "FINAL", "GA"].any { version.toUpperCase().contains(it) }
+    def stableKeyword = ["RELEASE", "FINAL", "GA", "-CE"].any { version.toUpperCase().contains(it) }
     def regex = /^[0-9,.v-]+(-r)?$/
     return !stableKeyword && !(version ==~ regex)
 }

@@ -26,7 +26,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import javax.ws.rs.NotAuthorizedException;
 import org.apache.kafka.connect.errors.ConnectException;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.apache.kafka.connect.source.SourceTask;
@@ -87,7 +86,7 @@ public class RestSourceTask extends SourceTask {
         try {
           requests = request.handleRequest()
               .collect(Collectors.toList());
-        } catch (IOException | NotAuthorizedException ex) {
+        } catch (IOException ex) {
           logger.warn("Failed to make request: {}", ex.toString());
         }
       }

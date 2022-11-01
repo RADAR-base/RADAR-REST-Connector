@@ -19,7 +19,6 @@ package org.radarbase.connect.rest.fitbit.user;
 
 import java.io.IOException;
 import java.util.stream.Stream;
-import javax.ws.rs.NotAuthorizedException;
 import org.radarbase.connect.rest.config.RestSourceTool;
 
 /**
@@ -44,20 +43,20 @@ public interface UserRepository extends RestSourceTool {
    * {@link #refreshAccessToken(User)} instead.
    *
    * @throws IOException if the new access token cannot be retrieved from the repository.
-   * @throws NotAuthorizedException if the refresh token is no longer valid. Manual action
+   * @throws UserNotAuthorizedException if the refresh token is no longer valid. Manual action
    *                                should be taken to get a new refresh token.
-   * @throws java.util.NoSuchElementException if the user does not exists in this repository.
+   * @throws java.util.NoSuchElementException if the user does not exist in this repository.
    */
-  String getAccessToken(User user) throws IOException, NotAuthorizedException;
+  String getAccessToken(User user) throws IOException, UserNotAuthorizedException;
 
   /**
    * Refresh the access token of given user.
    * @throws IOException if the new access token cannot be retrieved from the repository.
-   * @throws NotAuthorizedException if the refresh token is no longer valid. Manual action
+   * @throws UserNotAuthorizedException if the refresh token is no longer valid. Manual action
    *                                should be taken to get a new refresh token.
-   * @throws java.util.NoSuchElementException if the user does not exists in this repository.
+   * @throws java.util.NoSuchElementException if the user does not exist in this repository.
    */
-  String refreshAccessToken(User user) throws IOException, NotAuthorizedException;
+  String refreshAccessToken(User user) throws IOException, UserNotAuthorizedException;
 
   /**
    * The functions allows the repository to supply when there are pending updates.

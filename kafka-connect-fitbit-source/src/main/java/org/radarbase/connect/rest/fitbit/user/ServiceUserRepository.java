@@ -35,7 +35,6 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.ws.rs.NotAuthorizedException;
 import okhttp3.Credentials;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
@@ -129,41 +128,43 @@ public class ServiceUserRepository implements UserRepository {
   }
 
   @Override
-  public String getAccessToken(User user) throws IOException, NotAuthorizedException {
+  public String getAccessToken(User user) throws IOException, UserNotAuthorizedException {
     if (!user.isAuthorized()) {
-      throw new NotAuthorizedException("User is not authorized");
+      throw new UserNotAuthorizedException("User is not authorized");
     }
     OAuth2UserCredentials credentials = cachedCredentials.get(user.getId());
-    if (credentials == null || credentials.isAccessTokenExpired()) {
-      try {
-        Request request = requestFor("users/" + user.getId() + "/token").build();
-        credentials = makeRequest(request, OAUTH_READER);
-        cachedCredentials.put(user.getId(), credentials);
-      } catch (NotAuthorizedException ex) {
-        cachedCredentials.remove(user.getId());
-        if (user instanceof LocalUser) {
-          ((LocalUser) user).setIsAuthorized(false);
-        }
-        throw ex;
-      }
+    if (credentials != null && !credentials.isAccessTokenExpired()) {
+      return credentials.getAccessToken();
+    } else {
+      Request request = requestFor("users/" + user.getId() + "/token").build();
+      return requestAccessToken(user, request);
     }
-    return credentials.getAccessToken();
   }
 
   @Override
-  public String refreshAccessToken(User user) throws IOException, NotAuthorizedException {
+  public String refreshAccessToken(User user) throws IOException, UserNotAuthorizedException {
     if (!user.isAuthorized()) {
-      throw new NotAuthorizedException("User is not authorized");
+      throw new UserNotAuthorizedException("User is not authorized");
     }
-    Request request = requestFor("users/" + user.getId() + "/token").post(EMPTY_BODY).build();
+    Request request = requestFor("users/" + user.getId() + "/token")
+            .post(EMPTY_BODY)
+            .build();
+    return requestAccessToken(user, request);
+  }
+
+  private String requestAccessToken(User user, Request request)
+          throws UserNotAuthorizedException, IOException {
     try {
       OAuth2UserCredentials credentials = makeRequest(request, OAUTH_READER);
       cachedCredentials.put(user.getId(), credentials);
       return credentials.getAccessToken();
-    } catch (NotAuthorizedException ex) {
-      cachedCredentials.remove(user.getId());
-      if (user instanceof LocalUser) {
-        ((LocalUser) user).setIsAuthorized(false);
+    } catch (HttpResponseException ex) {
+      if (ex.getStatusCode() == 407) {
+        cachedCredentials.remove(user.getId());
+        if (user instanceof LocalUser) {
+          ((LocalUser) user).setIsAuthorized(false);
+        }
+        throw new UserNotAuthorizedException(ex.getMessage());
       }
       throw ex;
     }
@@ -224,8 +225,6 @@ public class ServiceUserRepository implements UserRepository {
 
       if (response.code() == 404) {
         throw new NoSuchElementException("URL " + request.url() + " does not exist");
-      } else if (response.code() == 407) {
-        throw new NotAuthorizedException("Refresh token cannot be retrieved for unauthorized user");
       } else if (!response.isSuccessful() || body == null) {
         String message = "Failed to make request";
         if (response.code() > 0) {
@@ -234,7 +233,7 @@ public class ServiceUserRepository implements UserRepository {
         if (body != null) {
           message += body.string();
         }
-        throw new IOException(message);
+        throw new HttpResponseException(message, response.code());
       }
       String bodyString = body.string();
       try {
@@ -244,7 +243,7 @@ public class ServiceUserRepository implements UserRepository {
         throw ex;
       }
     } catch (ProtocolException ex) {
-      throw new NotAuthorizedException("Refresh token cannot be retrieved for unauthorized user");
+      throw new IOException("Failed to make request to user repository", ex);
     }
   }
 }

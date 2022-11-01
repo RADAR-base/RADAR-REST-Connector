@@ -42,7 +42,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.ws.rs.NotAuthorizedException;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.apache.kafka.connect.source.SourceRecord;
@@ -52,6 +51,7 @@ import org.radarbase.connect.rest.fitbit.FitbitRestSourceConnectorConfig;
 import org.radarbase.connect.rest.fitbit.request.FitbitRequestGenerator;
 import org.radarbase.connect.rest.fitbit.request.FitbitRestRequest;
 import org.radarbase.connect.rest.fitbit.user.User;
+import org.radarbase.connect.rest.fitbit.user.UserNotAuthorizedException;
 import org.radarbase.connect.rest.fitbit.user.UserRepository;
 import org.radarbase.connect.rest.fitbit.util.DateRange;
 import org.radarbase.connect.rest.request.PollingRequestRoute;
@@ -239,7 +239,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
       return new FitbitRestRequest(this, request, user, getPartition(user),
           generator.getClient(user), dateRange,
           req -> !tooManyRequestsForUser.contains(((FitbitRestRequest)req).getUser()));
-    } catch (NotAuthorizedException | IOException ex) {
+    } catch (UserNotAuthorizedException | IOException ex) {
       logger.warn("User {} does not have a configured access token: {}. Skipping.",
           user, ex.toString());
       return null;
