@@ -156,7 +156,7 @@ public class FitbitActivityLogAvroConverter extends FitbitAvroConverter {
     Optional<Integer> mean = optInt(activity, "averageHeartRate");
     Optional<Iterable<JsonNode>> zones = optArray(activity, "heartRateZones");
 
-    if (!mean.isPresent() && !zones.isPresent()) {
+    if (mean.isEmpty() && zones.isEmpty()) {
       return null;
     }
 

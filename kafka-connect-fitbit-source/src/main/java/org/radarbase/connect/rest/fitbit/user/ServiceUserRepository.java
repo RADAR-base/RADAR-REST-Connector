@@ -22,8 +22,8 @@ import static org.radarbase.connect.rest.fitbit.request.FitbitRequestGenerator.J
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectReader;
-import io.confluent.common.config.ConfigException;
 import java.io.IOException;
+import java.net.ProtocolException;
 import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
@@ -44,10 +44,11 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import org.apache.kafka.common.config.ConfigException;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
 import org.radarbase.connect.rest.fitbit.FitbitRestSourceConnectorConfig;
-import org.radarcns.exception.TokenException;
-import org.radarcns.oauth.OAuth2Client;
+import org.radarbase.exception.TokenException;
+import org.radarbase.oauth.OAuth2Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,6 +62,8 @@ public class ServiceUserRepository implements UserRepository {
   private static final RequestBody EMPTY_BODY =
       RequestBody.create("", MediaType.parse("application/json; charset=utf-8"));
   private static final Duration FETCH_THRESHOLD = Duration.ofMinutes(1L);
+  private static final Duration CONNECTION_TIMEOUT = Duration.ofSeconds(60);
+  private static final Duration CONNECTION_READ_TIMEOUT = Duration.ofSeconds(90);
 
   private final OkHttpClient client;
   private final Map<String, OAuth2UserCredentials> cachedCredentials;
@@ -73,7 +76,10 @@ public class ServiceUserRepository implements UserRepository {
   private String basicCredentials;
 
   public ServiceUserRepository() {
-    this.client = new OkHttpClient();
+    this.client = new OkHttpClient.Builder()
+        .connectTimeout(CONNECTION_TIMEOUT)
+        .readTimeout(CONNECTION_READ_TIMEOUT)
+        .build();
     this.cachedCredentials = new HashMap<>();
     this.containedUsers = new HashSet<>();
   }
@@ -115,29 +121,52 @@ public class ServiceUserRepository implements UserRepository {
       try {
         applyPendingUpdates();
       } catch (IOException ex) {
-        logger.error("Failed to initially get users from repository");
+        logger.error("Failed to initially get users from repository", ex);
       }
     }
-    return this.timedCachedUsers.stream();
+    return this.timedCachedUsers.stream()
+        .filter(User::isComplete);
   }
 
   @Override
   public String getAccessToken(User user) throws IOException, NotAuthorizedException {
+    if (!user.isAuthorized()) {
+      throw new NotAuthorizedException("User is not authorized");
+    }
     OAuth2UserCredentials credentials = cachedCredentials.get(user.getId());
     if (credentials == null || credentials.isAccessTokenExpired()) {
-      Request request = requestFor("users/" + user.getId() + "/token").build();
-      credentials = makeRequest(request, OAUTH_READER);
-      cachedCredentials.put(user.getId(), credentials);
+      try {
+        Request request = requestFor("users/" + user.getId() + "/token").build();
+        credentials = makeRequest(request, OAUTH_READER);
+        cachedCredentials.put(user.getId(), credentials);
+      } catch (NotAuthorizedException ex) {
+        cachedCredentials.remove(user.getId());
+        if (user instanceof LocalUser) {
+          ((LocalUser) user).setIsAuthorized(false);
+        }
+        throw ex;
+      }
     }
     return credentials.getAccessToken();
   }
 
   @Override
   public String refreshAccessToken(User user) throws IOException, NotAuthorizedException {
+    if (!user.isAuthorized()) {
+      throw new NotAuthorizedException("User is not authorized");
+    }
     Request request = requestFor("users/" + user.getId() + "/token").post(EMPTY_BODY).build();
-    OAuth2UserCredentials credentials = makeRequest(request, OAUTH_READER);
-    cachedCredentials.put(user.getId(), credentials);
-    return credentials.getAccessToken();
+    try {
+      OAuth2UserCredentials credentials = makeRequest(request, OAUTH_READER);
+      cachedCredentials.put(user.getId(), credentials);
+      return credentials.getAccessToken();
+    } catch (NotAuthorizedException ex) {
+      cachedCredentials.remove(user.getId());
+      if (user instanceof LocalUser) {
+        ((LocalUser) user).setIsAuthorized(false);
+      }
+      throw ex;
+    }
   }
 
   @Override
@@ -195,6 +224,8 @@ public class ServiceUserRepository implements UserRepository {
 
       if (response.code() == 404) {
         throw new NoSuchElementException("URL " + request.url() + " does not exist");
+      } else if (response.code() == 407) {
+        throw new NotAuthorizedException("Refresh token cannot be retrieved for unauthorized user");
       } else if (!response.isSuccessful() || body == null) {
         String message = "Failed to make request";
         if (response.code() > 0) {
@@ -209,9 +240,11 @@ public class ServiceUserRepository implements UserRepository {
       try {
         return reader.readValue(bodyString);
       } catch (JsonProcessingException ex) {
-        logger.error("Failed to parse JSON: {}\n{}", ex.toString(), bodyString);
+        logger.error("Failed to parse JSON: {}\n{}", ex, bodyString);
         throw ex;
       }
+    } catch (ProtocolException ex) {
+      throw new NotAuthorizedException("Refresh token cannot be retrieved for unauthorized user");
     }
   }
 }

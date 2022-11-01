@@ -3,8 +3,6 @@
 .idea
 out
 build
-*/out
 */src/test
-*/build
 *.iml
 .gradletasknamecache

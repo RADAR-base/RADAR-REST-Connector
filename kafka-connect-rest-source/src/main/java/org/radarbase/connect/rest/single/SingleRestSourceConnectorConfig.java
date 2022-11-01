@@ -47,7 +47,6 @@ public class SingleRestSourceConnectorConfig extends RestSourceConnectorConfig {
 
   private final Map<String, String> requestProperties;
 
-  @SuppressWarnings("unchecked")
   private SingleRestSourceConnectorConfig(ConfigDef config, Map<String, String> parsedConfig,
       boolean doLog) {
     super(config, parsedConfig, doLog);

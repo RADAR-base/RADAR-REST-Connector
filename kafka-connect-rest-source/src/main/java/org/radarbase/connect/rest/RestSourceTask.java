@@ -18,20 +18,15 @@
 package org.radarbase.connect.rest;
 
 import static java.time.temporal.ChronoUnit.MILLIS;
-import static org.radarbase.connect.rest.util.ThrowingFunction.tryOrNull;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.atomic.LongAdder;
-import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.ws.rs.NotAuthorizedException;
 import org.apache.kafka.connect.errors.ConnectException;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.apache.kafka.connect.source.SourceTask;
@@ -42,7 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RestSourceTask extends SourceTask {
-  private static Logger logger = LoggerFactory.getLogger(RestSourceTask.class);
+  private static final Logger logger = LoggerFactory.getLogger(RestSourceTask.class);
 
   private RequestGenerator requestGenerator;
 
@@ -92,7 +87,7 @@ public class RestSourceTask extends SourceTask {
         try {
           requests = request.handleRequest()
               .collect(Collectors.toList());
-        } catch (IOException ex) {
+        } catch (IOException | NotAuthorizedException ex) {
           logger.warn("Failed to make request: {}", ex.toString());
         }
       }

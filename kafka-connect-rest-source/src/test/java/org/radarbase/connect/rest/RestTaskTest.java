@@ -28,7 +28,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.VerificationException;
@@ -118,10 +118,10 @@ public class RestTaskTest {
     sourceTask.start(props);
     messages = sourceTask.poll();
 
-    assertEquals("Message count: ", 1, messages.size());
-    assertEquals("Response class: ", String.class, messages.get(0).value().getClass());
-    assertEquals("Response body: ", RESPONSE_BODY, messages.get(0).value());
-    assertEquals("Topic: ", TOPIC, messages.get(0).topic());
+    assertEquals(1, messages.size(), "Message count: ");
+    assertEquals(String.class, messages.get(0).value().getClass(), "Response class: ");
+    assertEquals(RESPONSE_BODY, messages.get(0).value(), "Response body: ");
+    assertEquals(TOPIC, messages.get(0).topic(), "Topic: ");
 
     verify(postRequestedFor(urlMatching(PATH))
       .withRequestBody(equalTo(DATA))
@@ -134,10 +134,10 @@ public class RestTaskTest {
     sourceTask.start(props);
     messages = sourceTask.poll();
 
-    assertEquals("Message count: ", 1, messages.size());
-    assertEquals("Response class: ", byte[].class, messages.get(0).value().getClass());
-    assertEquals("Response body: ", RESPONSE_BODY, new String((byte[]) messages.get(0).value()));
-    assertEquals("Topic: ", TOPIC, messages.get(0).topic());
+    assertEquals(1, messages.size(), "Message count: ");
+    assertEquals(byte[].class, messages.get(0).value().getClass(), "Response class: ");
+    assertEquals(RESPONSE_BODY, new String((byte[]) messages.get(0).value()), "Response body: ");
+    assertEquals(TOPIC, messages.get(0).topic(), "Topic: ");
 
     verify(postRequestedFor(urlMatching(PATH))
       .withRequestBody(equalTo(DATA))

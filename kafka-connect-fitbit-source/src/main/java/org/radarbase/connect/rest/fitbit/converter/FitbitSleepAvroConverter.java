@@ -127,6 +127,10 @@ public class FitbitSleepAvroConverter extends FitbitAvroConverter {
               })
               .collect(Collectors.toList());
 
+          if (allRecords.isEmpty()) {
+            return Stream.empty();
+          }
+
           // The final group gets the actual offset, to ensure that the group does not get queried
           // again.
           allRecords.get(allRecords.size() - 1).sourceOffset = startTime;

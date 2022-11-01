@@ -20,7 +20,6 @@ package org.radarbase.connect.rest.fitbit.route;
 import static java.time.temporal.ChronoUnit.MINUTES;
 
 import io.confluent.connect.avro.AvroData;
-import java.time.temporal.TemporalAmount;
 import java.util.stream.Stream;
 import org.radarbase.connect.rest.fitbit.converter.FitbitIntradayStepsAvroConverter;
 import org.radarbase.connect.rest.fitbit.request.FitbitRequestGenerator;
