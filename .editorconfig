@@ -13,6 +13,5 @@ indent_size = 2
 ij_continuation_indent_size = 4
 max_line_length=100
 
-[{*.gradle, *.py}]
+[*.{gradle,py,kt,kts}]
 indent_size = 4
-ij_continuation_indent_size = 8
