@@ -5,7 +5,6 @@ plugins {
     id("org.radarbase.radar-root-project") version Versions.radarCommons
     id("org.radarbase.radar-dependency-management") version Versions.radarCommons
     id("org.radarbase.radar-kotlin") version Versions.radarCommons apply false
-    kotlin("plugin.serialization") version Versions.kotlin apply false
 }
 
 description = "Kafka connector for REST API sources"
