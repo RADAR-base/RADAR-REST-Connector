@@ -33,20 +33,27 @@ if [ "$KAFKA_JMX_PORT" ]; then
   export JMX_PORT=$KAFKA_JMX_PORT
   export KAFKA_JMX_OPTS="$KAFKA_JMX_OPTS -Djava.rmi.server.hostname=$KAFKA_JMX_HOSTNAME -Dcom.sun.management.jmxremote.local.only=false -Dcom.sun.management.jmxremote.rmi.port=$JMX_PORT -Dcom.sun.management.jmxremote.port=$JMX_PORT"
 fi
-
-# Busy waiting loop that waits untill all topic are available
+#
+## Busy waiting loop that waits until all topic are available
 echo "===> Wait for infrastructure ..."
 kafka-wait
 radar_check=$?
 if [ "$radar_check" -ne 0 ]; then
-    exit ${radar_check}
+    exit $radar_check
 fi
 
 echo "===> Launching ${COMPONENT} ..."
 # Add our jar to the classpath so that the custom classes can be loaded first.
 # And this also makes sure that the CLASSPATH does not start with ":/etc/..."
 # other jars are loaded via the plugin path
-#export CLASSPATH="/etc/${COMPONENT}/kafka-connect-mongodb-sink/*"
+if [ -z "$CLASSPATH" ]; then
+    export CLASSPATH="/etc/kafka-connect/jars/*"
+fi
 
-# execute connector in standalone mode
-exec connect-standalone /etc/"${COMPONENT}"/"${COMPONENT}".properties /etc/"${COMPONENT}"/"${CONNECTOR_PROPERTY_FILE_PREFIX}"*.properties
+if [ -z "$CONNECTOR_PROPERTY_FILE_PREFIX" ]; then
+  # execute connector in distributed mode
+  exec connect-distributed /etc/"${COMPONENT}"/"${COMPONENT}".properties
+else
+  # execute connector in standalone mode
+  exec connect-standalone /etc/"${COMPONENT}"/"${COMPONENT}".properties /etc/"${COMPONENT}"/"${CONNECTOR_PROPERTY_FILE_PREFIX}"*.properties
+fi

@@ -38,7 +38,8 @@ MAINTAINER Joris Borgdorff <joris@thehyve.nl>
 
 LABEL description="Kafka REST API Source connector"
 
-ENV CONNECT_PLUGIN_PATH=/usr/share/java/kafka-connect/plugins
+ENV CONNECT_PLUGIN_PATH="/usr/share/java/kafka-connect/plugins" \
+  WAIT_FOR_KAFKA="1"
 
 # To isolate the classpath from the plugin path as recommended
 COPY --from=builder /code/kafka-connect-rest-source/build/third-party/*.jar ${CONNECT_PLUGIN_PATH}/kafka-connect-rest-source/
