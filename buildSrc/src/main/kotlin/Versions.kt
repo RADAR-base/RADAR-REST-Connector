@@ -6,7 +6,7 @@ object Versions {
 
     const val radarCommons = "1.0.0"
     const val confluent = "7.4.0"
-    val kafka = "$confluent-ce"
+    const val kafka = "$confluent-ce"
 
     // From image
     const val jackson = "2.14.2"
