@@ -35,9 +35,6 @@ import org.radarbase.connect.rest.fitbit.user.UserRepository;
 import org.radarbase.connect.rest.fitbit.util.DateRange;
 
 public class FitbitRestingHeartRateRoute extends FitbitPollingRoute {
-  public static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE_TIME
-      .withZone(UTC);
-
   private static final Duration RESTING_HEART_RATE_POLL_INTERVAL = Duration.ofDays(1);
 
   private final FitbitRestingHeartRateAvroConverter converter;
@@ -54,7 +51,7 @@ public class FitbitRestingHeartRateRoute extends FitbitPollingRoute {
         .atZone(UTC)
         .truncatedTo(SECONDS);
     return Stream.of(newRequest(user, new DateRange(startDate, ZonedDateTime.now(UTC)),
-        user.getExternalUserId(), DATE_TIME_FORMAT.format(startDate)));
+        user.getExternalUserId(), DATE_FORMAT.format(startDate)));
   }
 
   @Override
