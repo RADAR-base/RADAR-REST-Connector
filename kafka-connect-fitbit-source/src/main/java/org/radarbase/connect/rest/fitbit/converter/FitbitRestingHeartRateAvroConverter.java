@@ -52,7 +52,7 @@ public class FitbitRestingHeartRateAvroConverter extends FitbitAvroConverter {
       FitbitRestRequest request, JsonNode root, double timeReceived) {
     JsonNode resting = root.get("activities-heart");
     if (resting == null || !resting.isObject()) {
-      logger.warn("Failed to get resting heart rate from {}, {} : the 'activities-heart' node is missing.", request.getRequest().url(), root);
+      logger.info("No resting heart rate available from {} on the specified date", request.getRequest().url());
       return Stream.empty();
     }
 
