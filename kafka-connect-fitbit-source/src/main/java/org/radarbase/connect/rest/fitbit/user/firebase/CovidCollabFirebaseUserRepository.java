@@ -12,10 +12,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
-import javax.ws.rs.NotAuthorizedException;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
 import org.radarbase.connect.rest.fitbit.FitbitRestSourceConnectorConfig;
 import org.radarbase.connect.rest.fitbit.user.User;
+import org.radarbase.connect.rest.fitbit.user.UserNotAuthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +56,7 @@ public class CovidCollabFirebaseUserRepository extends FirebaseUserRepository {
   }
 
   @Override
-  public String getAccessToken(User user) throws IOException, NotAuthorizedException {
+  public String getAccessToken(User user) throws IOException, UserNotAuthorizedException {
     FitbitOAuth2UserCredentials credentials =
         cachedUsers.get(user.getId()).getFitbitAuthDetails().getOauth2Credentials();
     if (credentials == null || credentials.isAccessTokenExpired()) {
@@ -66,13 +66,13 @@ public class CovidCollabFirebaseUserRepository extends FirebaseUserRepository {
   }
 
   @Override
-  public String refreshAccessToken(User user) throws IOException, NotAuthorizedException {
+  public String refreshAccessToken(User user) throws IOException, UserNotAuthorizedException {
     FirebaseFitbitAuthDetails authDetails = cachedUsers.get(user.getId()).getFitbitAuthDetails();
 
     logger.debug("Refreshing token for User: {}", cachedUsers.get(user.getId()));
     if (!authDetails.getOauth2Credentials().hasRefreshToken()) {
       logger.error("No refresh Token present");
-      throw new NotAuthorizedException("The user does not contain a refresh token");
+      throw new UserNotAuthorizedException("The user does not contain a refresh token");
     }
 
     // Make call to fitbit to get new refresh and access token.
@@ -87,7 +87,7 @@ public class CovidCollabFirebaseUserRepository extends FirebaseUserRepository {
       this.cachedUsers.get(user.getId()).setFitbitAuthDetails(authDetails);
       return userCredentials.getAccessToken();
     } else {
-      throw new IOException("There was a problem refreshing the token.");
+      throw new UserNotAuthorizedException("There was a problem refreshing the token.");
     }
   }
 

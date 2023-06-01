@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
-import javax.ws.rs.NotAuthorizedException;
 import okhttp3.Credentials;
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
@@ -37,7 +36,7 @@ public class FitbitTokenService {
   }
 
   public FitbitOAuth2UserCredentials processTokenRequest(FormBody form)
-      throws NotAuthorizedException, IOException {
+      throws IOException {
     String credentials = Credentials.basic(clientId, clientSecret);
 
     Request request =
@@ -63,10 +62,10 @@ public class FitbitTokenService {
           return mapper.readValue(responseBodyStr, FitbitOAuth2UserCredentials.class);
         } catch (IOException e) {
           logger.error("Error when deserializing response.", e);
-          throw new NotAuthorizedException("Cannot read token response", e);
+          throw e;
         }
       } else {
-        throw new NotAuthorizedException(
+        throw new IOException(
             "Failed to execute the request : Response-code :"
                 + response.code()
                 + " received when requesting token from server with "

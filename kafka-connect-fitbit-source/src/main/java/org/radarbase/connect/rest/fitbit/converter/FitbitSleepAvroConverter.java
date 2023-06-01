@@ -22,6 +22,7 @@ import static org.radarbase.connect.rest.util.ThrowingFunction.tryOrNull;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.confluent.connect.avro.AvroData;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Comparator;
@@ -30,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import org.apache.avro.generic.IndexedRecord;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
 import org.radarbase.connect.rest.fitbit.FitbitRestSourceConnectorConfig;
@@ -46,6 +48,7 @@ public class FitbitSleepAvroConverter extends FitbitAvroConverter {
 
   private static final Map<String, FitbitSleepClassicLevel> CLASSIC_MAP = new HashMap<>();
   private static final Map<String, FitbitSleepStageLevel> STAGES_MAP = new HashMap<>();
+
   static {
     CLASSIC_MAP.put("awake", FitbitSleepClassicLevel.AWAKE);
     CLASSIC_MAP.put("asleep", FitbitSleepClassicLevel.ASLEEP);
@@ -66,8 +69,8 @@ public class FitbitSleepAvroConverter extends FitbitAvroConverter {
 
   @Override
   public void initialize(RestSourceConnectorConfig config) {
-    sleepStagesTopic = ((FitbitRestSourceConnectorConfig)config).getFitbitSleepStagesTopic();
-    sleepClassicTopic = ((FitbitRestSourceConnectorConfig)config).getFitbitSleepClassicTopic();
+    sleepStagesTopic = ((FitbitRestSourceConnectorConfig) config).getFitbitSleepStagesTopic();
+    sleepClassicTopic = ((FitbitRestSourceConnectorConfig) config).getFitbitSleepClassicTopic();
 
     logger.info("Using sleep topic {} and {}", sleepStagesTopic, sleepClassicTopic);
   }
@@ -106,20 +109,23 @@ public class FitbitSleepAvroConverter extends FitbitAvroConverter {
                 String dateTime = d.get("dateTime").asText();
                 int duration = d.get("seconds").asInt();
                 String level = d.get("level").asText();
+                int efficiency = d.get("efficiency").asInt();
 
                 if (isStages) {
                   sleep = new FitbitSleepStage(
                       dateTime,
                       timeReceived,
                       duration,
-                      STAGES_MAP.getOrDefault(level, FitbitSleepStageLevel.UNKNOWN));
+                      STAGES_MAP.getOrDefault(level, FitbitSleepStageLevel.UNKNOWN),
+                      efficiency);
                   topic = sleepStagesTopic;
                 } else {
                   sleep = new FitbitSleepClassic(
                       dateTime,
                       timeReceived,
                       duration,
-                      CLASSIC_MAP.getOrDefault(level, FitbitSleepClassicLevel.UNKNOWN));
+                      CLASSIC_MAP.getOrDefault(level, FitbitSleepClassicLevel.UNKNOWN),
+                      efficiency);
                   topic = sleepClassicTopic;
                 }
 

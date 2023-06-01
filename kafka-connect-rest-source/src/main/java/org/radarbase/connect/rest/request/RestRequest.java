@@ -22,7 +22,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-import javax.ws.rs.NotAuthorizedException;
 import okhttp3.Headers;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -96,7 +95,7 @@ public class RestRequest {
       headers = response.headers();
       ResponseBody body = response.body();
       data = body != null ? body.bytes() : null;
-    } catch (IOException | NotAuthorizedException ex) {
+    } catch (IOException ex) {
       route.requestFailed(this, null);
       throw ex;
     }

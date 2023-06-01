@@ -18,12 +18,12 @@
 package org.radarbase.connect.rest.fitbit.request;
 
 import java.io.IOException;
-import javax.ws.rs.NotAuthorizedException;
 import okhttp3.Authenticator;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.Route;
 import org.radarbase.connect.rest.fitbit.user.User;
+import org.radarbase.connect.rest.fitbit.user.UserNotAuthorizedException;
 import org.radarbase.connect.rest.fitbit.user.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +54,7 @@ public class TokenAuthenticator implements Authenticator {
       return response.request().newBuilder()
           .header("Authorization", "Bearer " + newAccessToken)
           .build();
-    } catch (NotAuthorizedException ex) {
+    } catch (UserNotAuthorizedException ex) {
       logger.error("Cannot get a new refresh token for user {}. Cancelling request.", user, ex);
       return null;
     }

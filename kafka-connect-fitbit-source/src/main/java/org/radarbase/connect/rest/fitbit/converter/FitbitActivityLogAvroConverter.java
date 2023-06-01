@@ -115,7 +115,7 @@ public class FitbitActivityLogAvroConverter extends FitbitAvroConverter {
   }
 
   private FitbitActivityLevels getActivityLevels(JsonNode s) {
-    return optArray(s, "activityLevels")
+    return optArray(s, "activityLevel")
         .map(levels -> {
           FitbitActivityLevels.Builder activityLevels = FitbitActivityLevels.newBuilder();
           for (JsonNode level : levels) {
@@ -147,7 +147,7 @@ public class FitbitActivityLogAvroConverter extends FitbitAvroConverter {
         .map(manual -> FitbitManualDataEntry.newBuilder()
             .setSteps(optBoolean(manual, "steps").orElse(null))
             .setDistance(optBoolean(manual, "distance").orElse(null))
-            .setEnergy(optBoolean(manual, "calorie").orElse(null))
+            .setEnergy(optBoolean(manual, "calories").orElse(null))
             .build())
         .orElse(null);
   }

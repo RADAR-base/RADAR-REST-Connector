@@ -30,6 +30,7 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
 import okhttp3.Headers;
 import okhttp3.HttpUrl;
 import org.apache.kafka.common.config.ConfigDef;
@@ -98,6 +99,11 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
   private static final String FITBIT_INTRADAY_HEART_RATE_TOPIC_DOC = "Topic for Fitbit intraday heart_rate";
   private static final String FITBIT_INTRADAY_HEART_RATE_TOPIC_DISPLAY = "Intraday heartrate topic";
   private static final String FITBIT_INTRADAY_HEART_RATE_TOPIC_DEFAULT = "connect_fitbit_intraday_heart_rate";
+
+  private static final String FITBIT_RESTING_HEART_RATE_TOPIC_CONFIG = "fitbit.resting.heart.rate.topic";
+  private static final String FITBIT_RESTING_HEART_RATE_TOPIC_DOC = "Topic for Fitbit resting heart_rate";
+  private static final String FITBIT_RESTING_HEART_RATE_TOPIC_DISPLAY = "Resting heartrate topic";
+  private static final String FITBIT_RESTING_HEART_RATE_TOPIC_DEFAULT = "connect_fitbit_resting_heart_rate";
 
   private static final String FITBIT_SLEEP_STAGES_TOPIC_CONFIG = "fitbit.sleep.stages.topic";
   private static final String FITBIT_SLEEP_STAGES_TOPIC_DOC = "Topic for Fitbit sleep stages";
@@ -310,6 +316,17 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
             Width.SHORT,
             FITBIT_INTRADAY_HEART_RATE_TOPIC_DISPLAY)
 
+        .define(FITBIT_RESTING_HEART_RATE_TOPIC_CONFIG,
+            Type.STRING,
+            FITBIT_RESTING_HEART_RATE_TOPIC_DEFAULT,
+            nonControlChar,
+            Importance.LOW,
+            FITBIT_RESTING_HEART_RATE_TOPIC_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            FITBIT_RESTING_HEART_RATE_TOPIC_DISPLAY)
+
         .define(FITBIT_SLEEP_STAGES_TOPIC_CONFIG,
             Type.STRING,
             FITBIT_SLEEP_STAGES_TOPIC_DEFAULT,
@@ -400,7 +417,7 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
   }
 
   public UserRepository getUserRepository(UserRepository reuse) {
-    if (reuse != null &&  reuse.getClass().equals(getClass(FITBIT_USER_REPOSITORY_CONFIG))) {
+    if (reuse != null && reuse.getClass().equals(getClass(FITBIT_USER_REPOSITORY_CONFIG))) {
       userRepository = reuse;
     } else {
       userRepository = createUserRepository();
@@ -440,6 +457,11 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
   public String getFitbitIntradayHeartRateTopic() {
     return getString(FITBIT_INTRADAY_HEART_RATE_TOPIC_CONFIG);
   }
+
+  public String getFitbitRestingHeartRateTopic() {
+    return getString(FITBIT_RESTING_HEART_RATE_TOPIC_CONFIG);
+  }
+
   public String getFitbitSleepClassicTopic() {
     return getString(FITBIT_SLEEP_CLASSIC_TOPIC_CONFIG);
   }

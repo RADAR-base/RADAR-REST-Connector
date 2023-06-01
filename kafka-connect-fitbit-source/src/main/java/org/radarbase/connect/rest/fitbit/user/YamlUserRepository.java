@@ -49,7 +49,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.ws.rs.NotAuthorizedException;
 import okhttp3.FormBody;
 import okhttp3.Headers;
 import okhttp3.OkHttpClient;
@@ -116,12 +115,12 @@ public class YamlUserRepository implements UserRepository {
   }
 
   private void forceUpdateUsers() {
-    try {
-      Map<String, LockedUser> newMap = Files.walk(credentialsDir)
-          .filter(p -> Files.isRegularFile(p)
-              && p.getFileName().toString().toLowerCase().endsWith(".yml"))
-          .map(tryOrRethrow(p -> new LockedUser(USER_READER.readValue(p.toFile()), p)))
-          .collect(Collectors.toMap(l -> l.user.getId(), Function.identity()));
+    try (Stream<Path> walker = Files.walk(credentialsDir)) {
+      Map<String, LockedUser> newMap = walker
+              .filter(p -> Files.isRegularFile(p)
+                      && p.getFileName().toString().toLowerCase().endsWith(".yml"))
+              .map(tryOrRethrow(p -> new LockedUser(USER_READER.readValue(p.toFile()), p)))
+              .collect(Collectors.toMap(l -> l.user.getId(), Function.identity()));
 
       users.keySet().removeIf(u -> !newMap.containsKey(u));
       newMap.forEach(users::putIfAbsent);
@@ -159,7 +158,7 @@ public class YamlUserRepository implements UserRepository {
   }
 
   @Override
-  public String getAccessToken(User user) throws IOException, NotAuthorizedException {
+  public String getAccessToken(User user) throws IOException, UserNotAuthorizedException {
     updateUsers();
     LockedUser actualUser = this.users.get(user.getId());
     if (actualUser == null) {
@@ -177,7 +176,7 @@ public class YamlUserRepository implements UserRepository {
   }
 
   @Override
-  public String refreshAccessToken(User user) throws IOException {
+  public String refreshAccessToken(User user) throws IOException, UserNotAuthorizedException {
     return refreshAccessToken(user, NUM_RETRIES);
   }
 
@@ -203,10 +202,11 @@ public class YamlUserRepository implements UserRepository {
    * @param retry number of retries before exiting.
    * @return access token
    * @throws IOException if the refresh fails
-   * @throws NotAuthorizedException if no refresh token is stored with the user or if the
+   * @throws UserNotAuthorizedException if no refresh token is stored with the user or if the
    *                                current refresh token is no longer valid.
    */
-  public synchronized String refreshAccessToken(User user, int retry) throws IOException {
+  public synchronized String refreshAccessToken(User user, int retry) throws IOException,
+          UserNotAuthorizedException {
     LockedUser actualUser = this.users.get(user.getId());
     if (actualUser == null) {
       throw new NoSuchElementException("User " + user + " is not present in this user repository.");
@@ -224,7 +224,7 @@ public class YamlUserRepository implements UserRepository {
       } else {
         throw ex;
       }
-    } catch (NotAuthorizedException ex) {
+    } catch (UserNotAuthorizedException ex) {
       actualUser.accept((u, p) -> {
         if (!refreshToken.equals(u.getOAuth2Credentials().getRefreshToken())) {
           // it was updated already by another thread.
@@ -249,7 +249,7 @@ public class YamlUserRepository implements UserRepository {
             + " access token or refresh token are missing");
         return refreshAccessToken(user, retry - 1);
       } else {
-        throw new NotAuthorizedException("Did not get an access token");
+        throw new UserNotAuthorizedException("Did not get an access token");
       }
     }
 
@@ -266,9 +266,10 @@ public class YamlUserRepository implements UserRepository {
     return actualUser.apply(u -> u.getOAuth2Credentials().getAccessToken());
   }
 
-  private JsonNode requestAccessToken(String refreshToken) throws IOException {
+  private JsonNode requestAccessToken(String refreshToken) throws IOException,
+          UserNotAuthorizedException {
     if (refreshToken == null || refreshToken.isEmpty()) {
-      throw new NotAuthorizedException("Refresh token is not set");
+      throw new UserNotAuthorizedException("Refresh token is not set");
     }
     Request request = new Request.Builder()
         .url("https://api.fitbit.com/oauth2/token")
@@ -285,7 +286,7 @@ public class YamlUserRepository implements UserRepository {
       if (response.isSuccessful() && responseBody != null) {
         return JSON_READER.readTree(responseBody.charStream());
       } else if (response.code() == 400 || response.code() == 401) {
-        throw new NotAuthorizedException("Refresh token is no longer valid.");
+        throw new UserNotAuthorizedException("Refresh token is no longer valid.");
       } else {
         String message = "Failed to request refresh token, with response HTTP status code "
             + response.code();
