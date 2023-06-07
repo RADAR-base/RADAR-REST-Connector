@@ -2,7 +2,6 @@ package org.radarbase.oura.converter
 
 import com.fasterxml.jackson.databind.JsonNode
 import okhttp3.Headers
-import org.radarbase.oura.request.OuraRequest
 import java.time.Instant
 import org.radarbase.oura.request.OuraRequestGenerator.Companion.JSON_READER
 
