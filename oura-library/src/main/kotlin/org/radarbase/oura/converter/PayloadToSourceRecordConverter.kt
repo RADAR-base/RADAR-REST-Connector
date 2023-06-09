@@ -1,6 +1,7 @@
 package org.radarbase.oura.converter
 
 import okhttp3.Headers
+import org.radarbase.oura.request.RestRequest
 import java.io.IOException
 import java.time.Duration
 import java.time.Instant
@@ -8,7 +9,7 @@ import java.time.Instant
 interface PayloadToSourceRecordConverter {
     @Throws(IOException::class)
     fun convert(
-            request: OuraRequest, headers: Headers, data: ByteArray
+            request: RestRequest, headers: Headers, data: ByteArray
     ): Sequence<Result<TopicData>>
 
     companion object {
