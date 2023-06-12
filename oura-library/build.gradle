@@ -12,8 +12,8 @@ plugins {
 repositories {
     // Use jcenter for resolving dependencies.
     // You can declare any Maven/Ivy/file repository here.
-    mavenCentral()
     mavenLocal()
+    mavenCentral()
 }
 
 dependencies {
@@ -21,6 +21,10 @@ dependencies {
     implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
 
     implementation 'com.squareup.okhttp3:okhttp:4.11.0'
+
+    implementation 'org.radarbase:radar-schemas-commons:0.8.4-SNAPSHOT'
+
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.13.2'
 
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.13.2'
 

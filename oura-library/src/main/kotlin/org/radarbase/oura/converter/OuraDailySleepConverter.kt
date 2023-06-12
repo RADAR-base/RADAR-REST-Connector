@@ -1,11 +1,11 @@
 package org.radarbase.oura.converter
 
 import com.fasterxml.jackson.databind.JsonNode
-import okhttp3.Headers
 import java.time.Instant
 import org.slf4j.LoggerFactory
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
+import org.radarcns.connector.oura.OuraDailySleep
 
 class OuraDailySleepConverter(
         private val topic: String = "connect_oura_daily_sleep"
@@ -37,13 +37,13 @@ class OuraDailySleepConverter(
             time = startTime.toEpochMilli() / 1000.0
             timeReceived = System.currentTimeMillis() / 1000.0
             id = optString("id")
-            contributorDeepSleep = optObject("contributors").optInt("deep_sleep")
-            contributorEfficiency = optObject("contributors").optInt("efficiency")
-            contributorLatency = optObject("contributors").optInt("latency")
-            contributorRemSleep = optObject("contributors").optInt("rem_sleep")
-            contributorRestfulness = optObject("contributors").optInt("restfulness")
-            contributorTiming = optObject("contributors").optInt("timing")
-            contributorTotalSleep = optObject("contributors").optInt("total_sleep")
+            contributorDeepSleep = optObject("contributors")?.optInt("deep_sleep")
+            contributorEfficiency = optObject("contributors")?.optInt("efficiency")
+            contributorLatency = optObject("contributors")?.optInt("latency")
+            contributorRemSleep = optObject("contributors")?.optInt("rem_sleep")
+            contributorRestfulness = optObject("contributors")?.optInt("restfulness")
+            contributorTiming = optObject("contributors")?.optInt("timing")
+            contributorTotalSleep = optObject("contributors")?.optInt("total_sleep")
             day = optString("day")
             score = optInt("score")
         }.build()
