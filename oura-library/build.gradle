@@ -3,11 +3,15 @@
  *
  * This generated file contains a sample Kotlin library project to get you started.
  */
-
 plugins {
     // Apply the Kotlin JVM plugin to add support for Kotlin on the JVM.
     id 'org.jetbrains.kotlin.jvm' version '1.6.20'
+    id 'java-library'
+    id 'maven-publish'
 }
+
+group = 'org.radarbase'
+version = '0.0.1'
 
 repositories {
     // Use jcenter for resolving dependencies.
@@ -37,4 +41,12 @@ dependencies {
 
     // Use the Kotlin JUnit integration.
     testImplementation 'org.jetbrains.kotlin:kotlin-test-junit'
+}
+
+publishing {
+    publications {
+        myLibrary(MavenPublication) {
+            from components.java
+        }
+    }
 }

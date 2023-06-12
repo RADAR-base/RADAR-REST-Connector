@@ -16,7 +16,7 @@ class OuraRequestGenerator(
         private val defaultQueryRange: Duration = Duration.ofDays(15),
 ) : RequestGenerator {
 
-    private val routes: List<Route> = listOf(
+    val routes: List<Route> = listOf(
             OuraDailySleepRoute(),
     )
 
