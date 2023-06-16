@@ -10,9 +10,12 @@ import org.radarbase.oura.user.User
 import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.time.Instant
+import org.radarbase.connect.rest.fitbit.user.UserRepository;
+
 
 class OuraRequestGenerator(
         // Insert offset managers, user repositories, configs here
+        private val userRepository: UserRepository,
         private val defaultQueryRange: Duration = Duration.ofDays(15),
 ) : RequestGenerator {
 
@@ -64,6 +67,78 @@ class OuraRequestGenerator(
                     .takeWhile { !shouldBackoff }
         } else emptySequence()
     }
+
+    override fun requests(route: Route, max: Int): Sequence<RestRequest> {
+        return userRepository.stream()
+                    .asSequence()
+                    .flatMap { user ->
+//                        val offsets: Offsets? = offsetPersistenceFactory.read(user.versionedId)
+                        val offsets = null
+                        val backfillLimit = Instant.now().minus(route.maxBackfillPeriod())
+//                        val startDate = userRepository.getBackfillStartDate(user)
+                        val startDate = user.startDate
+                        var startOffset: Instant = if (offsets == null) {
+                            logger.debug("No offsets found for $user, using the start date.")
+                            startDate
+                        } else {
+                            logger.debug("Offsets found in persistence.")
+                            startDate
+//                            offsets.offsetsMap.getOrDefault(
+//                                    UserRoute(user.versionedId, route.toString()), startDate
+//                            ).coerceAtLeast(startDate)
+                        }
+
+                        if (startOffset <= backfillLimit) {
+                            // the start date is before the backfill limits
+                            logger.warn(
+                                    "Backfill limit exceeded for $user and $route. " +
+                                            "Resetting to earliest allowed start offset."
+                            )
+                            startOffset = backfillLimit.plus(Duration.ofDays(2))
+                        }
+
+                        val endDate = user.endDate
+                        if (endDate <= startOffset) return@flatMap emptySequence()
+                        val endTime = (startOffset + defaultQueryRange).coerceAtMost(endDate)
+                        route.generateRequests(user, startOffset, endTime, max / routes.size)
+                    }
+                    .takeWhile { !shouldBackoff }
+    }
+
+    override fun requests(route: Route, user: User, max: Int): Sequence<RestRequest> {
+        return if (user.ready()) {
+//                        val offsets: Offsets? = offsetPersistenceFactory.read(user.versionedId)
+                val offsets = null
+                val backfillLimit = Instant.now().minus(route.maxBackfillPeriod())
+//                        val startDate = userRepository.getBackfillStartDate(user)
+                val startDate = user.startDate
+                var startOffset: Instant = if (offsets == null) {
+                    logger.debug("No offsets found for $user, using the start date.")
+                    startDate
+                } else {
+                    logger.debug("Offsets found in persistence.")
+                    startDate
+//                            offsets.offsetsMap.getOrDefault(
+//                                    UserRoute(user.versionedId, route.toString()), startDate
+//                            ).coerceAtLeast(startDate)
+                }
+
+                if (startOffset <= backfillLimit) {
+                    // the start date is before the backfill limits
+                    logger.warn(
+                            "Backfill limit exceeded for $user and $route. " +
+                                    "Resetting to earliest allowed start offset."
+                    )
+                    startOffset = backfillLimit.plus(Duration.ofDays(2))
+                }
+
+                val endDate = user.endDate
+                if (endDate <= startOffset) return@flatMap emptySequence()
+                val endTime = (startOffset + defaultQueryRange).coerceAtMost(endDate)
+                return route.generateRequests(user, startOffset, endTime, max / routes.size)
+        } else emptySequence()
+    }
+    
 
     override fun requestSuccessful(request: RestRequest, response: Response) {
         logger.debug("Request successful: {}. Writing to offsets...", request.request)

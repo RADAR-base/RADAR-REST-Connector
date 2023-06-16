@@ -6,10 +6,15 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 
 import okhttp3.Response
 import org.radarbase.oura.user.User
+import org.radarbase.oura.route.Route
 
 interface RequestGenerator {
 
     fun requests(user: User, max: Int): Sequence<RestRequest>
+
+    fun requests(route: Route, user: User, max: Int): Sequence<RestRequest>
+
+    fun requests(route: Route, max: Int): Sequence<RestRequest>
 
     fun requestSuccessful(request: RestRequest, response: Response)
 
