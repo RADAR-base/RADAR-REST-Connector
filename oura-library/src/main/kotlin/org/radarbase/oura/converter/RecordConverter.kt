@@ -6,7 +6,7 @@ import java.io.IOException
 import java.time.Duration
 import java.time.Instant
 
-interface PayloadToSourceRecordConverter {
+interface RecordConverter {
     @Throws(IOException::class)
     fun convert(
             request: RestRequest, headers: Headers, data: ByteArray

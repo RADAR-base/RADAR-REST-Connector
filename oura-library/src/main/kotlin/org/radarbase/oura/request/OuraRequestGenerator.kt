@@ -36,8 +36,6 @@ class OuraRequestGenerator(
                     .flatMap { route ->
 //                        val offsets: Offsets? = offsetPersistenceFactory.read(user.versionedId)
                         val offsets = null
-                        val backfillLimit = Instant.now().minus(route.maxBackfillPeriod())
-//                        val startDate = userRepository.getBackfillStartDate(user)
                         val startDate = user.startDate
                         var startOffset: Instant = if (offsets == null) {
                             logger.debug("No offsets found for $user, using the start date.")
@@ -49,16 +47,6 @@ class OuraRequestGenerator(
 //                                    UserRoute(user.versionedId, route.toString()), startDate
 //                            ).coerceAtLeast(startDate)
                         }
-
-                        if (startOffset <= backfillLimit) {
-                            // the start date is before the backfill limits
-                            logger.warn(
-                                    "Backfill limit exceeded for $user and $route. " +
-                                            "Resetting to earliest allowed start offset."
-                            )
-                            startOffset = backfillLimit.plus(Duration.ofDays(2))
-                        }
-
                         val endDate = user.endDate
                         if (endDate <= startOffset) return@flatMap emptySequence()
                         val endTime = (startOffset + defaultQueryRange).coerceAtMost(endDate)
@@ -74,8 +62,6 @@ class OuraRequestGenerator(
                     .flatMap { user ->
 //                        val offsets: Offsets? = offsetPersistenceFactory.read(user.versionedId)
                         val offsets = null
-                        val backfillLimit = Instant.now().minus(route.maxBackfillPeriod())
-//                        val startDate = userRepository.getBackfillStartDate(user)
                         val startDate = user.startDate
                         var startOffset: Instant = if (offsets == null) {
                             logger.debug("No offsets found for $user, using the start date.")
@@ -87,16 +73,6 @@ class OuraRequestGenerator(
 //                                    UserRoute(user.versionedId, route.toString()), startDate
 //                            ).coerceAtLeast(startDate)
                         }
-
-                        if (startOffset <= backfillLimit) {
-                            // the start date is before the backfill limits
-                            logger.warn(
-                                    "Backfill limit exceeded for $user and $route. " +
-                                            "Resetting to earliest allowed start offset."
-                            )
-                            startOffset = backfillLimit.plus(Duration.ofDays(2))
-                        }
-
                         val endDate = user.endDate
                         if (endDate <= startOffset) return@flatMap emptySequence()
                         val endTime = (startOffset + defaultQueryRange).coerceAtMost(endDate)
@@ -109,8 +85,6 @@ class OuraRequestGenerator(
         return if (user.ready()) {
 //                        val offsets: Offsets? = offsetPersistenceFactory.read(user.versionedId)
                 val offsets = null
-                val backfillLimit = Instant.now().minus(route.maxBackfillPeriod())
-//                        val startDate = userRepository.getBackfillStartDate(user)
                 val startDate = user.startDate
                 var startOffset: Instant = if (offsets == null) {
                     logger.debug("No offsets found for $user, using the start date.")
@@ -121,15 +95,6 @@ class OuraRequestGenerator(
 //                            offsets.offsetsMap.getOrDefault(
 //                                    UserRoute(user.versionedId, route.toString()), startDate
 //                            ).coerceAtLeast(startDate)
-                }
-
-                if (startOffset <= backfillLimit) {
-                    // the start date is before the backfill limits
-                    logger.warn(
-                            "Backfill limit exceeded for $user and $route. " +
-                                    "Resetting to earliest allowed start offset."
-                    )
-                    startOffset = backfillLimit.plus(Duration.ofDays(2))
                 }
 
                 val endDate = user.endDate

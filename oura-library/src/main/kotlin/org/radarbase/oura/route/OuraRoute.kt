@@ -42,23 +42,15 @@ abstract class OuraRoute(
     override fun generateRequests(
             user: User,
             start: Instant,
-            end: Instant,
-            max: Int
+            end: Instant
     ): Sequence<RestRequest> {
         val maxIntervalPerRequest = Duration.ofDays(0)
-        val startRange = start
-        val endRange = (startRange + maxIntervalPerRequest).coerceAtMost(end)
         val request = createRequest(
                 user, "$OURA_API_BASE_URL/${subPath()}",
-                "?start_date=${startRange.epochSecond}" +
-                        "&end_date=${endRange.epochSecond}"
+                "?start_date=${start.epochSecond}" +
+                        "&end_date=${end.epochSecond}"
         )
-        return sequenceOf(RestRequest(request, user, this, startRange, endRange))
-    }
-
-    override fun maxBackfillPeriod(): Duration {
-        // 2 years default. Activity API routes will override this with 5 years
-        return Duration.ofDays(365 * 5)
+        return sequenceOf(RestRequest(request, user, this, start, end))
     }
 
     abstract fun subPath(): String
@@ -67,6 +59,5 @@ abstract class OuraRoute(
         const val OURA_API_BASE_URL =
                 "https://api.ouraring.com/v2/usercollection/"
         const val ROUTE_METHOD = "GET"
-        private val DEFAULT_INTERVAL_PER_REQUEST = Duration.ofDays(5L)
     }
 }

@@ -7,12 +7,11 @@ import java.time.Instant
 
 interface Route {
 
-    fun generateRequests(user: User, start: Instant, end: Instant, max: Int): Sequence<RestRequest>
+    fun generateRequests(user: User, start: Instant, end: Instant): Sequence<RestRequest>
 
     /**
      * This is how it would appear in the offsets
      */
     override fun toString(): String
 
-    fun maxBackfillPeriod(): Duration
 }

@@ -5,7 +5,7 @@ import java.time.Instant
 
 /** Single value for a topic.  */
 data class TopicData(
-        var sourceOffset: Instant,
         val topic: String,
+        val key: IndexedRecord,
         val value: IndexedRecord,
 )
