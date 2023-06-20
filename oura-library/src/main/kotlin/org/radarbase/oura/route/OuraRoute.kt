@@ -16,48 +16,45 @@
  */
 package org.radarbase.oura.route
 
-import okhttp3.HttpUrl
+import java.time.Instant
 import okhttp3.Request
 import org.radarbase.oura.request.RestRequest
 import org.radarbase.oura.user.User
-import java.time.Duration
-import java.time.Instant
 
 abstract class OuraRoute(
-        // Add back user repository here
+// Add back user repository here
 ) : Route {
-        val maxIntervalPerRequest: Duration
-        get() = DEFAULT_INTERVAL_PER_REQUEST
 
-    fun createRequest(user: User, baseUrl: String, queryParams: String): Request {
-        val request = Request.Builder()
-                .url(baseUrl + queryParams)
-                .header("Authorization", "Bearer hi")
-                .get()
-                .build()
+        fun createRequest(user: User, baseUrl: String, queryParams: String): Request {
+                val request =
+                                Request.Builder()
+                                                .url(baseUrl + queryParams)
+                                                .header("Authorization", "Bearer hi")
+                                                .get()
+                                                .build()
 
-        return request
-    }
+                return request
+        }
 
-    override fun generateRequests(
-            user: User,
-            start: Instant,
-            end: Instant
-    ): Sequence<RestRequest> {
-        val maxIntervalPerRequest = Duration.ofDays(0)
-        val request = createRequest(
-                user, "$OURA_API_BASE_URL/${subPath()}",
-                "?start_date=${start.epochSecond}" +
-                        "&end_date=${end.epochSecond}"
-        )
-        return sequenceOf(RestRequest(request, user, this, start, end))
-    }
+        override fun generateRequests(
+                        user: User,
+                        start: Instant,
+                        end: Instant
+        ): Sequence<RestRequest> {
+                val request =
+                                createRequest(
+                                                user,
+                                                "$OURA_API_BASE_URL/${subPath()}",
+                                                "?start_date=${start.epochSecond}" +
+                                                                "&end_date=${end.epochSecond}"
+                                )
+                return sequenceOf(RestRequest(request, user, this, start, end))
+        }
 
-    abstract fun subPath(): String
+        abstract fun subPath(): String
 
-    companion object {
-        const val OURA_API_BASE_URL =
-                "https://api.ouraring.com/v2/usercollection/"
-        const val ROUTE_METHOD = "GET"
-    }
+        companion object {
+                const val OURA_API_BASE_URL = "https://api.ouraring.com/v2/usercollection/"
+                const val ROUTE_METHOD = "GET"
+        }
 }

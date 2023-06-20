@@ -22,16 +22,15 @@ class OuraDailySleepConverter(
                     val startTime = OffsetDateTime.parse(s["timestamp"].textValue())
                     val startInstant = startTime.toInstant()
                     TopicData(
-                            sourceOffset = startInstant,
+                            key = s.toDailySleep(startInstant),
                             topic = topic,
-                            value = s.toDailySleep(startInstant, startTime.offset),
+                            value = s.toDailySleep(startInstant),
                     )
                 }
     }
 
     private fun JsonNode.toDailySleep(
-            startTime: Instant,
-            offset: ZoneOffset,
+            startTime: Instant
     ): OuraDailySleep {
         return OuraDailySleep.newBuilder().apply {
             time = startTime.toEpochMilli() / 1000.0
