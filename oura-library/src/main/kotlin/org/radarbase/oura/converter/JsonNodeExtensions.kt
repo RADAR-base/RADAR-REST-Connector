@@ -41,10 +41,10 @@ internal fun JsonNode.getRecordInterval(defaultValue: Int): Int {
         "microsecond" -> TimeUnit.MICROSECONDS
         else -> {
             logger.warn(
-                    "Failed to parse dataset interval type {} for {}; using {} seconds instead",
-                    type.asText(),
-                    interval.asLong(),
-                    defaultValue
+                "Failed to parse dataset interval type {} for {}; using {} seconds instead",
+                type.asText(),
+                interval.asLong(),
+                defaultValue,
             )
             return defaultValue
         }
@@ -52,35 +52,34 @@ internal fun JsonNode.getRecordInterval(defaultValue: Int): Int {
 }
 
 internal fun JsonNode.optLong(fieldName: String): Long? = this[fieldName]
-        ?.takeIf { it.canConvertToLong() }
-        ?.longValue()
+    ?.takeIf { it.canConvertToLong() }
+    ?.longValue()
 
 internal fun JsonNode.optDouble(fieldName: String): Double? = this[fieldName]
-        ?.takeIf { it.isNumber }
-        ?.doubleValue()
+    ?.takeIf { it.isNumber }
+    ?.doubleValue()
 
 internal fun JsonNode.optFloat(fieldName: String): Float? = this[fieldName]
-        ?.takeIf { it.isNumber }
-        ?.floatValue()
+    ?.takeIf { it.isNumber }
+    ?.floatValue()
 
 internal fun JsonNode.optInt(fieldName: String): Int? = this[fieldName]
-        ?.takeIf { it.canConvertToInt() }
-        ?.intValue()
+    ?.takeIf { it.canConvertToInt() }
+    ?.intValue()
 
 internal fun JsonNode.optString(fieldName: String?): String? = this[fieldName]
-        ?.takeIf { it.isTextual }
-        ?.textValue()
+    ?.takeIf { it.isTextual }
+    ?.textValue()
 
 internal fun JsonNode.optBoolean(fieldName: String?): Boolean? = this[fieldName]
-        ?.takeIf { it.isBoolean }
-        ?.booleanValue()
+    ?.takeIf { it.isBoolean }
+    ?.booleanValue()
 
 internal fun JsonNode.optObject(fieldName: String?): ObjectNode? = this[fieldName]
-        ?.takeIf { it.isObject } as ObjectNode?
+    ?.takeIf { it.isObject } as ObjectNode?
 
 internal fun JsonNode.optArray(fieldName: String?): Iterable<JsonNode>? = this[fieldName]
-        ?.takeIf { it.isArray && it.size() > 0 }
-
+    ?.takeIf { it.isArray && it.size() > 0 }
 
 internal fun <S, T> Sequence<T>.mapCatching(fn: (T) -> S): Sequence<Result<S>> = map { t ->
     runCatching {

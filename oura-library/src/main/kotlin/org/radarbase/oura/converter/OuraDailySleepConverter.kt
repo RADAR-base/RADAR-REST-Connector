@@ -1,36 +1,35 @@
 package org.radarbase.oura.converter
 
 import com.fasterxml.jackson.databind.JsonNode
-import java.time.Instant
-import org.slf4j.LoggerFactory
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
 import org.radarcns.connector.oura.OuraDailySleep
+import org.slf4j.LoggerFactory
+import java.time.Instant
+import java.time.OffsetDateTime
 
 class OuraDailySleepConverter(
-        private val topic: String = "connect_oura_daily_sleep"
+    private val topic: String = "connect_oura_daily_sleep",
 ) : OuraDataConverter {
     override fun processRecords(
-            root: JsonNode
+        root: JsonNode,
     ): Sequence<Result<TopicData>> {
         val array = root.optArray("data")
-                ?: return emptySequence()
+            ?: return emptySequence()
 
         return array.asSequence()
-                .sortedBy { it["timestamp"].textValue() }
-                .mapCatching { s ->
-                    val startTime = OffsetDateTime.parse(s["timestamp"].textValue())
-                    val startInstant = startTime.toInstant()
-                    TopicData(
-                            key = s.toDailySleep(startInstant),
-                            topic = topic,
-                            value = s.toDailySleep(startInstant),
-                    )
-                }
+            .sortedBy { it["timestamp"].textValue() }
+            .mapCatching { s ->
+                val startTime = OffsetDateTime.parse(s["timestamp"].textValue())
+                val startInstant = startTime.toInstant()
+                TopicData(
+                    key = s.toDailySleep(startInstant),
+                    topic = topic,
+                    value = s.toDailySleep(startInstant),
+                )
+            }
     }
 
     private fun JsonNode.toDailySleep(
-            startTime: Instant
+        startTime: Instant,
     ): OuraDailySleep {
         return OuraDailySleep.newBuilder().apply {
             time = startTime.toEpochMilli() / 1000.0

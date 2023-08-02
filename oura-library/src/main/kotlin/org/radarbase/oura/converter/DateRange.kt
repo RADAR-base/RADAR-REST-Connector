@@ -20,6 +20,6 @@ package org.radarbase.oura.converter
 import java.time.ZonedDateTime
 
 data class DateRange(
-        val start: ZonedDateTime,
-        val end: ZonedDateTime,
+    val start: ZonedDateTime,
+    val end: ZonedDateTime,
 )

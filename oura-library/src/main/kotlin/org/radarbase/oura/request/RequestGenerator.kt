@@ -1,12 +1,8 @@
 package org.radarbase.oura.request
 
-import com.fasterxml.jackson.core.JsonFactory
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-
 import okhttp3.Response
-import org.radarbase.oura.user.User
 import org.radarbase.oura.route.Route
+import org.radarbase.oura.user.User
 
 interface RequestGenerator {
 

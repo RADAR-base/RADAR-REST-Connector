@@ -1,6 +1,6 @@
 package org.radarbase.oura.route
 
-class OuraDailySleepRoute: OuraRoute() {
+class OuraDailySleepRoute : OuraRoute() {
 
     override fun subPath(): String = "daily_sleep"
 

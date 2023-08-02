@@ -5,5 +5,4 @@ object OuraRouteFactory {
     fun getRoute(): OuraDailySleepRoute {
         return OuraDailySleepRoute()
     }
-
 }

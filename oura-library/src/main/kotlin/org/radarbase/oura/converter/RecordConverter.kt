@@ -9,7 +9,9 @@ import java.time.Instant
 interface RecordConverter {
     @Throws(IOException::class)
     fun convert(
-            request: RestRequest, headers: Headers, data: ByteArray
+        request: RestRequest,
+        headers: Headers,
+        data: ByteArray,
     ): Sequence<Result<TopicData>>
 
     companion object {

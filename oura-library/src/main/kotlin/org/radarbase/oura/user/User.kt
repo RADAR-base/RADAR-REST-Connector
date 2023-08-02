@@ -1,6 +1,6 @@
 package org.radarbase.oura.user
 
-//import org.radarcns.kafka.ObservationKey
+// import org.radarcns.kafka.ObservationKey
 import java.time.Instant
 
 interface User {
@@ -16,6 +16,7 @@ interface User {
     val serviceUserId: String
     val version: String?
     val isAuthorized: Boolean
+
 //    val observationKey: ObservationKey
     val versionedId: String
 }

@@ -25,14 +25,16 @@ interface UserRepository {
      *
      * @throws IOException if the user cannot be retrieved from the repository.
      */
-    @Throws(IOException::class) operator fun get(key: String): User?
+    @Throws(IOException::class)
+    operator fun get(key: String): User?
 
     /**
      * Get all relevant users.
      *
      * @throws IOException if the list cannot be retrieved from the repository.
      */
-    @Throws(IOException::class) fun stream(): Sequence<User>
+    @Throws(IOException::class)
+    fun stream(): Sequence<User>
 
     /**
      * Get the current access token of given user.
@@ -64,8 +66,8 @@ interface UserRepository {
      */
     @Throws(NoSuchElementException::class, IOException::class)
     fun findByExternalId(externalId: String): User =
-            stream().firstOrNull { it.serviceUserId == externalId }
-                    ?: throw NoSuchElementException("User not found in the User repository")
+        stream().firstOrNull { it.serviceUserId == externalId }
+            ?: throw NoSuchElementException("User not found in the User repository")
 
     /**
      * The functions allows the repository to supply when there are pending updates. This gives more
@@ -79,5 +81,6 @@ interface UserRepository {
      * users with latest information. This is called when [.hasPendingUpdates] is `true`.
      * @throws IOException if there was an error when applying updates.
      */
-    @Throws(IOException::class) fun applyPendingUpdates()
+    @Throws(IOException::class)
+    fun applyPendingUpdates()
 }
