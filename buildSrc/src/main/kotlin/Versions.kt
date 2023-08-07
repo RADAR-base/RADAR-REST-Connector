@@ -25,4 +25,6 @@ object Versions {
     const val hamcrest = "2.2"
     const val wiremock = "2.27.2"
     const val mockito = "5.3.1"
+
+    const val kotlinVersion = "1.8.21"
 }

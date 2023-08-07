@@ -11,6 +11,7 @@ dependencies {
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     implementation("com.google.firebase:firebase-admin:${Versions.firebaseAdmin}")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.3.41")
 
     // Included in connector runtime
     compileOnly("org.apache.kafka:connect-api:${Versions.kafka}")

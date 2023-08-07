@@ -50,6 +50,10 @@ import org.radarbase.exception.TokenException;
 import org.radarbase.oauth.OAuth2Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.radarbase.oura.user.UserRepository;
+import org.radarbase.oura.user.User;
+import kotlin.sequences.*;
+import kotlin.collections.*;
 
 @SuppressWarnings("unused")
 public class ServiceUserRepository implements UserRepository {
@@ -89,7 +93,6 @@ public class ServiceUserRepository implements UserRepository {
     return makeRequest(request, USER_READER);
   }
 
-  @Override
   public void initialize(RestSourceConnectorConfig config) {
     FitbitRestSourceConnectorConfig fitbitConfig = (FitbitRestSourceConnectorConfig) config;
     this.baseUrl = fitbitConfig.getFitbitUserRepositoryUrl();
@@ -115,7 +118,7 @@ public class ServiceUserRepository implements UserRepository {
   }
 
   @Override
-  public Stream<? extends User> stream() {
+  public Sequence<User> stream() {
     if (nextFetch.get().equals(MIN_INSTANT)) {
       try {
         applyPendingUpdates();
@@ -123,12 +126,11 @@ public class ServiceUserRepository implements UserRepository {
         logger.error("Failed to initially get users from repository", ex);
       }
     }
-    return this.timedCachedUsers.stream()
-        .filter(User::isComplete);
+    return this.timedCachedUsers.stream().iterator().asSequence();
   }
 
   @Override
-  public String getAccessToken(User user) throws IOException, UserNotAuthorizedException {
+  public String getAccessToken(User user) {
     if (!user.isAuthorized()) {
       throw new UserNotAuthorizedException("User is not authorized");
     }
@@ -141,7 +143,7 @@ public class ServiceUserRepository implements UserRepository {
     }
   }
 
-  @Override
+  // @Override
   public String refreshAccessToken(User user) throws IOException, UserNotAuthorizedException {
     if (!user.isAuthorized()) {
       throw new UserNotAuthorizedException("User is not authorized");

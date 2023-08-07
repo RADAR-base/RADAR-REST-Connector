@@ -55,8 +55,8 @@ interface UserRepository {
      * to get a new token.
      * @throws NoSuchElementException if the user does not exists in this repository.
      */
-    @Throws(IOException::class, UserNotAuthorizedException::class)
-    fun getRefreshToken(user: User): String
+    // @Throws(IOException::class, UserNotAuthorizedException::class)
+    // fun getRefreshToken(user: User): String
 
     /**
      * Finds [User] using [User.externalUserId]
@@ -64,10 +64,10 @@ interface UserRepository {
      * @throws IOException if there was an error when finding the user.
      * @throws NoSuchElementException if the user does not exists in this repository.
      */
-    @Throws(NoSuchElementException::class, IOException::class)
-    fun findByExternalId(externalId: String): User =
-        stream().firstOrNull { it.serviceUserId == externalId }
-            ?: throw NoSuchElementException("User not found in the User repository")
+    // @Throws(NoSuchElementException::class, IOException::class)
+    // fun findByExternalId(externalId: String): User =
+    //     stream().firstOrNull { it.serviceUserId == externalId }
+    //         ?: throw NoSuchElementException("User not found in the User repository")
 
     /**
      * The functions allows the repository to supply when there are pending updates. This gives more

@@ -2,6 +2,8 @@
 group = 'org.radarbase'
 version = '0.0.1'
 
+apply plugin: 'maven-publish'
+
 repositories {
     // Use jcenter for resolving dependencies.
     // You can declare any Maven/Ivy/file repository here.
