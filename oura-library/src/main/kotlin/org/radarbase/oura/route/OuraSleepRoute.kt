@@ -1,8 +1,11 @@
 package org.radarbase.oura.route
 
 import org.radarbase.oura.converter.OuraDailySleepConverter
+import org.radarbase.oura.user.UserRepository
 
-class OuraSleepRoute : OuraRoute() {
+class OuraSleepRoute(
+    private val userRepository: UserRepository?
+) : OuraRoute(userRepository) {
 
     override fun subPath(): String = "sleep"
 

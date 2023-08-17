@@ -19,6 +19,7 @@ package org.radarbase.oura.route
 import okhttp3.Request
 import org.radarbase.oura.request.RestRequest
 import org.radarbase.oura.user.User
+import org.radarbase.oura.user.UserRepository
 import org.radarbase.oura.converter.OuraDailySleepConverter
 import org.radarbase.oura.converter.OuraDataConverter
 import java.time.Instant
@@ -26,13 +27,13 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 
 abstract class OuraRoute(
-// Add back user repository here
+    private val userRepository: UserRepository?,
 ) : Route {
 
     abstract val converter: OuraDataConverter
  
     fun createRequest(user: User, baseUrl: String, queryParams: String): Request {
-        val accessToken = ""
+        val accessToken = userRepository!!.getAccessToken(user)
         val request =
             Request.Builder()
                 .url(baseUrl + queryParams)
