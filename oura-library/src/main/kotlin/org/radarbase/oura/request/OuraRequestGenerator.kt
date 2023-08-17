@@ -5,12 +5,14 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import okhttp3.OkHttpClient
 import okhttp3.Response
+import okhttp3.ResponseBody
 import org.radarbase.oura.route.OuraDailySleepRoute
 import org.radarbase.oura.route.OuraRouteFactory
 import org.radarbase.oura.route.Route
 import org.radarbase.oura.user.User
 import org.radarbase.oura.user.UserRepository
 import org.slf4j.LoggerFactory
+import org.apache.avro.specific.SpecificRecord
 import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.TimeUnit
@@ -122,9 +124,12 @@ class OuraRequestGenerator(
         }
     }
 
-    override fun requestSuccessful(request: RestRequest, response: Response) {
+    override fun requestSuccessful(request: RestRequest, response: Response): List<Pair<SpecificRecord, SpecificRecord>> {
         logger.debug("Request successful: {}. Writing to offsets...", request.request)
+        val body: ResponseBody? = response.body
+        val records = request.route.converter.convert(request, response.headers, body?.bytes()!!)
         ouraOffsetManager.updateOffsets(request.route, request.user, request.endDate)
+        return records
     }
 
     override fun requestFailed(request: RestRequest, response: Response) {

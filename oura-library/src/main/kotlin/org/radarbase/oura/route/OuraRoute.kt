@@ -19,17 +19,24 @@ package org.radarbase.oura.route
 import okhttp3.Request
 import org.radarbase.oura.request.RestRequest
 import org.radarbase.oura.user.User
+import org.radarbase.oura.converter.OuraDailySleepConverter
+import org.radarbase.oura.converter.OuraDataConverter
 import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
 
 abstract class OuraRoute(
 // Add back user repository here
 ) : Route {
 
+    abstract val converter: OuraDataConverter
+ 
     fun createRequest(user: User, baseUrl: String, queryParams: String): Request {
+        val accessToken = ""
         val request =
             Request.Builder()
                 .url(baseUrl + queryParams)
-                .header("Authorization", "Bearer hi")
+                .header("Authorization", "Bearer " + accessToken)
                 .get()
                 .build()
 
@@ -45,16 +52,18 @@ abstract class OuraRoute(
             createRequest(
                 user,
                 "$OURA_API_BASE_URL/${subPath()}",
-                "?start_date=${start.epochSecond}" +
-                    "&end_date=${end.epochSecond}",
+                "?start_date=${start.toLocalDate()}" +
+                    "&end_date=${end.toLocalDate()}",
             )
         return sequenceOf(RestRequest(request, user, this, start, end))
     }
 
     abstract fun subPath(): String
 
+    fun Instant.toLocalDate() = LocalDateTime.ofInstant(this, ZoneId.systemDefault()).toLocalDate()
+
     companion object {
-        const val OURA_API_BASE_URL = "https://api.ouraring.com/v2/usercollection/"
+        const val OURA_API_BASE_URL = "https://api.ouraring.com/v2/usercollection"
         const val ROUTE_METHOD = "GET"
     }
 }

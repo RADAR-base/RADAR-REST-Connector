@@ -83,4 +83,16 @@ interface UserRepository {
      */
     @Throws(IOException::class)
     fun applyPendingUpdates()
+
+    /**
+     * Finds [User] using [User.externalUserId]
+     *
+     * @throws IOException            if there was an error when finding the user.
+     * @throws NoSuchElementException if the user does not exists in this repository.
+     */
+    @Throws(NoSuchElementException::class, IOException::class)
+    fun findByExternalId(externalId: String): User = stream()
+        .firstOrNull { it.serviceUserId == externalId }
+        ?: throw NoSuchElementException("User not found in the User repository")
+
 }

@@ -9,7 +9,7 @@ import java.time.Instant
 
 interface OuraOffsetManager {
 
-    fun getOffset(route: Route, user: User): Offset
+    fun getOffset(route: Route, user: User): Offset?
 
     fun updateOffsets(route: Route, user: User, offset: Instant)
 }

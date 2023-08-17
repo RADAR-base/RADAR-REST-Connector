@@ -2,6 +2,7 @@ package org.radarbase.oura.converter
 
 import okhttp3.Headers
 import org.radarbase.oura.request.RestRequest
+import org.apache.avro.specific.SpecificRecord
 import java.io.IOException
 import java.time.Duration
 import java.time.Instant
@@ -12,7 +13,7 @@ interface RecordConverter {
         request: RestRequest,
         headers: Headers,
         data: ByteArray,
-    ): Sequence<Result<TopicData>>
+    ): List<Pair<SpecificRecord, SpecificRecord>>
 
     companion object {
         fun nearFuture(): Instant {
