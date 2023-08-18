@@ -6,6 +6,7 @@ import org.apache.avro.specific.SpecificRecord
 import java.io.IOException
 import java.time.Duration
 import java.time.Instant
+import org.slf4j.LoggerFactory
 
 interface RecordConverter {
     @Throws(IOException::class)
@@ -19,7 +20,7 @@ interface RecordConverter {
         fun nearFuture(): Instant {
             return Instant.now().plus(NEAR_FUTURE)
         }
-
+        var logger = LoggerFactory.getLogger(RecordConverter::class.java)
         val MIN_INSTANT = Instant.EPOCH
         const val TIMESTAMP_OFFSET_KEY = "timestamp"
         private val NEAR_FUTURE = Duration.ofDays(31L)

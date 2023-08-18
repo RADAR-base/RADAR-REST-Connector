@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
 
-private val logger = LoggerFactory.getLogger("org.radarbase.oura.converter.JsonNodeExtensions")
+val logger = LoggerFactory.getLogger("org.radarbase.oura.converter.JsonNodeExtensions")
 
 internal fun JsonNode.getRecordInterval(defaultValue: Int): Int {
     val type = this["datasetType"]

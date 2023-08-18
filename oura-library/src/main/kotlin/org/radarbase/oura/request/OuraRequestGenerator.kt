@@ -33,7 +33,7 @@ class OuraRequestGenerator(
 
     val routes: List<Route> =
         listOf(
-            OuraRouteFactory.getRoute(),
+            OuraRouteFactory.getRoute(userRepository),
         )
 
     private val userNextRequest: MutableMap<String, Instant> = mutableMapOf()

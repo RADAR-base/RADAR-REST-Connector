@@ -29,6 +29,7 @@ interface OuraDataConverter : RecordConverter {
                 it
             },
             {
+                logger.error("Data conversion failed..")
                 null
             })
         }

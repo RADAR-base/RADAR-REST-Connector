@@ -48,7 +48,6 @@ class OuraDailySleepConverter(
     }
 
     companion object {
-        private val logger = LoggerFactory.getLogger(OuraDailySleepConverter::class.java)
-        private const val FOOD_CAL_TO_KJOULE_FACTOR = 4.1868f
+        val logger = LoggerFactory.getLogger(OuraDailySleepConverter::class.java)
     }
 }
