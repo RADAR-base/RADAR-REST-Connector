@@ -31,10 +31,8 @@ class OuraRequestGenerator(
         .readTimeout(30, TimeUnit.SECONDS)
         .build()
 
-    val routes: List<Route> =
-        listOf(
-            OuraRouteFactory.getRoute(userRepository),
-        )
+    val routes: List<Route> = OuraRouteFactory.getRoutes(userRepository)
+        
 
     private val userNextRequest: MutableMap<String, Instant> = mutableMapOf()
 

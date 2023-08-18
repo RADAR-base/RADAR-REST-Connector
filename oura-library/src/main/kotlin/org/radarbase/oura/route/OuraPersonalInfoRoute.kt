@@ -1,6 +1,6 @@
 package org.radarbase.oura.route
 
-import org.radarbase.oura.converter.OuraDailySleepConverter
+import org.radarbase.oura.converter.OuraPersonalInfoConverter
 import org.radarbase.oura.user.UserRepository
 
 class OuraPersonalInfoRoute(
@@ -11,6 +11,6 @@ class OuraPersonalInfoRoute(
 
     override fun toString(): String = "oura_personal_info"
 
-    override var converter = OuraDailySleepConverter()
+    override var converter = OuraPersonalInfoConverter()
 
 }
