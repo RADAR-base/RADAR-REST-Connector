@@ -11,6 +11,7 @@ class OuraDailyActivityRoute(
 
     override fun toString(): String = "oura_daily_activity"
 
-    override var converter = OuraDailyActivityConverter()
+    override var converters = listOf(
+        OuraDailyActivityConverter())
 
 }

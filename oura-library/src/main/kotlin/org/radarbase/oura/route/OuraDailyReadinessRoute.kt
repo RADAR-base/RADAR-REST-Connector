@@ -11,6 +11,6 @@ class OuraDailyReadinessRoute(
 
     override fun toString(): String = "oura_daily_readiness"
 
-    override var converter = OuraDailyReadinessConverter()
+    override var converters = listOf(OuraDailyReadinessConverter())
 
 }

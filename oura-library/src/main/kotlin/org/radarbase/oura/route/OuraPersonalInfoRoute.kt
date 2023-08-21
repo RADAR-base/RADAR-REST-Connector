@@ -11,6 +11,6 @@ class OuraPersonalInfoRoute(
 
     override fun toString(): String = "oura_personal_info"
 
-    override var converter = OuraPersonalInfoConverter()
+    override var converters = listOf(OuraPersonalInfoConverter())
 
 }

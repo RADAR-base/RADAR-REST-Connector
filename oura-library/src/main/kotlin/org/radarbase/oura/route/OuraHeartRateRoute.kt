@@ -11,6 +11,6 @@ class OuraHeartRateRoute(
 
     override fun toString(): String = "oura_heart_rate"
 
-    override var converter = OuraHeartRateConverter()
+    override var converters = listOf(OuraHeartRateConverter())
 
 }

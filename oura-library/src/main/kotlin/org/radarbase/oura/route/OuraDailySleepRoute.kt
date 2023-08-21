@@ -11,6 +11,6 @@ class OuraDailySleepRoute(
 
     override fun toString(): String = "oura_daily_sleep"
 
-    override var converter = OuraDailySleepConverter()
+    override var converters = listOf(OuraDailySleepConverter())
 
 }

@@ -86,3 +86,9 @@ internal fun <S, T> Sequence<T>.mapCatching(fn: (T) -> S): Sequence<Result<S>> =
         fn(t)
     }
 }
+
+internal fun <S, T> Sequence<T>.mapIndexedCatching(fn: (index: Int, T) -> S): Sequence<Result<S>> = mapIndexed { index, t ->
+    runCatching {
+        fn(index, t)
+    }
+}

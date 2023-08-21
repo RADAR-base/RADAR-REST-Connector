@@ -30,7 +30,7 @@ abstract class OuraRoute(
     private val userRepository: UserRepository?,
 ) : Route {
 
-    abstract val converter: OuraDataConverter
+    abstract val converters: List<OuraDataConverter>
  
     fun createRequest(user: User, baseUrl: String, queryParams: String): Request {
         val accessToken = userRepository!!.getAccessToken(user)
