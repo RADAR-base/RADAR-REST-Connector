@@ -3,7 +3,6 @@ package org.radarbase.oura.request
 import com.fasterxml.jackson.core.JsonFactory
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import okhttp3.OkHttpClient
 import okhttp3.Response
 import okhttp3.ResponseBody
 import org.radarbase.oura.route.OuraDailySleepRoute
@@ -19,21 +18,12 @@ import java.util.concurrent.TimeUnit
 import kotlin.streams.asSequence
 
 class OuraRequestGenerator(
-    // Insert offset managers, user repositories, configs here
     private val userRepository: UserRepository,
     private val defaultQueryRange: Duration = Duration.ofDays(15),
     private val ouraOffsetManager: OuraOffsetManager,
+    public val routes: List<Route> = OuraRouteFactory.getRoutes(userRepository)
 ) : RequestGenerator {
-
-    var client: OkHttpClient = OkHttpClient().newBuilder()
-        .connectTimeout(10, TimeUnit.SECONDS)
-        .writeTimeout(10, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .build()
-
-    val routes: List<Route> = OuraRouteFactory.getRoutes(userRepository)
         
-
     private val userNextRequest: MutableMap<String, Instant> = mutableMapOf()
 
     private var nextRequestTime: Instant = Instant.MIN
@@ -58,6 +48,7 @@ class OuraRequestGenerator(
                     if (endDate <= startOffset) return@flatMap emptySequence()
                     val endTime = (startOffset + defaultQueryRange).coerceAtMost(endDate)
                     route.generateRequests(user, startOffset, endTime)
+                    // route.generateRequests(user, startOffset, endTime, max)
                 }
                 .takeWhile { !shouldBackoff }
         } else {
@@ -107,18 +98,11 @@ class OuraRequestGenerator(
         }
     }
 
-    fun makeRequest(req: RestRequest) {
-        logger.debug("Making Request: {}", req.request)
-        try {
-            client.newCall(req.request).execute().use { response ->
-                if (response.isSuccessful) {
-                    requestSuccessful(req, response)
-                } else {
-                    requestFailed(req, response)
-                }
-            }
-        } catch (ex: Throwable) {
-            logger.warn("Error making request ${req.request.url}.", ex)
+    fun handleResponse(req: RestRequest, response: Response) {
+        if (response.isSuccessful) {
+            requestSuccessful(req, response)
+        } else {
+            requestFailed(req, response)
         }
     }
 
