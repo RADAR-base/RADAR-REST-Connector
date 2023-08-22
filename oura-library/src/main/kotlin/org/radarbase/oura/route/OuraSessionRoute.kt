@@ -2,8 +2,8 @@ package org.radarbase.oura.route
 
 import org.radarbase.oura.converter.OuraSessionConverter
 import org.radarbase.oura.converter.OuraMotionCountConverter
-import org.radarbase.oura.converter.OuraSleepHrvConverter
-import org.radarbase.oura.converter.OuraSleepHeartRateConverter
+import org.radarbase.oura.converter.OuraSessionHrvConverter
+import org.radarbase.oura.converter.OuraSessionHeartRateConverter
 import org.radarbase.oura.user.UserRepository
 
 class OuraSessionRoute(
@@ -17,8 +17,8 @@ class OuraSessionRoute(
     override var converters = listOf(
         OuraSessionConverter(), 
         OuraMotionCountConverter(),
-        OuraSleepHrvConverter(),
-        OuraSleepHeartRateConverter(),
+        OuraSessionHrvConverter(),
+        OuraSessionHeartRateConverter(),
         )
 
 }

@@ -7,7 +7,7 @@ import java.time.Instant
 import java.time.OffsetDateTime
 import org.radarbase.oura.user.User
 
-class OuraSleepHrvConverter(
+class OuraSessionHrvConverter(
     private val topic: String = "connect_oura_heart_rate_variability",
 ) : OuraDataConverter {
     override fun processRecords(
@@ -20,7 +20,7 @@ class OuraSleepHrvConverter(
         .flatMap { 
             val startTime = OffsetDateTime.parse(it["timestamp"].textValue())
             val startInstant = startTime.toInstant()
-            val data = it.optObject("hrv")
+            val data = it.optObject("heart_rate_variability")
             val interval = data?.optInt("interval")
             val items = data?.optArray("items")
             if (items == null) emptySequence()
@@ -52,6 +52,6 @@ class OuraSleepHrvConverter(
     }
 
     companion object {
-        val logger = LoggerFactory.getLogger(OuraSleepHrvConverter::class.java)
+        val logger = LoggerFactory.getLogger(OuraSessionHrvConverter::class.java)
     }
 }

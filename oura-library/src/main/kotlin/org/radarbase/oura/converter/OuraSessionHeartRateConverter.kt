@@ -1,14 +1,15 @@
 package org.radarbase.oura.converter
 
 import com.fasterxml.jackson.databind.JsonNode
-import org.radarcns.connector.oura.OuraHeartRateVariability
+import org.radarcns.connector.oura.OuraHeartRate
+import org.radarcns.connector.oura.OuraHeartRateSource
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.time.OffsetDateTime
 import org.radarbase.oura.user.User
 
-class OuraSleepHrvConverter(
-    private val topic: String = "connect_oura_heart_rate_variability",
+class OuraSessionHeartRateConverter(
+    private val topic: String = "connect_oura_heart_rate",
 ) : OuraDataConverter {
     override fun processRecords(
         root: JsonNode,
@@ -20,7 +21,7 @@ class OuraSleepHrvConverter(
         .flatMap { 
             val startTime = OffsetDateTime.parse(it["timestamp"].textValue())
             val startInstant = startTime.toInstant()
-            val data = it.optObject("hrv")
+            val data = it.optObject("heart_rate")
             val interval = data?.optInt("interval")
             val items = data?.optArray("items")
             if (items == null) emptySequence()
@@ -30,28 +31,29 @@ class OuraSleepHrvConverter(
                         TopicData(
                             key = user.observationKey,
                             topic = topic,
-                            value = data.toHrv(startInstant, i, interval, v.floatValue()),
+                            value = data.toHeartRate(startInstant, i, interval, v.intValue()),
                         )
                     }
             }
         }
     }
 
-    private fun JsonNode.toHrv(
+    private fun JsonNode.toHeartRate(
         startTime: Instant,
         index: Int?,
         interval: Int?,
-        value: Float
-    ): OuraHeartRateVariability {
+        value: Int
+    ): OuraHeartRate {
         val offset = interval ?: 0 * index!!
-        return OuraHeartRateVariability.newBuilder().apply {
+        return OuraHeartRate.newBuilder().apply {
             time = startTime.toEpochMilli() / 1000.0 + offset
             timeReceived = System.currentTimeMillis() / 1000.0
-            hrv = value
+            source = OuraHeartRateSource.SLEEP
+            bpm = value
         }.build()
     }
 
     companion object {
-        val logger = LoggerFactory.getLogger(OuraSleepHrvConverter::class.java)
+        val logger = LoggerFactory.getLogger(OuraSessionHeartRateConverter::class.java)
     }
 }
