@@ -11,6 +11,6 @@ class OuraWorkoutRoute(
 
     override fun toString(): String = "oura_workout"
 
-    override var converter = OuraWorkoutConverter()
+    override var converters = listOf(OuraWorkoutConverter())
 
 }
