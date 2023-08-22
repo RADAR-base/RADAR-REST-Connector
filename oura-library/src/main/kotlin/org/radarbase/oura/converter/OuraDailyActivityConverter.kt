@@ -35,7 +35,6 @@ class OuraDailyActivityConverter(
             time = startTime.toEpochMilli() / 1000.0
             timeReceived = System.currentTimeMillis() / 1000.0
             id = optString("id")
-            fiveMinuteClass = optInt("class_5_min")
             activeCalories = optInt("active_calories")
             contributorMeetDailyTargets = optObject("contributors")?.optInt("meet_daily_targets")
             contributorMoveEveryHour = optObject("contributors")?.optInt("move_every_hour")
@@ -51,9 +50,6 @@ class OuraDailyActivityConverter(
             lowActivityTime = optInt("low_activity_time")
             mediumActivityMetMinutes = optInt("medium_activity_met_minutes")
             mediumActivityTime = optInt("medium_activity_time")
-            metSampleInterval = null
-            metSampleItems = null
-            metSampleTimestamp = null
             metersToTarget  = optInt("meters_to_target")
             nonWearTime = optInt("non_wear_time")
             restingTime = optInt("resting_time")
