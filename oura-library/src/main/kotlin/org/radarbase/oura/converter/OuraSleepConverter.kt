@@ -2,6 +2,7 @@ package org.radarbase.oura.converter
 
 import com.fasterxml.jackson.databind.JsonNode
 import org.radarcns.connector.oura.OuraSleep
+import org.radarcns.connector.oura.OuraSleepType
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.time.OffsetDateTime
@@ -48,7 +49,6 @@ class OuraSleepConverter(
             lightSleepDuration = optInt("light_sleep_duration")
             lowBatteryAlert = optBoolean("low_battery_alert")
             lowestHeartRate = optInt("lowest_heart_rate")
-            movementThirtySec = optString("movement_30_sec")
             period = optInt("period")
             readinessContributorActivityBalance = optObject("readiness")?.optObject("contributors")?.optInt("activity_balance")
             readinessContributorBodyTemperature = optObject("readiness")?.optObject("contributors")?.optInt("body_temperature")
@@ -64,12 +64,22 @@ class OuraSleepConverter(
             readinessScoreDelta = optInt("readiness_score_delta")
             remSleepDuration = optInt("rem_sleep_duration")
             restlessPeriods = optInt("restless_periods")
-            sleepPhaseFiveMin = optInt("sleep_phase_5_min")
             sleepScoreDelta = optInt("sleep_score_delta")
             timeInBed = optInt("time_in_bed")
             totalSleepDuration = optInt("total_sleep_duration")
-            type = optString("type")
+            type = optString("type")?.classifyType()
         }.build()
+    }
+
+    private fun String.classifyType() : OuraSleepType {
+        return when (this) {
+            "deleted" -> OuraSleepType.DELETED
+            "sleep" -> OuraSleepType.SLEEP
+            "long_sleep" -> OuraSleepType.LONG_SLEEP
+            "late_nap" -> OuraSleepType.LATE_NAP
+            "rest" -> OuraSleepType.REST
+            else -> OuraSleepType.UNKNOWN
+        }
     }
 
     companion object {
