@@ -4,7 +4,7 @@ import org.radarbase.oura.converter.OuraWorkoutConverter
 import org.radarbase.oura.user.UserRepository
 
 class OuraWorkoutRoute(
-    private val userRepository: UserRepository?
+    private val userRepository: UserRepository
 ) : OuraRoute(userRepository) {
 
     override fun subPath(): String = "workout"

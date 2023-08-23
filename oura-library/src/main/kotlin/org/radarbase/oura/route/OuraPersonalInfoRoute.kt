@@ -4,7 +4,7 @@ import org.radarbase.oura.converter.OuraPersonalInfoConverter
 import org.radarbase.oura.user.UserRepository
 
 class OuraPersonalInfoRoute(
-    private val userRepository: UserRepository?
+    private val userRepository: UserRepository
 ) : OuraRoute(userRepository) {
 
     override fun subPath(): String = "personal_info"

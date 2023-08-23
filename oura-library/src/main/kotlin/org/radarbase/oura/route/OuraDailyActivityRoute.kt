@@ -4,7 +4,7 @@ import org.radarbase.oura.converter.OuraDailyActivityConverter
 import org.radarbase.oura.user.UserRepository
 
 class OuraDailyActivityRoute(
-    private val userRepository: UserRepository?
+    private val userRepository: UserRepository
 ) : OuraRoute(userRepository) {
 
     override fun subPath(): String = "daily_activity"

@@ -4,7 +4,7 @@ import org.radarbase.oura.converter.OuraDailyReadinessConverter
 import org.radarbase.oura.user.UserRepository
 
 class OuraDailyReadinessRoute(
-    private val userRepository: UserRepository?
+    private val userRepository: UserRepository
 ) : OuraRoute(userRepository) {
 
     override fun subPath(): String = "daily_readiness"

@@ -7,7 +7,7 @@ import org.radarbase.oura.converter.OuraSessionHeartRateConverter
 import org.radarbase.oura.user.UserRepository
 
 class OuraSessionRoute(
-    private val userRepository: UserRepository?
+    private val userRepository: UserRepository
 ) : OuraRoute(userRepository) {
 
     override fun subPath(): String = "session"
