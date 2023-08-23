@@ -19,7 +19,7 @@ class OuraSleepConverter(
             ?: return emptySequence()
         return array.asSequence()
         .mapCatching { 
-            val startTime = OffsetDateTime.parse(it["timestamp"].textValue())
+            val startTime = OffsetDateTime.parse(it["bedtime_start"].textValue())
             val startInstant = startTime.toInstant()
             TopicData(
                 key = user.observationKey,

@@ -21,11 +21,11 @@ class OuraSleepHrvConverter(
             ?: return emptySequence()
         return array.asSequence()
         .flatMap { 
-            val startTime = OffsetDateTime.parse(it["timestamp"].textValue())
-            val startInstant = startTime.toInstant()
             val data = it.get("hrv")
             val interval = data?.get("interval")?.intValue() ?: throw IOException()
-            val items = data?.get("items")
+            val items = data.get("items")
+            val startTime = OffsetDateTime.parse(data.get("timestamp").textValue())
+            val startInstant = startTime.toInstant()
             if (items == null) emptySequence()
             else {
                 items.asSequence()

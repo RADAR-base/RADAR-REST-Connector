@@ -19,11 +19,11 @@ class OuraSessionHeartRateConverter(
             ?: return emptySequence()
         return array.asSequence()
         .flatMap { 
-            val startTime = OffsetDateTime.parse(it["timestamp"].textValue())
-            val startInstant = startTime.toInstant()
             val data = it.get("heart_rate")
             val interval = data?.get("interval")?.intValue()
-            val items = data?.get("items")
+            val items = data.get("items")
+            val startTime = OffsetDateTime.parse(data.get("timestamp").textValue())
+            val startInstant = startTime.toInstant()
             if (items == null) emptySequence()
             else {
                 items.asSequence()

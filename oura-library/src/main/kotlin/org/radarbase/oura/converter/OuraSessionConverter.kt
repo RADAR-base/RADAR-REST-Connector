@@ -20,7 +20,7 @@ class OuraSessionConverter(
             ?: return emptySequence()
         return array.asSequence()
         .mapCatching { 
-            val startTime = OffsetDateTime.parse(it["timestamp"].textValue())
+            val startTime = OffsetDateTime.parse(it["start_datetime"].textValue())
             val startInstant = startTime.toInstant()
             TopicData(
                 key = user.observationKey,
