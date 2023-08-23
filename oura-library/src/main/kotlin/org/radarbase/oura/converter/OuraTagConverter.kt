@@ -14,13 +14,13 @@ class OuraTagConverter(
         root: JsonNode,
         user: User
     ): Sequence<Result<TopicData>> {
-        val array = root.optArray("data")
+        val array = root.get("data")
             ?: return emptySequence()
         return array.asSequence()
         .flatMap { 
             val startTime = OffsetDateTime.parse(it["timestamp"].textValue())
             val startInstant = startTime.toInstant()
-            val tags = it.optArray("tags")
+            val tags = it.get("tags")
             val data = it
             if (tags == null) emptySequence()
             else {
@@ -40,12 +40,13 @@ class OuraTagConverter(
         startTime: Instant,
         tagString: String
     ): OuraTag {
+        val data = this
         return OuraTag.newBuilder().apply {
             time = startTime.toEpochMilli() / 1000.0
             timeReceived = System.currentTimeMillis() / 1000.0
-            id = optString("id")
-            day = optString("day")
-            text = optString("text")
+            id = data.get("id").textValue()
+            day = data.get("day").textValue()
+            text = data.get("text").textValue()
             tag = tagString
         }.build()
     }

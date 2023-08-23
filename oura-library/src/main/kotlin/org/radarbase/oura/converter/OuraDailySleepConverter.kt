@@ -14,7 +14,7 @@ class OuraDailySleepConverter(
         root: JsonNode,
         user: User
     ): Sequence<Result<TopicData>> {
-        val array = root.optArray("data")
+        val array = root.get("data")
             ?: return emptySequence()
         return array.asSequence()
         .mapCatching { 
@@ -31,19 +31,20 @@ class OuraDailySleepConverter(
     private fun JsonNode.toDailySleep(
         startTime: Instant,
     ): OuraDailySleep {
+        val data = this
         return OuraDailySleep.newBuilder().apply {
             time = startTime.toEpochMilli() / 1000.0
             timeReceived = System.currentTimeMillis() / 1000.0
-            id = optString("id")
-            contributorDeepSleep = optObject("contributors")?.optInt("deep_sleep")
-            contributorEfficiency = optObject("contributors")?.optInt("efficiency")
-            contributorLatency = optObject("contributors")?.optInt("latency")
-            contributorRemSleep = optObject("contributors")?.optInt("rem_sleep")
-            contributorRestfulness = optObject("contributors")?.optInt("restfulness")
-            contributorTiming = optObject("contributors")?.optInt("timing")
-            contributorTotalSleep = optObject("contributors")?.optInt("total_sleep")
-            day = optString("day")
-            score = optInt("score")
+            id = data.get("id").textValue()
+            contributorDeepSleep = data.get("contributors")?.get("deep_sleep")?.intValue()
+            contributorEfficiency = data.get("contributors")?.get("efficiency")?.intValue()
+            contributorLatency = data.get("contributors")?.get("latency")?.intValue()
+            contributorRemSleep = data.get("contributors")?.get("rem_sleep")?.intValue()
+            contributorRestfulness = data.get("contributors")?.get("restfulness")?.intValue()
+            contributorTiming = data.get("contributors")?.get("timing")?.intValue()
+            contributorTotalSleep = data.get("contributors")?.get("total_sleep")?.intValue()
+            day = data.get("day").textValue()
+            score = data.get("score").intValue()
         }.build()
     }
 

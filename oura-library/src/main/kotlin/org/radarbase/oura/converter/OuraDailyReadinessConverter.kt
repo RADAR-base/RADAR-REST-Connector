@@ -14,7 +14,7 @@ class OuraDailyReadinessConverter(
         root: JsonNode,
         user: User
     ): Sequence<Result<TopicData>> {
-        val array = root.optArray("data")
+        val array = root.get("data")
             ?: return emptySequence()
         return array.asSequence()
         .mapCatching { 
@@ -31,22 +31,23 @@ class OuraDailyReadinessConverter(
     private fun JsonNode.toDailyReadiness(
         startTime: Instant,
     ): OuraDailyReadiness {
+        val data = this
         return OuraDailyReadiness.newBuilder().apply {
             time = startTime.toEpochMilli() / 1000.0
             timeReceived = System.currentTimeMillis() / 1000.0
-            id = optString("id")
-            contributorActivityBalance = optObject("contributors")?.optInt("activity_balance")
-            contributorBodyTemperature = optObject("contributors")?.optInt("body_temperature")
-            contributorHrvBalance = optObject("contributors")?.optInt("hrv_balance")
-            contributorPreviousDayActivity = optObject("contributors")?.optInt("previous_day_activity")
-            contributorPreviousNight = optObject("contributors")?.optInt("previous_night")
-            contributorRecoveryIndex = optObject("contributors")?.optInt("recovery_index")
-            contributorRestingHeartRate = optObject("contributors")?.optInt("resting_heart_rate")
-            contributorSleepBalance = optObject("contributors")?.optInt("sleep_balance")
-            day = optString("day")
-            score = optInt("score")
-            temperatureDeviation = optFloat("temperature_deviation")
-            temperatureTrendDeviation = optFloat("temperature_trend_deviation")
+            id = data.get("id").textValue()
+            contributorActivityBalance = data.get("contributors")?.get("activity_balance")?.intValue()
+            contributorBodyTemperature = data.get("contributors")?.get("body_temperature")?.intValue()
+            contributorHrvBalance = data.get("contributors")?.get("hrv_balance")?.intValue()
+            contributorPreviousDayActivity = data.get("contributors")?.get("previous_day_activity")?.intValue()
+            contributorPreviousNight = data.get("contributors")?.get("previous_night")?.intValue()
+            contributorRecoveryIndex = data.get("contributors")?.get("recovery_index")?.intValue()
+            contributorRestingHeartRate = data.get("contributors")?.get("resting_heart_rate")?.intValue()
+            contributorSleepBalance = data.get("contributors")?.get("sleep_balance")?.intValue()
+            day = data.get("day").textValue()
+            score = data.get("score").intValue()
+            temperatureDeviation = data.get("temperature_deviation").floatValue()
+            temperatureTrendDeviation = data.get("temperature_trend_deviation").floatValue()
         }.build()
     }
 

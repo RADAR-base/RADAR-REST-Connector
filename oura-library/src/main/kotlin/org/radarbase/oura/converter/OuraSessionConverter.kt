@@ -16,7 +16,7 @@ class OuraSessionConverter(
         root: JsonNode,
         user: User
     ): Sequence<Result<TopicData>> {
-        val array = root.optArray("data")
+        val array = root.get("data")
             ?: return emptySequence()
         return array.asSequence()
         .mapCatching { 
@@ -33,13 +33,14 @@ class OuraSessionConverter(
     private fun JsonNode.toSession(
         startTime: Instant,
     ): OuraSession {
+        val data = this
         return OuraSession.newBuilder().apply {
             time = startTime.toEpochMilli() / 1000.0
-            endTime = OffsetDateTime.parse(optString("end_datetime")).toInstant().toEpochMilli() / 1000.0
+            endTime = OffsetDateTime.parse(data.get("end_datetime").textValue()).toInstant().toEpochMilli() / 1000.0
             timeReceived = System.currentTimeMillis() / 1000.0
-            id = optString("id")
-            type = optString("type")?.classifyType()
-            mood = optString("mood")?.classifyMood()
+            id = data.get("id").textValue()
+            type = data.get("type").textValue()?.classifyType()
+            mood = data.get("mood").textValue()?.classifyMood()
         }.build()
     }
 

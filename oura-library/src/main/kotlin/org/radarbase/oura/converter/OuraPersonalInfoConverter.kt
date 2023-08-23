@@ -14,32 +14,25 @@ class OuraPersonalInfoConverter(
         root: JsonNode,
         user: User
     ): Sequence<Result<TopicData>> {
-        val array = root.optArray("data")
-            ?: return emptySequence()
-        return array.asSequence()
-        .mapCatching { 
-            val startTime = OffsetDateTime.parse(it["timestamp"].textValue())
-            val startInstant = startTime.toInstant()
-            TopicData(
-                key = user.observationKey,
-                topic = topic,
-                value = it.toPersonalInfo(startInstant),
-            )
-        }
+        return sequenceOf(
+            runCatching {
+                TopicData(
+                    key = user.observationKey,
+                    topic = topic,
+                    value = root.toPersonalInfo(),
+                )
+            })
     }
 
-    private fun JsonNode.toPersonalInfo(
-        startTime: Instant,
-    ): OuraPersonalInfo {
+    private fun JsonNode.toPersonalInfo(): OuraPersonalInfo {
+        val data = this
         return OuraPersonalInfo.newBuilder().apply {
-            time = startTime.toEpochMilli() / 1000.0
-            timeReceived = System.currentTimeMillis() / 1000.0
-            id = optString("id")
-            age = optInt("age")
-            weight = optFloat("weight")
-            height = optFloat("height")
-            biologicalSex = optString("biological_sex")
-            email = optString("email")
+            id = data.get("id").textValue()
+            age = data.get("age").intValue()
+            weight = data.get("weight").floatValue()
+            height = data.get("height").floatValue()
+            biologicalSex = data.get("biological_sex").textValue()
+            email = data.get("email").textValue()
         }.build()
     }
 

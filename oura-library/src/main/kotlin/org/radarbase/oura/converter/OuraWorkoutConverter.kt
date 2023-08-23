@@ -16,7 +16,7 @@ class OuraWorkoutConverter(
         root: JsonNode,
         user: User
     ): Sequence<Result<TopicData>> {
-        val array = root.optArray("data")
+        val array = root.get("data")
             ?: return emptySequence()
         return array.asSequence()
         .mapCatching { 
@@ -33,18 +33,19 @@ class OuraWorkoutConverter(
     private fun JsonNode.toWorkout(
         startTime: Instant,
     ): OuraWorkout {
+        val data = this
         return OuraWorkout.newBuilder().apply {
             time = startTime.toEpochMilli() / 1000.0
-            endTime = OffsetDateTime.parse(optString("end_datetime")).toInstant().toEpochMilli() / 1000.0
+            endTime = OffsetDateTime.parse(data.get("end_datetime").textValue()).toInstant().toEpochMilli() / 1000.0
             timeReceived = System.currentTimeMillis() / 1000.0
-            id = optString("id")
-            activity = optString("activity")
-            calories = optFloat("calories")
-            day = optString("day")
-            distance = optFloat("distance")
-            intensity = optString("intensity")?.classifyIntensity()
-            label = optString("label")
-            source = optString("source")?.classifySource()
+            id = data.get("id").textValue()
+            activity = data.get("activity").textValue()
+            calories = data.get("calories").floatValue()
+            day = data.get("day").textValue()
+            distance = data.get("distance").floatValue()
+            intensity = data.get("intensity").textValue()?.classifyIntensity()
+            label = data.get("label").textValue()
+            source = data.get("source").textValue()?.classifySource()
         }.build()
     }
 

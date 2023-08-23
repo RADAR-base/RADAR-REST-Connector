@@ -14,15 +14,15 @@ class OuraMetConverter(
         root: JsonNode,
         user: User
     ): Sequence<Result<TopicData>> {
-        val array = root.optArray("data")
+        val array = root.get("data")
             ?: return emptySequence()
         return array.asSequence()
         .flatMap { 
             val startTime = OffsetDateTime.parse(it["timestamp"].textValue())
             val startInstant = startTime.toInstant()
-            val data = it.optObject("met")
-            val interval = data?.optInt("interval")
-            val items = data?.optArray("items")
+            val data = it.get("met")
+            val interval = data?.get("interval")?.intValue()
+            val items = data?.get("items")
             if (items == null) emptySequence()
             else {
                 items.asSequence()

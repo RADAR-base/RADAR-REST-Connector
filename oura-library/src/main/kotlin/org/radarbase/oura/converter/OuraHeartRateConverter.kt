@@ -15,7 +15,7 @@ class OuraHeartRateConverter(
         root: JsonNode,
         user: User
     ): Sequence<Result<TopicData>> {
-        val array = root.optArray("data")
+        val array = root.get("data")
             ?: return emptySequence()
         return array.asSequence()
         .mapCatching { 
@@ -32,11 +32,12 @@ class OuraHeartRateConverter(
     private fun JsonNode.toHeartRate(
         startTime: Instant,
     ): OuraHeartRate {
+        val data = this
         return OuraHeartRate.newBuilder().apply {
             time = startTime.toEpochMilli() / 1000.0
             timeReceived = System.currentTimeMillis() / 1000.0
-            source = optString("source")?.classify()
-            bpm = optInt("bpm")
+            source = data.get("source")?.textValue()?.classify()
+            bpm = data.get("bpm").intValue()
         }.build()
     }
 
