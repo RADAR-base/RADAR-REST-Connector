@@ -35,20 +35,7 @@ class OuraRequestGenerator(
         return if (user.ready()) {
             routes.asSequence()
                 .flatMap { route ->
-                    val offset = ouraOffsetManager.getOffset(route, user)
-                    val startDate = user.startDate
-                    val startOffset: Instant = if (offset == null) {
-                        logger.debug("No offsets found for $user, using the start date.")
-                        startDate
-                    } else {
-                        logger.debug("Offsets found in persistence.")
-                        offset.offset.coerceAtLeast(startDate)
-                    }
-                    val endDate = user.endDate
-                    if (endDate <= startOffset) return@flatMap emptySequence()
-                    val endTime = (startOffset + defaultQueryRange).coerceAtMost(endDate)
-                    route.generateRequests(user, startOffset, endTime)
-                    // route.generateRequests(user, startOffset, endTime, max)
+                    return@flatMap generateRequests(route, user)
                 }
                 .takeWhile { !shouldBackoff }
         } else {
@@ -61,41 +48,33 @@ class OuraRequestGenerator(
             .stream()
             .asSequence()
             .flatMap { user ->
-                val offset = ouraOffsetManager.getOffset(route, user)
-                val startDate = user.startDate
-                val startOffset: Instant = if (offset == null) {
-                    logger.debug("No offsets found for $user, using the start date.")
-                    startDate
-                } else {
-                    logger.debug("Offsets found in persistence.")
-                    offset.offset.coerceAtLeast(startDate)
-                }
-                val endDate = user.endDate
-                if (endDate <= startOffset) return@flatMap emptySequence()
-                val endTime = (startOffset + defaultQueryRange).coerceAtMost(endDate)
-                route.generateRequests(user, startOffset, endTime)
+                return@flatMap generateRequests(route, user)
             }
             .takeWhile { !shouldBackoff }
     }
 
     override fun requests(route: Route, user: User, max: Int): Sequence<RestRequest> {
         return if (user.ready()) {
-            val offset = ouraOffsetManager.getOffset(route, user)
-            val startDate = user.startDate
-            val startOffset: Instant = if (offset == null) {
-                logger.debug("No offsets found for $user, using the start date.")
-                startDate
-            } else {
-                logger.debug("Offsets found in persistence.")
-                offset.offset.coerceAtLeast(startDate)
-            }
-            val endDate = user.endDate
-            if (endDate <= startOffset) return emptySequence()
-            val endTime = (startOffset + defaultQueryRange).coerceAtMost(endDate)
-            return route.generateRequests(user, startOffset, endTime)
+            return generateRequests(route, user)
         } else {
             emptySequence()
         }
+    }
+
+    fun generateRequests(route: Route, user: User): Sequence<RestRequest> {
+        val offset = ouraOffsetManager.getOffset(route, user)
+        val startDate = user.startDate
+        val startOffset: Instant = if (offset == null) {
+            logger.debug("No offsets found for $user, using the start date.")
+            startDate
+        } else {
+            logger.debug("Offsets found in persistence.")
+            offset.offset.coerceAtLeast(startDate)
+        }
+        val endDate = user.endDate
+        if (endDate <= startOffset) return emptySequence()
+        val endTime = (startOffset + defaultQueryRange).coerceAtMost(endDate)
+        return route.generateRequests(user, startOffset, endTime)
     }
 
     fun handleResponse(req: RestRequest, response: Response) {
