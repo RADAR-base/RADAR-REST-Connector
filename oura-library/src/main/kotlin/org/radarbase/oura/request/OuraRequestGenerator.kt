@@ -46,7 +46,6 @@ class OuraRequestGenerator(
     override fun requests(route: Route, max: Int): Sequence<RestRequest> {
         return userRepository
             .stream()
-            .asSequence()
             .flatMap { user ->
                 return@flatMap generateRequests(route, user)
             }
