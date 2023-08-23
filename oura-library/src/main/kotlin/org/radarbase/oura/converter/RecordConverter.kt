@@ -17,12 +17,6 @@ interface RecordConverter {
     ): List<Pair<SpecificRecord, SpecificRecord>>
 
     companion object {
-        fun nearFuture(): Instant {
-            return Instant.now().plus(NEAR_FUTURE)
-        }
         var logger = LoggerFactory.getLogger(RecordConverter::class.java)
-        val MIN_INSTANT = Instant.EPOCH
-        const val TIMESTAMP_OFFSET_KEY = "timestamp"
-        private val NEAR_FUTURE = Duration.ofDays(31L)
     }
 }
