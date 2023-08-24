@@ -3,6 +3,8 @@ package org.radarbase.oura.route
 import org.radarbase.oura.converter.OuraSleepConverter
 import org.radarbase.oura.converter.OuraSleepHrvConverter
 import org.radarbase.oura.converter.OuraSleepHeartRateConverter
+import org.radarbase.oura.converter.OuraSleepMovementConverter
+import org.radarbase.oura.converter.OuraSleepPhaseConverter
 import org.radarbase.oura.user.UserRepository
 
 class OuraSleepRoute(
@@ -16,7 +18,9 @@ class OuraSleepRoute(
     override var converters = listOf(
         OuraSleepConverter(),
         OuraSleepHeartRateConverter(),
-        OuraSleepHrvConverter()
+        OuraSleepHrvConverter(),
+        OuraSleepPhaseConverter(),
+        OuraSleepMovementConverter()
         )
 
 }
