@@ -6,11 +6,14 @@ import org.radarcns.connector.oura.OuraHeartRateSource
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.time.OffsetDateTime
+import java.io.IOException
 import org.radarbase.oura.user.User
 
 class OuraSleepHeartRateConverter(
     private val topic: String = "connect_oura_heart_rate",
 ) : OuraDataConverter {
+
+    @Throws(IOException::class)
     override fun processRecords(
         root: JsonNode,
         user: User
@@ -19,37 +22,53 @@ class OuraSleepHeartRateConverter(
             ?: return emptySequence()
         return array.asSequence()
         .flatMap { 
-            val data = it.get("heart_rate")
-            val interval = data?.get("interval")?.intValue()
-            val items = data.get("items")
-            val startTime = OffsetDateTime.parse(data.get("timestamp").textValue())
-            val startInstant = startTime.toInstant()
-            if (items == null) emptySequence()
-            else {
-                items.asSequence()
-                    .mapIndexedCatching { i, v -> 
-                        TopicData(
-                            key = user.observationKey,
-                            topic = topic,
-                            value = data.toHeartRate(startInstant, i, interval, v.intValue()),
-                        )
-                    }
-            }
+            it.processSamples(user)
         }
     }
 
-    private fun JsonNode.toHeartRate(
-        startTime: Instant,
-        index: Int?,
-        interval: Int?,
+    private fun JsonNode.processSamples(
+        user: User
+    ): Sequence<Result<TopicData>> {
+        val startTime = OffsetDateTime.parse(this["bedtime_start"].textValue())
+        val startTimeEpoch = startTime.toInstant().toEpochMilli() / 1000.0
+        val timeReceivedEpoch = System.currentTimeMillis() / 1000.0
+        val id = this.get("id").textValue()
+        val interval = this.get("heart_rate")?.get("interval")?.intValue() ?: throw IOException()
+        val items = this.get("heart_rate")?.get("items")
+        if (items == null) return emptySequence()
+        else {
+            return items.asSequence()
+                .mapIndexedCatching { index, value ->
+                    TopicData(
+                        key = user.observationKey,
+                        topic = topic,
+                        value = toHeartRate(
+                            startTimeEpoch,
+                            timeReceivedEpoch,
+                            id,
+                            index,
+                            interval,
+                            value.intValue()),
+                    )
+                }
+        }
+    }
+
+    private fun toHeartRate(
+        startTimeEpoch: Double,
+        timeReceivedEpoch: Double,
+        idString: String,
+        index: Int,
+        interval: Int,
         value: Int
     ): OuraHeartRate {
-        val offset = interval ?: 0 * index!!
+        val offset = interval * index
         return OuraHeartRate.newBuilder().apply {
-            time = startTime.toEpochMilli() / 1000.0 + offset
-            timeReceived = System.currentTimeMillis() / 1000.0
-            source = OuraHeartRateSource.SLEEP
+            id = idString
+            time = startTimeEpoch + offset
+            timeReceived = timeReceivedEpoch
             bpm = value
+            source = OuraHeartRateSource.SLEEP
         }.build()
     }
 

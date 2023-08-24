@@ -1,15 +1,15 @@
 package org.radarbase.oura.converter
 
 import com.fasterxml.jackson.databind.JsonNode
-import org.radarcns.connector.oura.OuraHeartRateVariability
+import org.radarcns.connector.oura.OuraMotionCount
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.io.IOException
 import org.radarbase.oura.user.User
 
-class OuraSessionHrvConverter(
-    private val topic: String = "connect_oura_heart_rate_variability",
+class OuraSessionMotionCountConverter(
+    private val topic: String = "connect_oura_motion_count",
 ) : OuraDataConverter {
 
     @Throws(IOException::class)
@@ -32,8 +32,8 @@ class OuraSessionHrvConverter(
         val startTimeEpoch = startTime.toInstant().toEpochMilli() / 1000.0
         val timeReceivedEpoch = System.currentTimeMillis() / 1000.0
         val id = this.get("id").textValue()
-        val interval = this.get("heart_rate_variability")?.get("interval")?.intValue() ?: throw IOException()
-        val items = this.get("heart_rate_variability")?.get("items")
+        val interval = this.get("motion_count")?.get("interval")?.intValue() ?: throw IOException()
+        val items = this.get("motion_count")?.get("items")
         if (items == null) return emptySequence()
         else {
             return items.asSequence()
@@ -41,36 +41,36 @@ class OuraSessionHrvConverter(
                     TopicData(
                         key = user.observationKey,
                         topic = topic,
-                        value = toHrv(
+                        value = toMotionCount(
                             startTimeEpoch,
                             timeReceivedEpoch,
                             id,
                             index,
                             interval,
-                            value.floatValue()),
+                            value.intValue()),
                     )
                 }
         }
     }
 
-    private fun toHrv(
+    private fun toMotionCount(
         startTimeEpoch: Double,
         timeReceivedEpoch: Double,
         idString: String,
         index: Int,
         interval: Int,
-        value: Float
-    ): OuraHeartRateVariability {
+        value: Int
+    ): OuraMotionCount {
         val offset = interval * index
-        return OuraHeartRateVariability.newBuilder().apply {
+        return OuraMotionCount.newBuilder().apply {
             id = idString
             time = startTimeEpoch + offset
             timeReceived = timeReceivedEpoch
-            hrv = value
+            motionCount = value
         }.build()
     }
 
     companion object {
-        val logger = LoggerFactory.getLogger(OuraSessionHrvConverter::class.java)
+        val logger = LoggerFactory.getLogger(OuraSessionMotionCountConverter::class.java)
     }
 }

@@ -5,11 +5,14 @@ import org.radarcns.connector.oura.OuraMet
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.time.OffsetDateTime
+import java.io.IOException
 import org.radarbase.oura.user.User
 
 class OuraMetConverter(
     private val topic: String = "connect_oura_met",
 ) : OuraDataConverter {
+
+    @Throws(IOException::class)
     override fun processRecords(
         root: JsonNode,
         user: User
@@ -18,35 +21,51 @@ class OuraMetConverter(
             ?: return emptySequence()
         return array.asSequence()
         .flatMap { 
-            val startTime = OffsetDateTime.parse(it["timestamp"].textValue())
-            val startInstant = startTime.toInstant()
-            val data = it.get("met")
-            val interval = data?.get("interval")?.intValue()
-            val items = data?.get("items")
-            if (items == null) emptySequence()
-            else {
-                items.asSequence()
-                    .mapIndexedCatching { i, v -> 
-                        TopicData(
-                            key = user.observationKey,
-                            topic = topic,
-                            value = data.toMet(startInstant, i, interval, v.floatValue()),
-                        )
-                    }
-            }
+            it.processSamples(user)
         }
     }
 
-    private fun JsonNode.toMet(
-        startTime: Instant,
-        index: Int?,
-        interval: Int?,
+    fun JsonNode.processSamples(
+        user: User
+    ): Sequence<Result<TopicData>> {
+        val startTime = OffsetDateTime.parse(this["timestamp"].textValue())
+        val startTimeEpoch = startTime.toInstant().toEpochMilli() / 1000.0
+        val timeReceivedEpoch = System.currentTimeMillis() / 1000.0
+        val id = this.get("id").textValue()
+        val interval = this.get("met")?.get("interval")?.intValue() ?: throw IOException()
+        val items = this.get("met")?.get("items")
+        if (items == null) return emptySequence()
+        else {
+            return items.asSequence()
+                .mapIndexedCatching { index, value ->
+                    TopicData(
+                        key = user.observationKey,
+                        topic = topic,
+                        value = toMet(
+                            startTimeEpoch,
+                            timeReceivedEpoch,
+                            id,
+                            index,
+                            interval,
+                            value.floatValue()),
+                    )
+                }
+        }
+    }
+
+    private fun toMet(
+        startTimeEpoch: Double,
+        timeReceivedEpoch: Double,
+        idString: String,
+        index: Int,
+        interval: Int,
         value: Float
     ): OuraMet {
-        val offset = interval ?: 0 * index!!
+        val offset = interval * index
         return OuraMet.newBuilder().apply {
-            time = startTime.toEpochMilli() / 1000.0
-            timeReceived = System.currentTimeMillis() / 1000.0
+            id = idString
+            time = startTimeEpoch + offset
+            timeReceived = timeReceivedEpoch
             met = value
         }.build()
     }

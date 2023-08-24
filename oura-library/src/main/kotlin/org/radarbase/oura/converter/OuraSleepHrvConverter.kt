@@ -21,35 +21,51 @@ class OuraSleepHrvConverter(
             ?: return emptySequence()
         return array.asSequence()
         .flatMap { 
-            val data = it.get("hrv")
-            val interval = data?.get("interval")?.intValue() ?: throw IOException()
-            val items = data.get("items")
-            val startTime = OffsetDateTime.parse(data.get("timestamp").textValue())
-            val startInstant = startTime.toInstant()
-            if (items == null) emptySequence()
-            else {
-                items.asSequence()
-                    .mapIndexedCatching { i, v -> 
-                        TopicData(
-                            key = user.observationKey,
-                            topic = topic,
-                            value = data.toHrv(startInstant, i, interval, v.floatValue()),
-                        )
-                    }
-            }
+            it.processSamples(user)
         }
     }
 
-    private fun JsonNode.toHrv(
-        startTime: Instant,
+    private fun JsonNode.processSamples(
+        user: User
+    ): Sequence<Result<TopicData>> {
+        val startTime = OffsetDateTime.parse(this["bedtime_start"].textValue())
+        val startTimeEpoch = startTime.toInstant().toEpochMilli() / 1000.0
+        val timeReceivedEpoch = System.currentTimeMillis() / 1000.0
+        val id = this.get("id").textValue()
+        val interval = this.get("hrv")?.get("interval")?.intValue() ?: throw IOException()
+        val items = this.get("hrv")?.get("items")
+        if (items == null) return emptySequence()
+        else {
+            return items.asSequence()
+                .mapIndexedCatching { index, value ->
+                    TopicData(
+                        key = user.observationKey,
+                        topic = topic,
+                        value = toHrv(
+                            startTimeEpoch,
+                            timeReceivedEpoch,
+                            id,
+                            index,
+                            interval,
+                            value.floatValue()),
+                    )
+                }
+        }
+    }
+
+    private fun toHrv(
+        startTimeEpoch: Double,
+        timeReceivedEpoch: Double,
+        idString: String,
         index: Int,
         interval: Int,
         value: Float
     ): OuraHeartRateVariability {
         val offset = interval * index
         return OuraHeartRateVariability.newBuilder().apply {
-            time = startTime.toEpochMilli() / 1000.0 + offset
-            timeReceived = System.currentTimeMillis() / 1000.0
+            id = idString
+            time = startTimeEpoch + offset
+            timeReceived = timeReceivedEpoch
             hrv = value
         }.build()
     }
