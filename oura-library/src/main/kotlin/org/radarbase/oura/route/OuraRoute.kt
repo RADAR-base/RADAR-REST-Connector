@@ -23,14 +23,16 @@ import org.radarbase.oura.user.UserRepository
 import org.radarbase.oura.converter.OuraDailySleepConverter
 import org.radarbase.oura.converter.OuraDataConverter
 import java.time.Instant
+import java.time.Duration
 import java.time.LocalDateTime
 import java.time.ZoneId
 
 abstract class OuraRoute(
     private val userRepository: UserRepository,
 ) : Route {
-
     abstract val converters: List<OuraDataConverter>
+    override val maxIntervalPerRequest: Duration
+        get() = DEFAULT_INTERVAL_PER_REQUEST
  
     fun createRequest(user: User, baseUrl: String, queryParams: String): Request {
         val accessToken = userRepository.getAccessToken(user)
@@ -59,6 +61,27 @@ abstract class OuraRoute(
         return sequenceOf(RestRequest(request, user, this, start, end))
     }
 
+    override fun generateRequests(
+        user: User,
+        start: Instant,
+        end: Instant,
+        max: Int
+    ): Sequence<RestRequest> {
+        return generateSequence(start) { it + maxIntervalPerRequest }
+            .takeWhile { it < end }
+            .take(max)
+            .map { startRange ->
+                val endRange = (startRange + maxIntervalPerRequest).coerceAtMost(end)
+                val request = createRequest(
+                    user,
+                    "$OURA_API_BASE_URL/${subPath()}",
+                    "?start_date=${start.toLocalDate()}" +
+                        "&end_date=${end.toLocalDate()}",
+                )
+                RestRequest(request, user, this, startRange, endRange)
+            }
+    }
+
     abstract fun subPath(): String
 
     fun Instant.toLocalDate() = LocalDateTime.ofInstant(this, ZoneId.systemDefault()).toLocalDate()
@@ -66,5 +89,6 @@ abstract class OuraRoute(
     companion object {
         const val OURA_API_BASE_URL = "https://api.ouraring.com/v2/usercollection"
         const val ROUTE_METHOD = "GET"
+        private val DEFAULT_INTERVAL_PER_REQUEST = Duration.ofDays(30L)
     }
 }
