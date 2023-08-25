@@ -27,6 +27,8 @@ class OuraPersonalInfoConverter(
     private fun JsonNode.toPersonalInfo(): OuraPersonalInfo {
         val data = this
         return OuraPersonalInfo.newBuilder().apply {
+            time = System.currentTimeMillis() / 1000.0
+            timeReceived = System.currentTimeMillis() / 1000.0
             id = data.get("id").textValue()
             age = data.get("age").intValue()
             weight = data.get("weight").floatValue()
