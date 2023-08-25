@@ -103,14 +103,17 @@ class OuraRequestGenerator(
                 nextRequestTime = Instant.now() + BACK_OFF_TIME
                 throw TooManyRequestsException()
             }
-            409 -> {
-                logger.info("A duplicate request was made. Marking successful...")
-                requestSuccessful(request, response)
-            }
-            412 -> {
+            403 -> {
                 logger.warn(
-                    "User ${request.user} does not have correct permissions/scopes enabled. " +
-                        "Please enable in app. User backing off for $USER_BACK_OFF_TIME...",
+                    "User ${request.user} has expired." +
+                        "Please renew the subscription. User backing off for $USER_BACK_OFF_TIME...",
+                )
+                userNextRequest[request.user.versionedId] = Instant.now().plus(USER_BACK_OFF_TIME)
+            }
+            426 -> {
+                logger.warn(
+                    "User ${request.user} does not have updated mobile app version." +
+                        "Please update the app. User backing off for $USER_BACK_OFF_TIME...",
                 )
                 userNextRequest[request.user.versionedId] = Instant.now().plus(USER_BACK_OFF_TIME)
             }
