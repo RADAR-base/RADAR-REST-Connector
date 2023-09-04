@@ -15,21 +15,34 @@ dependencies {
     // Use the Kotlin JDK 8 standard library.
     implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
 
-    implementation 'com.squareup.okhttp3:okhttp:4.11.0'
+    implementation "com.squareup.okhttp3:okhttp:$Versions.okhttp"
 
-    implementation 'org.radarbase:radar-schemas-commons:0.8.4-SNAPSHOT'
+    implementation "org.radarbase:radar-schemas-commons:$Versions.radarSchemas"
 
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.13.2'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: "$Versions.jackson"
 
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.13.2'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: "$Versions.jackson"
 
-    implementation group: 'org.apache.avro', name: 'avro', version: '1.11.0'
+    implementation group: 'org.apache.avro', name: 'avro', version: "$Versions.avro"
 
-    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.2'
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$Versions.jackson"
 
     // Use the Kotlin test library.
     testImplementation 'org.jetbrains.kotlin:kotlin-test'
 
     // Use the Kotlin JUnit integration.
     testImplementation 'org.jetbrains.kotlin:kotlin-test-junit'
+}
+
+project.afterEvaluate {
+    publishing {
+        publications {
+            library(MavenPublication) {
+                setGroupId "org.radarbase"
+                setArtifactId "oura-library"
+                version "0.0.1"
+                from components.java
+            }
+        }
+    }
 }
