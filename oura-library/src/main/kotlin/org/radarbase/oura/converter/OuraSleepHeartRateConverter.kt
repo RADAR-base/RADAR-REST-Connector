@@ -35,9 +35,10 @@ class OuraSleepHeartRateConverter(
         val id = this.get("id").textValue()
         val interval = this.get("heart_rate")?.get("interval")?.intValue() ?: throw IOException("Unable to get sample interval.")
         val items = this.get("heart_rate")?.get("items")
-        if (items == null) return emptySequence()
-        else {
-            return items.asSequence()
+        return if (items == null) {
+            emptySequence()
+        } else {
+            items.asSequence()
                 .mapIndexedCatching { index, value ->
                     TopicData(
                         key = user.observationKey,
@@ -49,8 +50,7 @@ class OuraSleepHeartRateConverter(
                             index,
                             interval,
                             value.intValue()),
-                    )
-                }
+                    )}
         }
     }
 

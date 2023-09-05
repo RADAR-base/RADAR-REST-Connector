@@ -36,9 +36,10 @@ class OuraSleepPhaseConverter(
         val timeReceivedEpoch = System.currentTimeMillis() / 1000.0
         val id = this.get("id").textValue()
         val items = this.get("sleep_phase_5_min").textValue().toCharArray()
-        if (items == null) return emptySequence()
-        else {
-            return items.asSequence()
+        return if (items.isEmpty()) {
+            emptySequence()
+        } else {
+            items.asSequence()
                 .mapIndexedCatching { index, value ->
                     TopicData(
                         key = user.observationKey,

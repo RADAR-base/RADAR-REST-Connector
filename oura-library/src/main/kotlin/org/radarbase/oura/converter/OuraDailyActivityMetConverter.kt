@@ -34,9 +34,10 @@ class OuraDailyActivityMetConverter(
         val id = this.get("id").textValue()
         val interval = this.get("met")?.get("interval")?.intValue() ?: throw IOException("Unable to get sample interval.")
         val items = this.get("met")?.get("items")
-        if (items == null) return emptySequence()
-        else {
-            return items.asSequence()
+        return if (items == null) {
+            emptySequence()
+        } else {
+            items.asSequence()
                 .mapIndexedCatching { index, value ->
                     TopicData(
                         key = user.observationKey,

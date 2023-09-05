@@ -34,22 +34,22 @@ class OuraSessionHrvConverter(
         val id = this.get("id").textValue()
         val interval = this.get("heart_rate_variability")?.get("interval")?.intValue() ?: throw IOException("Unable to get sample interval.")
         val items = this.get("heart_rate_variability")?.get("items")
-        if (items == null) return emptySequence()
-        else {
-            return items.asSequence()
-                .mapIndexedCatching { index, value ->
-                    TopicData(
-                        key = user.observationKey,
-                        topic = topic,
-                        value = toHrv(
-                            startTimeEpoch,
-                            timeReceivedEpoch,
-                            id,
-                            index,
-                            interval,
-                            value.floatValue()),
-                    )
-                }
+        return if (items == null) {
+            emptySequence()
+        } else {
+            items.asSequence()
+            .mapIndexedCatching { index, value ->
+                TopicData(
+                    key = user.observationKey,
+                    topic = topic,
+                    value = toHrv(
+                        startTimeEpoch,
+                        timeReceivedEpoch,
+                        id,
+                        index,
+                        interval,
+                        value.floatValue()),
+                )}
         }
     }
 

@@ -34,9 +34,10 @@ class OuraSleepHrvConverter(
         val id = this.get("id").textValue()
         val interval = this.get("hrv")?.get("interval")?.intValue() ?: throw IOException("Unable to get sample interval.")
         val items = this.get("hrv")?.get("items")
-        if (items == null) return emptySequence()
-        else {
-            return items.asSequence()
+        return if (items == null) {
+            emptySequence()
+        } else {
+            items.asSequence()
                 .mapIndexedCatching { index, value ->
                     TopicData(
                         key = user.observationKey,

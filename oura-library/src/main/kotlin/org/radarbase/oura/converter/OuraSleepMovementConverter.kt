@@ -36,26 +36,26 @@ class OuraSleepMovementConverter(
         val timeReceivedEpoch = System.currentTimeMillis() / 1000.0
         val id = this.get("id").textValue()
         val items = this.get("movement_30_sec").textValue().toCharArray()
-        if (items == null) return emptySequence()
-        else {
-            return items.asSequence()
+        return if (items.isEmpty()) {
+            emptySequence()
+        } else {
+            items.asSequence()
                 .mapIndexedCatching { index, value ->
                     TopicData(
                         key = user.observationKey,
                         topic = topic,
-                        value = toSleepPhase(
+                        value = toSleepMovement(
                             startTimeEpoch,
                             timeReceivedEpoch,
                             id,
                             index,
                             SLEEP_MOVEMENT_INTERVAL,
                             value.toString()),
-                    )
-                }
+                    )}
         }
     }
 
-    private fun toSleepPhase(
+    private fun toSleepMovement(
         startTimeEpoch: Double,
         timeReceivedEpoch: Double,
         idString: String,
