@@ -87,9 +87,8 @@ class OuraRequestGenerator(
     override fun requestSuccessful(request: RestRequest, response: Response): List<Pair<SpecificRecord, SpecificRecord>> {
         logger.debug("Request successful: {}. Writing to offsets...", request.request)
         val body: ResponseBody? = response.body
-        val converters = request.route.converters
         val data = body?.bytes()!!
-        val records = converters.flatMap {
+        val records = request.route.converters.flatMap {
             it.convert(request, response.headers, data)
         }
         ouraOffsetManager.updateOffsets(request.route, request.user, request.endDate)
