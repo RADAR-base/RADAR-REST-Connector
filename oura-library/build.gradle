@@ -38,9 +38,9 @@ project.afterEvaluate {
     publishing {
         publications {
             library(MavenPublication) {
-                setGroupId "org.radarbase"
+                setGroupId "$group"
                 setArtifactId "oura-library"
-                version "0.0.1"
+                version "$version"
                 from components.java
             }
         }
