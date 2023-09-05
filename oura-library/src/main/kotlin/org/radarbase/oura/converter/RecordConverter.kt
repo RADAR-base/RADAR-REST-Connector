@@ -14,7 +14,7 @@ interface RecordConverter {
         request: RestRequest,
         headers: Headers,
         data: ByteArray,
-    ): List<Pair<SpecificRecord, SpecificRecord>>
+    ): List<TopicData>
 
     companion object {
         var logger = LoggerFactory.getLogger(RecordConverter::class.java)

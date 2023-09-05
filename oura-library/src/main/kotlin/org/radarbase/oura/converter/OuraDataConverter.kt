@@ -20,7 +20,7 @@ interface OuraDataConverter : RecordConverter {
         request: RestRequest,
         headers: Headers,
         data: ByteArray,
-    ): List<Pair<SpecificRecord, SpecificRecord>> {
+    ): List<TopicData> {
         val node = JSON_READER.readTree(data)
 
         return this.processRecords(node, request.user)
@@ -33,8 +33,6 @@ interface OuraDataConverter : RecordConverter {
                 null
             })
         }
-        .map {
-            t -> Pair(t.key, t.value)
-        }.toList()
+        .toList()
     }
 }

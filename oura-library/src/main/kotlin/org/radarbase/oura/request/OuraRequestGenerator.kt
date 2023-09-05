@@ -10,6 +10,7 @@ import org.radarbase.oura.route.OuraRouteFactory
 import org.radarbase.oura.route.Route
 import org.radarbase.oura.user.User
 import org.radarbase.oura.user.UserRepository
+import org.radarbase.oura.converter.TopicData
 import org.slf4j.LoggerFactory
 import org.apache.avro.specific.SpecificRecord
 import java.time.Duration
@@ -84,7 +85,7 @@ class OuraRequestGenerator(
         }
     }
 
-    override fun requestSuccessful(request: RestRequest, response: Response): List<Pair<SpecificRecord, SpecificRecord>> {
+    override fun requestSuccessful(request: RestRequest, response: Response): List<TopicData> {
         logger.debug("Request successful: {}. Writing to offsets...", request.request)
         val body: ResponseBody? = response.body
         val data = body?.bytes()!!
