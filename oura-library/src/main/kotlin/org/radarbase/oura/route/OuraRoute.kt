@@ -29,10 +29,9 @@ import java.time.ZoneId
 
 abstract class OuraRoute(
     private val userRepository: UserRepository,
+    override val maxIntervalPerRequest: Duration = DEFAULT_INTERVAL_PER_REQUEST
 ) : Route {
     abstract val converters: List<OuraDataConverter>
-    override val maxIntervalPerRequest: Duration
-        get() = DEFAULT_INTERVAL_PER_REQUEST
  
     fun createRequest(user: User, baseUrl: String, queryParams: String): Request {
         val accessToken = userRepository.getAccessToken(user)
