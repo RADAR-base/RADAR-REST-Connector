@@ -1,31 +1,31 @@
 package org.radarbase.oura.converter
 
 import com.fasterxml.jackson.databind.JsonNode
+import org.radarbase.oura.user.User
 import org.radarcns.connector.oura.OuraDailyActivity
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.time.OffsetDateTime
-import org.radarbase.oura.user.User
 
 class OuraDailyActivityConverter(
     private val topic: String = "connect_oura_daily_activity",
 ) : OuraDataConverter {
     override fun processRecords(
         root: JsonNode,
-        user: User
+        user: User,
     ): Sequence<Result<TopicData>> {
         val array = root.get("data")
             ?: return emptySequence()
         return array.asSequence()
-        .mapCatching { 
-            val startTime = OffsetDateTime.parse(it["timestamp"].textValue())
-            val startInstant = startTime.toInstant()
-            TopicData(
-                key = user.observationKey,
-                topic = topic,
-                value = it.toDailyActivity(startInstant),
-            )
-        }
+            .mapCatching {
+                val startTime = OffsetDateTime.parse(it["timestamp"].textValue())
+                val startInstant = startTime.toInstant()
+                TopicData(
+                    key = user.observationKey,
+                    topic = topic,
+                    value = it.toDailyActivity(startInstant),
+                )
+            }
     }
 
     private fun JsonNode.toDailyActivity(
@@ -51,7 +51,7 @@ class OuraDailyActivityConverter(
             lowActivityTime = data.get("low_activity_time").intValue()
             mediumActivityMetMinutes = data.get("medium_activity_met_minutes").intValue()
             mediumActivityTime = data.get("medium_activity_time").intValue()
-            metersToTarget  = data.get("meters_to_target").intValue()
+            metersToTarget = data.get("meters_to_target").intValue()
             nonWearTime = data.get("non_wear_time").intValue()
             restingTime = data.get("resting_time").intValue()
             sedentaryMetMinutes = data.get("sedentary_met_minutes").intValue()

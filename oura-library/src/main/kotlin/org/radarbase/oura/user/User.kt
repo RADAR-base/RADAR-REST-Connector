@@ -17,6 +17,6 @@ interface User {
     val version: String?
     val isAuthorized: Boolean
 
-   val observationKey: ObservationKey
+    val observationKey: ObservationKey
     val versionedId: String
 }

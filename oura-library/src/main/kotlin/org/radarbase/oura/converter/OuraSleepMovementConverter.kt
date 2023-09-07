@@ -1,13 +1,12 @@
 package org.radarbase.oura.converter
 
 import com.fasterxml.jackson.databind.JsonNode
+import org.radarbase.oura.user.User
 import org.radarcns.connector.oura.OuraSleepMovement
 import org.radarcns.connector.oura.OuraSleepMovementType
 import org.slf4j.LoggerFactory
-import java.time.Instant
-import java.time.OffsetDateTime
 import java.io.IOException
-import org.radarbase.oura.user.User
+import java.time.OffsetDateTime
 
 class OuraSleepMovementConverter(
     private val topic: String = "connect_oura_sleep_movement",
@@ -18,18 +17,18 @@ class OuraSleepMovementConverter(
     @Throws(IOException::class)
     override fun processRecords(
         root: JsonNode,
-        user: User
+        user: User,
     ): Sequence<Result<TopicData>> {
         val array = root.get("data")
             ?: return emptySequence()
         return array.asSequence()
-        .flatMap { 
-            it.processSamples(user)
-        }
+            .flatMap {
+                it.processSamples(user)
+            }
     }
 
     private fun JsonNode.processSamples(
-        user: User
+        user: User,
     ): Sequence<Result<TopicData>> {
         val startTime = OffsetDateTime.parse(this["bedtime_start"].textValue())
         val startTimeEpoch = startTime.toInstant().toEpochMilli() / 1000.0
@@ -50,8 +49,10 @@ class OuraSleepMovementConverter(
                             id,
                             index,
                             SLEEP_MOVEMENT_INTERVAL,
-                            value.toString()),
-                    )}
+                            value.toString(),
+                        ),
+                    )
+                }
         }
     }
 
@@ -61,7 +62,7 @@ class OuraSleepMovementConverter(
         idString: String,
         index: Int,
         interval: Int,
-        value: String
+        value: String,
     ): OuraSleepMovement {
         val offset = interval * index
         return OuraSleepMovement.newBuilder().apply {
@@ -72,7 +73,7 @@ class OuraSleepMovementConverter(
         }.build()
     }
 
-    private fun String.classify() : OuraSleepMovementType {
+    private fun String.classify(): OuraSleepMovementType {
         return when (this) {
             "1" -> OuraSleepMovementType.NO_MOTION
             "2" -> OuraSleepMovementType.RESTLESS

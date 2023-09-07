@@ -1,12 +1,11 @@
 package org.radarbase.oura.converter
 
 import com.fasterxml.jackson.databind.JsonNode
+import org.radarbase.oura.user.User
 import org.radarcns.connector.oura.OuraMotionCount
 import org.slf4j.LoggerFactory
-import java.time.Instant
-import java.time.OffsetDateTime
 import java.io.IOException
-import org.radarbase.oura.user.User
+import java.time.OffsetDateTime
 
 class OuraSessionMotionCountConverter(
     private val topic: String = "connect_oura_motion_count",
@@ -15,18 +14,18 @@ class OuraSessionMotionCountConverter(
     @Throws(IOException::class)
     override fun processRecords(
         root: JsonNode,
-        user: User
+        user: User,
     ): Sequence<Result<TopicData>> {
         val array = root.get("data")
             ?: return emptySequence()
         return array.asSequence()
-        .flatMap { 
-            it.processSamples(user)
-        }
+            .flatMap {
+                it.processSamples(user)
+            }
     }
 
     private fun JsonNode.processSamples(
-        user: User
+        user: User,
     ): Sequence<Result<TopicData>> {
         val startTime = OffsetDateTime.parse(this["start_datetime"].textValue())
         val startTimeEpoch = startTime.toInstant().toEpochMilli() / 1000.0
@@ -48,8 +47,10 @@ class OuraSessionMotionCountConverter(
                             id,
                             index,
                             interval,
-                            value.intValue()),
-                    )}
+                            value.intValue(),
+                        ),
+                    )
+                }
         }
     }
 
@@ -59,7 +60,7 @@ class OuraSessionMotionCountConverter(
         idString: String,
         index: Int,
         interval: Int,
-        value: Int
+        value: Int,
     ): OuraMotionCount {
         val offset = interval * index
         return OuraMotionCount.newBuilder().apply {

@@ -5,26 +5,24 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import okhttp3.Response
 import okhttp3.ResponseBody
-import org.radarbase.oura.route.OuraDailySleepRoute
+import org.radarbase.oura.converter.TopicData
 import org.radarbase.oura.route.OuraRouteFactory
 import org.radarbase.oura.route.Route
 import org.radarbase.oura.user.User
 import org.radarbase.oura.user.UserRepository
-import org.radarbase.oura.converter.TopicData
 import org.slf4j.LoggerFactory
-import org.apache.avro.specific.SpecificRecord
 import java.time.Duration
 import java.time.Instant
-import java.util.concurrent.TimeUnit
 import kotlin.streams.asSequence
 
-class OuraRequestGenerator(
+class OuraRequestGenerator @JvmOverloads
+constructor(
     private val userRepository: UserRepository,
     private val defaultQueryRange: Duration = Duration.ofDays(15),
     private val ouraOffsetManager: OuraOffsetManager,
-    public val routes: List<Route> = OuraRouteFactory.getRoutes(userRepository)
+    public val routes: List<Route> = OuraRouteFactory.getRoutes(userRepository),
 ) : RequestGenerator {
-        
+
     private val userNextRequest: MutableMap<String, Instant> = mutableMapOf()
 
     private var nextRequestTime: Instant = Instant.MIN

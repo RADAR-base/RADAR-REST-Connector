@@ -1,32 +1,32 @@
 package org.radarbase.oura.converter
 
 import com.fasterxml.jackson.databind.JsonNode
+import org.radarbase.oura.user.User
 import org.radarcns.connector.oura.OuraSleep
 import org.radarcns.connector.oura.OuraSleepType
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.time.OffsetDateTime
-import org.radarbase.oura.user.User
 
 class OuraSleepConverter(
     private val topic: String = "connect_oura_sleep",
 ) : OuraDataConverter {
     override fun processRecords(
         root: JsonNode,
-        user: User
+        user: User,
     ): Sequence<Result<TopicData>> {
         val array = root.get("data")
             ?: return emptySequence()
         return array.asSequence()
-        .mapCatching { 
-            val startTime = OffsetDateTime.parse(it["bedtime_start"].textValue())
-            val startInstant = startTime.toInstant()
-            TopicData(
-                key = user.observationKey,
-                topic = topic,
-                value = it.toSleep(startInstant),
-            )
-        }
+            .mapCatching {
+                val startTime = OffsetDateTime.parse(it["bedtime_start"].textValue())
+                val startInstant = startTime.toInstant()
+                TopicData(
+                    key = user.observationKey,
+                    topic = topic,
+                    value = it.toSleep(startInstant),
+                )
+            }
     }
 
     private fun JsonNode.toSleep(
@@ -72,7 +72,7 @@ class OuraSleepConverter(
         }.build()
     }
 
-    private fun String.classifyType() : OuraSleepType {
+    private fun String.classifyType(): OuraSleepType {
         return when (this) {
             "deleted" -> OuraSleepType.DELETED
             "sleep" -> OuraSleepType.SLEEP

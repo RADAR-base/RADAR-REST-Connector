@@ -1,7 +1,6 @@
 package org.radarbase.oura.request
 
 import okhttp3.Request
-import org.radarbase.oura.route.Route
 import org.radarbase.oura.route.OuraRoute
 import org.radarbase.oura.user.User
 import java.time.Instant

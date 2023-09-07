@@ -1,13 +1,12 @@
 package org.radarbase.oura.converter
 
 import com.fasterxml.jackson.databind.JsonNode
+import org.radarbase.oura.user.User
 import org.radarcns.connector.oura.OuraSleepPhase
 import org.radarcns.connector.oura.OuraSleepPhaseType
 import org.slf4j.LoggerFactory
-import java.time.Instant
-import java.time.OffsetDateTime
 import java.io.IOException
-import org.radarbase.oura.user.User
+import java.time.OffsetDateTime
 
 class OuraSleepPhaseConverter(
     private val topic: String = "connect_oura_sleep_phase",
@@ -18,18 +17,18 @@ class OuraSleepPhaseConverter(
     @Throws(IOException::class)
     override fun processRecords(
         root: JsonNode,
-        user: User
+        user: User,
     ): Sequence<Result<TopicData>> {
         val array = root.get("data")
             ?: return emptySequence()
         return array.asSequence()
-        .flatMap { 
-            it.processSamples(user)
-        }
+            .flatMap {
+                it.processSamples(user)
+            }
     }
 
     private fun JsonNode.processSamples(
-        user: User
+        user: User,
     ): Sequence<Result<TopicData>> {
         val startTime = OffsetDateTime.parse(this["bedtime_start"].textValue())
         val startTimeEpoch = startTime.toInstant().toEpochMilli() / 1000.0
@@ -50,7 +49,8 @@ class OuraSleepPhaseConverter(
                             id,
                             index,
                             SLEEP_PHASE_INTERVAL,
-                            value.toString()),
+                            value.toString(),
+                        ),
                     )
                 }
         }
@@ -62,7 +62,7 @@ class OuraSleepPhaseConverter(
         idString: String,
         index: Int,
         interval: Int,
-        value: String
+        value: String,
     ): OuraSleepPhase {
         val offset = interval * index
         return OuraSleepPhase.newBuilder().apply {
@@ -73,7 +73,7 @@ class OuraSleepPhaseConverter(
         }.build()
     }
 
-    private fun String.classify() : OuraSleepPhaseType {
+    private fun String.classify(): OuraSleepPhaseType {
         return when (this) {
             "1" -> OuraSleepPhaseType.DEEP
             "2" -> OuraSleepPhaseType.LIGHT

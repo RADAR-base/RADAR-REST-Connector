@@ -17,22 +17,21 @@
 package org.radarbase.oura.route
 
 import okhttp3.Request
+import org.radarbase.oura.converter.OuraDataConverter
 import org.radarbase.oura.request.RestRequest
 import org.radarbase.oura.user.User
 import org.radarbase.oura.user.UserRepository
-import org.radarbase.oura.converter.OuraDailySleepConverter
-import org.radarbase.oura.converter.OuraDataConverter
-import java.time.Instant
 import java.time.Duration
+import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 
 abstract class OuraRoute(
     private val userRepository: UserRepository,
-    override val maxIntervalPerRequest: Duration = DEFAULT_INTERVAL_PER_REQUEST
+    override val maxIntervalPerRequest: Duration = DEFAULT_INTERVAL_PER_REQUEST,
 ) : Route {
     abstract val converters: List<OuraDataConverter>
- 
+
     fun createRequest(user: User, baseUrl: String, queryParams: String): Request {
         val accessToken = userRepository.getAccessToken(user)
         val request =
@@ -64,7 +63,7 @@ abstract class OuraRoute(
         user: User,
         start: Instant,
         end: Instant,
-        max: Int
+        max: Int,
     ): Sequence<RestRequest> {
         return generateSequence(start) { it + maxIntervalPerRequest }
             .takeWhile { it < end }

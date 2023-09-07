@@ -1,6 +1,5 @@
 package org.radarbase.oura.converter
 
-import org.apache.avro.generic.IndexedRecord
 import org.apache.avro.specific.SpecificRecord
 
 /** Single value for a topic.  */

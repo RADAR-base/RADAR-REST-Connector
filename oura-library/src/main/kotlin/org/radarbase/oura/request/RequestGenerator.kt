@@ -1,10 +1,9 @@
 package org.radarbase.oura.request
 
 import okhttp3.Response
+import org.radarbase.oura.converter.TopicData
 import org.radarbase.oura.route.Route
 import org.radarbase.oura.user.User
-import org.apache.avro.specific.SpecificRecord
-import org.radarbase.oura.converter.TopicData
 
 interface RequestGenerator {
 

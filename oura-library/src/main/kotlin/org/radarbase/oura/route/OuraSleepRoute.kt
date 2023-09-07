@@ -1,14 +1,14 @@
 package org.radarbase.oura.route
 
 import org.radarbase.oura.converter.OuraSleepConverter
-import org.radarbase.oura.converter.OuraSleepHrvConverter
 import org.radarbase.oura.converter.OuraSleepHeartRateConverter
+import org.radarbase.oura.converter.OuraSleepHrvConverter
 import org.radarbase.oura.converter.OuraSleepMovementConverter
 import org.radarbase.oura.converter.OuraSleepPhaseConverter
 import org.radarbase.oura.user.UserRepository
 
 class OuraSleepRoute(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
 ) : OuraRoute(userRepository) {
 
     override fun subPath(): String = "sleep"
@@ -20,7 +20,6 @@ class OuraSleepRoute(
         OuraSleepHeartRateConverter(),
         OuraSleepHrvConverter(),
         OuraSleepPhaseConverter(),
-        OuraSleepMovementConverter()
-        )
-
+        OuraSleepMovementConverter(),
+    )
 }

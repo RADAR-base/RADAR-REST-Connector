@@ -1,18 +1,16 @@
 package org.radarbase.oura.converter
 
 import com.fasterxml.jackson.databind.JsonNode
+import org.radarbase.oura.user.User
 import org.radarcns.connector.oura.OuraPersonalInfo
 import org.slf4j.LoggerFactory
-import java.time.Instant
-import java.time.OffsetDateTime
-import org.radarbase.oura.user.User
 
 class OuraPersonalInfoConverter(
     private val topic: String = "connect_oura_personal_info",
 ) : OuraDataConverter {
     override fun processRecords(
         root: JsonNode,
-        user: User
+        user: User,
     ): Sequence<Result<TopicData>> {
         return sequenceOf(
             runCatching {
@@ -21,7 +19,8 @@ class OuraPersonalInfoConverter(
                     topic = topic,
                     value = root.toPersonalInfo(),
                 )
-            })
+            },
+        )
     }
 
     private fun JsonNode.toPersonalInfo(): OuraPersonalInfo {

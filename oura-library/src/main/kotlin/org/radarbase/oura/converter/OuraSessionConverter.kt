@@ -1,33 +1,33 @@
 package org.radarbase.oura.converter
 
 import com.fasterxml.jackson.databind.JsonNode
-import org.radarcns.connector.oura.OuraSession
-import org.radarcns.connector.oura.OuraMomentType
+import org.radarbase.oura.user.User
 import org.radarcns.connector.oura.OuraMomentMood
+import org.radarcns.connector.oura.OuraMomentType
+import org.radarcns.connector.oura.OuraSession
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.time.OffsetDateTime
-import org.radarbase.oura.user.User
 
 class OuraSessionConverter(
     private val topic: String = "connect_oura_session",
 ) : OuraDataConverter {
     override fun processRecords(
         root: JsonNode,
-        user: User
+        user: User,
     ): Sequence<Result<TopicData>> {
         val array = root.get("data")
             ?: return emptySequence()
         return array.asSequence()
-        .mapCatching { 
-            val startTime = OffsetDateTime.parse(it["start_datetime"].textValue())
-            val startInstant = startTime.toInstant()
-            TopicData(
-                key = user.observationKey,
-                topic = topic,
-                value = it.toSession(startInstant),
-            )
-        }
+            .mapCatching {
+                val startTime = OffsetDateTime.parse(it["start_datetime"].textValue())
+                val startInstant = startTime.toInstant()
+                TopicData(
+                    key = user.observationKey,
+                    topic = topic,
+                    value = it.toSession(startInstant),
+                )
+            }
     }
 
     private fun JsonNode.toSession(
@@ -44,7 +44,7 @@ class OuraSessionConverter(
         }.build()
     }
 
-    private fun String.classifyMood() : OuraMomentMood {
+    private fun String.classifyMood(): OuraMomentMood {
         return when (this) {
             "bad" -> OuraMomentMood.BAD
             "worse" -> OuraMomentMood.WORSE
@@ -55,7 +55,7 @@ class OuraSessionConverter(
         }
     }
 
-    private fun String.classifyType() : OuraMomentType {
+    private fun String.classifyType(): OuraMomentType {
         return when (this) {
             "breathing" -> OuraMomentType.BREATHING
             "meditation" -> OuraMomentType.MEDITATION

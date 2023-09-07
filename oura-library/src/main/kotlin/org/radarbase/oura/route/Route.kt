@@ -2,8 +2,8 @@ package org.radarbase.oura.route
 
 import org.radarbase.oura.request.RestRequest
 import org.radarbase.oura.user.User
-import java.time.Instant
 import java.time.Duration
+import java.time.Instant
 
 interface Route {
 

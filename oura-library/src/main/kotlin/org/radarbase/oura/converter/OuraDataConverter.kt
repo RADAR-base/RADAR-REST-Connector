@@ -5,7 +5,6 @@ import okhttp3.Headers
 import org.radarbase.oura.request.OuraRequestGenerator.Companion.JSON_READER
 import org.radarbase.oura.request.RestRequest
 import org.radarbase.oura.user.User
-import org.apache.avro.specific.SpecificRecord
 /**
  * Abstract class to help convert Fitbit data to Avro Data.
  */
@@ -24,15 +23,17 @@ interface OuraDataConverter : RecordConverter {
         val node = JSON_READER.readTree(data)
 
         return this.processRecords(node, request.user)
-        .mapNotNull { r -> r.fold(
-            {
-                it
-            },
-            {
-                logger.error("Data conversion failed..")
-                null
-            })
-        }
-        .toList()
+            .mapNotNull { r ->
+                r.fold(
+                    {
+                        it
+                    },
+                    {
+                        logger.error("Data conversion failed..")
+                        null
+                    },
+                )
+            }
+            .toList()
     }
 }

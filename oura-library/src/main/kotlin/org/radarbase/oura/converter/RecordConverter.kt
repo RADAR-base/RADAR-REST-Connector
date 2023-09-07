@@ -2,11 +2,8 @@ package org.radarbase.oura.converter
 
 import okhttp3.Headers
 import org.radarbase.oura.request.RestRequest
-import org.apache.avro.specific.SpecificRecord
-import java.io.IOException
-import java.time.Duration
-import java.time.Instant
 import org.slf4j.LoggerFactory
+import java.io.IOException
 
 interface RecordConverter {
     @Throws(IOException::class)
