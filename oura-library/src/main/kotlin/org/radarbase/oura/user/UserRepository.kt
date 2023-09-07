@@ -46,5 +46,4 @@ interface UserRepository {
      */
     @Throws(IOException::class, UserNotAuthorizedException::class)
     fun getAccessToken(user: User): String
-
 }
