@@ -119,7 +119,7 @@ public class OuraSourceConnector extends AbstractRestSourceConnector {
           .values().stream()
           .map(u -> {
             Map<String, String> config = new HashMap<>(baseConfig);
-            // config.put(FITBIT_USERS_CONFIG, u);
+            config.put("oura.users", u);
             return config;
           })
           .collect(Collectors.toList());

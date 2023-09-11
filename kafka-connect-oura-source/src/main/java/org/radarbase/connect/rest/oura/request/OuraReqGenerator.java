@@ -25,6 +25,7 @@ import io.confluent.connect.avro.AvroData;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -32,7 +33,11 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import okhttp3.Headers;
 import okhttp3.OkHttpClient;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
+
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
 import org.radarbase.connect.rest.oura.OuraRestSourceConnectorConfig;
 import org.radarbase.oura.user.User;
@@ -44,6 +49,10 @@ import org.radarbase.oura.request.OuraRequestGenerator;
 import org.radarbase.connect.rest.oura.user.OuraServiceUserRepository;
 import org.radarbase.oura.request.RestRequest;
 import java.time.Instant;
+
+import org.apache.kafka.connect.data.Schema;
+import org.apache.kafka.connect.data.SchemaAndValue;
+import org.apache.kafka.connect.source.SourceRecord;
 import org.apache.kafka.connect.storage.OffsetStorageReader;
 import org.radarbase.oura.route.Route;
 import kotlin.streams.jdk8.StreamsKt;
@@ -65,6 +74,7 @@ public class OuraReqGenerator {
   private OuraServiceUserRepository userRepository;
   private List<Route> routes = this.ouraRequestGenerator.getRoutes();
   private OuraRequestGenerator ouraRequestGenerator; 
+  private AvroData avroData = new AvroData(20);
 
 
   public OuraReqGenerator() {
@@ -113,16 +123,31 @@ public class OuraReqGenerator {
     return routes.flatMap((Route r) -> StreamsKt.asStream(ouraRequestGenerator.requests(r, 100)));
   }
 
-  // public Instant getTimeOfNextRequest() {
-  //   return this.routes.stream()
-  //       .map(RequestRoute::getTimeOfNextRequest)
-  //       .min(Comparator.naturalOrder())
-  //       .orElse(nearFuture());
-  // }
+  public Instant getTimeOfNextRequest() {
+    // Get from routes
+    return Instant.MIN;
+  }
 
 
   public void setOffsetStorageReader(OffsetStorageReader offsetStorageReader) {
     // this.routes.stream().forEach(r -> r.setOffsetStorageReader(offsetStorageReader));
+  }
+
+  public Stream<SourceRecord> handleRequest(RestRequest req) throws IOException {
+    Collection<SourceRecord> records;
+
+    try (Response response = baseClient.newCall(req.getRequest()).execute()) {
+      return this.ouraRequestGenerator.handleResponse(req, response).stream().map(r -> {
+        SchemaAndValue avro = avroData.toConnectData(r.getValue().getSchema(), r.getValue());
+        SchemaAndValue key = avroData.toConnectData(r.getKey().getSchema(), r.getKey());
+
+        // Fix offsets
+        return new SourceRecord(null, null, r.getTopic(),
+              key.schema(), key.value(), avro.schema(), avro.value());
+      });
+    } catch (IOException ex) {
+      throw ex;
+    }
   }
 
 }
