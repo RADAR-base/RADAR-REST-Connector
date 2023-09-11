@@ -25,7 +25,7 @@ constructor(
 
     private val userNextRequest: MutableMap<String, Instant> = mutableMapOf()
 
-    private var nextRequestTime: Instant = Instant.MIN
+    public var nextRequestTime: Instant = Instant.MIN
 
     private val shouldBackoff: Boolean
         get() = Instant.now() < nextRequestTime
@@ -75,11 +75,17 @@ constructor(
         return route.generateRequests(user, startOffset, endTime)
     }
 
-    fun handleResponse(req: RestRequest, response: Response) {
+    fun handleResponse(req: RestRequest, response: Response): List<TopicData> {
         if (response.isSuccessful) {
-            requestSuccessful(req, response)
+            return requestSuccessful(req, response)
         } else {
-            requestFailed(req, response)
+            try {
+                requestFailed(req, response)
+            }
+            catch (e: TooManyRequestsException) {}
+            finally {
+                return emptyList();
+            }
         }
     }
 
