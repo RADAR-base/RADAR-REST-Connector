@@ -54,8 +54,7 @@ public class RestSourceTask extends SourceTask {
       throw new ConnectException("Connector " + map.get("connector.class")
           + " could not be instantiated", e);
     }
-    requestGenerator = new OuraReqGenerator();
-    requestGenerator.setOffsetStorageReader(context.offsetStorageReader());
+    requestGenerator = connectorConfig.getRequestGenerator(context.offsetStorageReader());
   }
 
   @Override

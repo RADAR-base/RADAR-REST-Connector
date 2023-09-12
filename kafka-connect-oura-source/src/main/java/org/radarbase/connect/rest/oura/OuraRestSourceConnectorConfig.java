@@ -41,9 +41,11 @@ import org.apache.kafka.common.config.ConfigDef.Validator;
 import org.apache.kafka.common.config.ConfigDef.Width;
 import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.connect.errors.ConnectException;
+import org.apache.kafka.connect.storage.OffsetStorageReader;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
 import org.radarbase.connect.rest.config.ValidClass;
 import org.radarbase.oura.user.UserRepository;
+import org.radarbase.connect.rest.oura.request.OuraReqGenerator;
 import org.radarbase.connect.rest.oura.user.OuraServiceUserRepository;
 
 public class OuraRestSourceConnectorConfig extends RestSourceConnectorConfig {
@@ -86,6 +88,7 @@ public class OuraRestSourceConnectorConfig extends RestSourceConnectorConfig {
 
   private OuraServiceUserRepository userRepository;
   private final Headers clientCredentials;
+  private OuraReqGenerator requestGenerator;
 
   public OuraRestSourceConnectorConfig(ConfigDef config, Map<String, String> parsedConfig, boolean doLog) {
     super(config, parsedConfig, doLog);
@@ -98,6 +101,7 @@ public class OuraRestSourceConnectorConfig extends RestSourceConnectorConfig {
 
   public OuraRestSourceConnectorConfig(Map<String, String> parsedConfig, boolean doLog) {
     this(OuraRestSourceConnectorConfig.conf(), parsedConfig, doLog);
+    requestGenerator = new OuraReqGenerator();
   }
 
   public static ConfigDef conf() {
@@ -276,4 +280,8 @@ public class OuraRestSourceConnectorConfig extends RestSourceConnectorConfig {
       }
     }
   }
+    public OuraReqGenerator getRequestGenerator(OffsetStorageReader offsetStorageReader) {
+      requestGenerator.initialize(this, offsetStorageReader);
+      return requestGenerator;
+    }
 }

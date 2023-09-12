@@ -40,6 +40,7 @@ import okhttp3.ResponseBody;
 
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
 import org.radarbase.connect.rest.oura.OuraRestSourceConnectorConfig;
+import org.radarbase.connect.rest.oura.offset.KafkaOffsetManager;
 import org.radarbase.oura.user.User;
 import org.radarbase.connect.rest.request.RequestGeneratorRouter;
 import org.radarbase.connect.rest.request.RequestRoute;
@@ -75,23 +76,20 @@ public class OuraReqGenerator {
   private List<Route> routes = this.ouraRequestGenerator.getRoutes();
   private OuraRequestGenerator ouraRequestGenerator; 
   private AvroData avroData = new AvroData(20);
+  private KafkaOffsetManager offsetManager;
 
 
   public OuraReqGenerator() {
     clients = new HashMap<>();
   }
 
-  public void initialize(RestSourceConnectorConfig config) {
+  public void initialize(RestSourceConnectorConfig config, OffsetStorageReader offsetStorageReader) {
     OuraRestSourceConnectorConfig ouraConfig = (OuraRestSourceConnectorConfig) config;
     this.baseClient = new OkHttpClient();
 
     this.userRepository = ouraConfig.getUserRepository();
+    this.offsetManager = new KafkaOffsetManager(offsetStorageReader, null);
     this.ouraRequestGenerator = new OuraRequestGenerator(this.userRepository, null);
-    // this.routes = getRoutes(ouraConfig);
-  }
-
-  private List<Route> getRoutes(OuraRestSourceConnectorConfig config) {
-    return Collections.emptyList();
   }
 
   public OkHttpClient getClient(User user) {
@@ -101,14 +99,13 @@ public class OuraReqGenerator {
   }
 
   public Map<String, Map<String, Object>> getPartitions(String route) {
-    return Collections.emptyMap();
-    // try {
-    //   return userRepository.stream()
-    //       .collect(Collectors.toMap(User::getVersionedId, u -> getPartition(route, u)));
-    // } catch (Exception e) {
-    //   logger.warn("Failed to initialize user partitions for route {}: {}", route, e.toString());
-    //   return Collections.emptyMap();
-    // }
+    try {
+      return StreamsKt.asStream(userRepository.stream())
+          .collect(Collectors.toMap(User::getVersionedId, u -> getPartition(route, u)));
+    } catch (Exception e) {
+      logger.warn("Failed to initialize user partitions for route {}: {}", route, e.toString());
+      return Collections.emptyMap();
+    }
   }
 
   public Map<String, Object> getPartition(String route, User user) {
@@ -126,11 +123,6 @@ public class OuraReqGenerator {
   public Instant getTimeOfNextRequest() {
     // Get from routes
     return Instant.MIN;
-  }
-
-
-  public void setOffsetStorageReader(OffsetStorageReader offsetStorageReader) {
-    // this.routes.stream().forEach(r -> r.setOffsetStorageReader(offsetStorageReader));
   }
 
   public Stream<SourceRecord> handleRequest(RestRequest req) throws IOException {
