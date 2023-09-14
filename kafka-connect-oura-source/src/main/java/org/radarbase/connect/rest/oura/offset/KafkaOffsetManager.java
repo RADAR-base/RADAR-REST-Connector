@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.time.Instant;
+import java.util.List;
 import java.time.Duration;
 import static java.time.temporal.ChronoUnit.NANOS;
 import org.apache.kafka.connect.storage.OffsetStorageReader;
@@ -25,23 +26,27 @@ public class KafkaOffsetManager implements OuraOffsetManager {
 
   public KafkaOffsetManager(
     OffsetStorageReader offsetStorageReader,
-    Map<String, Map<String, Object>> partitions) {
-    this.offsets = offsetStorageReader.offsets(partitions.values()).entrySet().stream()
+    List<Map<String, Object>> partitions) {
+    this.offsets = offsetStorageReader.offsets(partitions).entrySet().stream()
       .filter(e -> e.getValue() != null && e.getValue().containsKey(TIMESTAMP_OFFSET_KEY))
       .collect(Collectors.toMap(
-          e -> (String) e.getKey().get("user"),
+          e -> (String) e.getKey().get("user") + "-" + e.getKey().get("route"),
           e -> Instant.ofEpochMilli((Long) e.getValue().get(TIMESTAMP_OFFSET_KEY))));
   }
 
   @Override
   public Offset getOffset(Route route, User user) {
-    Instant offset = offsets.getOrDefault(user.getVersionedId(), user.getStartDate().minus(ONE_NANO));
+    Instant offset = offsets.getOrDefault(getOffsetKey(route, user), user.getStartDate().minus(ONE_NANO));
     return new Offset(user.getUserId(), route.toString(), offset);
   }
 
   @Override
   public void updateOffsets(Route route, User user, Instant offset) {
-    offsets.put(user.getVersionedId(), offset);
+    offsets.put(getOffsetKey(route, user), offset);
+  }
+
+  private String getOffsetKey(Route route, User user) {
+    return user.getVersionedId() + "-" + route.toString();
   }
 }
 

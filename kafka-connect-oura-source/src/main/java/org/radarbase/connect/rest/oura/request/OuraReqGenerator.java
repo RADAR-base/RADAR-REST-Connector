@@ -88,8 +88,8 @@ public class OuraReqGenerator {
     this.baseClient = new OkHttpClient();
 
     this.userRepository = ouraConfig.getUserRepository();
-    this.offsetManager = new KafkaOffsetManager(offsetStorageReader, null);
-    this.ouraRequestGenerator = new OuraRequestGenerator(this.userRepository, null);
+    this.offsetManager = new KafkaOffsetManager(offsetStorageReader, this.getPartitions());
+    this.ouraRequestGenerator = new OuraRequestGenerator(this.userRepository, this.offsetManager);
   }
 
   public OkHttpClient getClient(User user) {
@@ -98,13 +98,14 @@ public class OuraReqGenerator {
         .build());
   }
 
-  public Map<String, Map<String, Object>> getPartitions(String route) {
+  public List<Map<String, Object>> getPartitions() {
     try {
       return StreamsKt.asStream(userRepository.stream())
-          .collect(Collectors.toMap(User::getVersionedId, u -> getPartition(route, u)));
+          .flatMap(u -> this.routes.stream().map(r -> getPartition(r.toString(), u)))
+          .collect(Collectors.toList());
     } catch (Exception e) {
-      logger.warn("Failed to initialize user partitions for route {}: {}", route, e.toString());
-      return Collections.emptyMap();
+      logger.warn("Failed to initialize user partitions..");
+      return Collections.emptyList();
     }
   }
 
