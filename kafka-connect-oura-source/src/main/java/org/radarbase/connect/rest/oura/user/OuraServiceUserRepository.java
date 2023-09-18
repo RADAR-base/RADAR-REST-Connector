@@ -99,7 +99,7 @@ public class OuraServiceUserRepository implements UserRepository {
     return makeRequest(request, USER_READER);
   }
 
-  public void initialize(RestSourceConnectorConfig config) {
+  public void initialize(OuraRestSourceConnectorConfig config) {
     OuraRestSourceConnectorConfig ouraConfig = (OuraRestSourceConnectorConfig) config;
     this.baseUrl = ouraConfig.getOuraUserRepositoryUrl();
 

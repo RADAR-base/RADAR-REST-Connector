@@ -23,18 +23,18 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.radarbase.oura.user.User;
+import org.radarbase.oura.user.OuraUser;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class OuraUsers {
-  private final List<User> users;
+  private final List<OuraUser> users;
 
   @JsonCreator
-  public OuraUsers(@JsonProperty("users") List<User> users) {
+  public OuraUsers(@JsonProperty("users") List<OuraUser> users) {
     this.users = new ArrayList<>(users);
   }
 
-  public List<? extends User> getUsers() {
+  public List<OuraUser> getUsers() {
     return users;
   }
 }

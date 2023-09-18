@@ -28,7 +28,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.config.ConfigException;
-import org.radarbase.connect.rest.AbstractRestSourceConnector;
 import org.radarbase.oura.user.User;
 import org.radarbase.connect.rest.oura.user.OuraServiceUserRepository;
 import org.slf4j.Logger;
@@ -83,7 +82,6 @@ public class OuraSourceConnector extends AbstractRestSourceConnector {
     return new OuraRestSourceConnectorConfig(conf, doLog);
   }
 
-  @Override
   public OuraRestSourceConnectorConfig getConfig(Map<String, String> conf) {
     OuraRestSourceConnectorConfig connectorConfig = getConfig(conf, true);
     repository = connectorConfig.getUserRepository(repository);

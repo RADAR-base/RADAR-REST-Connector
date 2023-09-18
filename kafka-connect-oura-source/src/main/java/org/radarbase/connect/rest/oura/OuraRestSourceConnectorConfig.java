@@ -30,9 +30,11 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import okhttp3.Headers;
 import okhttp3.HttpUrl;
+import org.apache.kafka.common.config.AbstractConfig;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.config.ConfigDef.Importance;
 import org.apache.kafka.common.config.ConfigDef.NonEmptyString;
@@ -42,13 +44,30 @@ import org.apache.kafka.common.config.ConfigDef.Width;
 import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.connect.errors.ConnectException;
 import org.apache.kafka.connect.storage.OffsetStorageReader;
-import org.radarbase.connect.rest.RestSourceConnectorConfig;
 import org.radarbase.connect.rest.config.ValidClass;
 import org.radarbase.oura.user.UserRepository;
 import org.radarbase.connect.rest.oura.request.OuraReqGenerator;
 import org.radarbase.connect.rest.oura.user.OuraServiceUserRepository;
 
-public class OuraRestSourceConnectorConfig extends RestSourceConnectorConfig {
+public class OuraRestSourceConnectorConfig extends AbstractConfig {
+  public static final Pattern COLON_PATTERN = Pattern.compile(":");
+
+  private static final String SOURCE_POLL_INTERVAL_CONFIG = "rest.source.poll.interval.ms";
+  private static final String SOURCE_POLL_INTERVAL_DOC = "How often to poll the source URL.";
+  private static final String SOURCE_POLL_INTERVAL_DISPLAY = "Polling interval";
+  private static final Long SOURCE_POLL_INTERVAL_DEFAULT = 60000L;
+
+  static final String SOURCE_URL_CONFIG = "rest.source.base.url";
+  private static final String SOURCE_URL_DOC = "Base URL for REST source connector.";
+  private static final String SOURCE_URL_DISPLAY = "Base URL for REST source connector.";
+
+  private static final String SOURCE_REQUEST_GENERATOR_CONFIG = "rest.source.request.generator.class";
+  private static final Class REQUEST_GENERATOR_DEFAULT =
+      OuraReqGenerator.class;
+  private static final String REQUEST_GENERATOR_DOC =
+      "Class to be used to generate REST requests";
+  private static final String REQUEST_GENERATOR_DISPLAY = "Request generator class";
+
   public static final String OURA_API_CLIENT_CONFIG = "oura.api.client";
   private static final String OURA_API_CLIENT_DOC =
       "Client ID for the Oura API";
@@ -115,7 +134,37 @@ public class OuraRestSourceConnectorConfig extends RestSourceConnectorConfig {
       }
     };
 
-    return RestSourceConnectorConfig.conf()
+    return new ConfigDef()
+    .define(SOURCE_POLL_INTERVAL_CONFIG,
+            Type.LONG,
+            SOURCE_POLL_INTERVAL_DEFAULT,
+            Importance.LOW,
+            SOURCE_POLL_INTERVAL_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            SOURCE_POLL_INTERVAL_DISPLAY)
+
+        .define(SOURCE_URL_CONFIG,
+            Type.STRING,
+            NO_DEFAULT_VALUE,
+            Importance.HIGH,
+            SOURCE_URL_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            SOURCE_URL_DISPLAY)
+
+        .define(SOURCE_REQUEST_GENERATOR_CONFIG,
+            Type.CLASS,
+            REQUEST_GENERATOR_DEFAULT,
+            Importance.LOW,
+            REQUEST_GENERATOR_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            REQUEST_GENERATOR_DISPLAY)
+
         .define(OURA_API_CLIENT_CONFIG,
             Type.STRING,
             NO_DEFAULT_VALUE,
@@ -150,7 +199,6 @@ public class OuraRestSourceConnectorConfig extends RestSourceConnectorConfig {
         .define(OURA_USER_REPOSITORY_CONFIG,
             Type.CLASS,
             OuraServiceUserRepository.class,
-            ValidClass.isSubclassOf(OuraServiceUserRepository.class),
             Importance.MEDIUM,
             OURA_USER_REPOSITORY_DOC,
             group,
@@ -230,7 +278,7 @@ public class OuraRestSourceConnectorConfig extends RestSourceConnectorConfig {
           getClass(OURA_USER_REPOSITORY_CONFIG)).getDeclaredConstructor().newInstance();
     } catch (IllegalAccessException | InstantiationException
         | InvocationTargetException | NoSuchMethodException e) {
-      throw new ConnectException("Invalid class for: " + SOURCE_PAYLOAD_CONVERTER_CONFIG, e);
+      throw new ConnectException("Invalid class. " + e);
     }
   }
 

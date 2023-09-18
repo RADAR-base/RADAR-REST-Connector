@@ -43,6 +43,7 @@ import org.radarbase.connect.rest.oura.OuraRestSourceConnectorConfig;
 import org.radarbase.connect.rest.oura.offset.KafkaOffsetManager;
 import org.radarbase.oura.user.User;
 import org.radarbase.connect.rest.request.RequestGeneratorRouter;
+import org.radarbase.connect.rest.request.RequestGenerator;
 import org.radarbase.connect.rest.request.RequestRoute;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,7 +74,7 @@ public class OuraReqGenerator {
   private OkHttpClient baseClient;
   private final Map<String, OkHttpClient> clients;
   private OuraServiceUserRepository userRepository;
-  private List<Route> routes = this.ouraRequestGenerator.getRoutes();
+  private List<Route> routes;
   private OuraRequestGenerator ouraRequestGenerator; 
   private AvroData avroData = new AvroData(20);
   private KafkaOffsetManager offsetManager;
@@ -83,13 +84,14 @@ public class OuraReqGenerator {
     clients = new HashMap<>();
   }
 
-  public void initialize(RestSourceConnectorConfig config, OffsetStorageReader offsetStorageReader) {
+  public void initialize(OuraRestSourceConnectorConfig config, OffsetStorageReader offsetStorageReader) {
     OuraRestSourceConnectorConfig ouraConfig = (OuraRestSourceConnectorConfig) config;
     this.baseClient = new OkHttpClient();
 
     this.userRepository = ouraConfig.getUserRepository();
     this.offsetManager = new KafkaOffsetManager(offsetStorageReader, this.getPartitions());
     this.ouraRequestGenerator = new OuraRequestGenerator(this.userRepository, this.offsetManager);
+    this.routes = this.ouraRequestGenerator.getRoutes();
   }
 
   public OkHttpClient getClient(User user) {
