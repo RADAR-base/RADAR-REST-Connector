@@ -45,7 +45,6 @@ import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.connect.errors.ConnectException;
 import org.apache.kafka.connect.storage.OffsetStorageReader;
 import org.radarbase.connect.rest.config.ValidClass;
-import org.radarbase.oura.user.UserRepository;
 import org.radarbase.connect.rest.oura.request.OuraReqGenerator;
 import org.radarbase.connect.rest.oura.user.OuraServiceUserRepository;
 

@@ -63,7 +63,8 @@ public class RestSourceTask extends SourceTask {
     List<SourceRecord> requests = Collections.emptyList();
 
     do {
-      long timeout = MILLIS.between(Instant.now(), requestGenerator.getTimeOfNextRequest());
+      // FIX: Update timeout
+      long timeout = 10000L;
       if (timeout > 0) {
         logger.info("Waiting {} milliseconds for next available request", timeout);
         Thread.sleep(timeout);
