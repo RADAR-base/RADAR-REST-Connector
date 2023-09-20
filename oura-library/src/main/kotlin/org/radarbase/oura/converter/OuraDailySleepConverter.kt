@@ -23,6 +23,7 @@ class OuraDailySleepConverter(
                 TopicData(
                     key = user.observationKey,
                     topic = topic,
+                    offset = startInstant.toEpochMilli().toDouble(),
                     value = it.toDailySleep(startInstant),
                 )
             }

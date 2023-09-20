@@ -24,6 +24,7 @@ class OuraHeartRateConverter(
                 TopicData(
                     key = user.observationKey,
                     topic = topic,
+                    offset = startInstant.toEpochMilli().toDouble(),
                     value = it.toHeartRate(startInstant),
                 )
             }

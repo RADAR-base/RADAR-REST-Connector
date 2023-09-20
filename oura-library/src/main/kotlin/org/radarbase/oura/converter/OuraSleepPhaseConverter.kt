@@ -40,15 +40,16 @@ class OuraSleepPhaseConverter(
         } else {
             items.asSequence()
                 .mapIndexedCatching { index, value ->
+                    val offset = SLEEP_PHASE_INTERVAL * index
+                    val time = startTimeEpoch + offset
                     TopicData(
                         key = user.observationKey,
                         topic = topic,
+                        offset = System.currentTimeMillis() / 1000.0,
                         value = toSleepPhase(
-                            startTimeEpoch,
+                            time,
                             timeReceivedEpoch,
                             id,
-                            index,
-                            SLEEP_PHASE_INTERVAL,
                             value.toString(),
                         ),
                     )
@@ -60,14 +61,11 @@ class OuraSleepPhaseConverter(
         startTimeEpoch: Double,
         timeReceivedEpoch: Double,
         idString: String,
-        index: Int,
-        interval: Int,
         value: String,
     ): OuraSleepPhase {
-        val offset = interval * index
         return OuraSleepPhase.newBuilder().apply {
             id = idString
-            time = startTimeEpoch + offset
+            time = startTimeEpoch
             timeReceived = timeReceivedEpoch
             phase = value.classify()
         }.build()

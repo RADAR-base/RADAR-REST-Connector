@@ -23,6 +23,7 @@ class OuraDailyActivityConverter(
                 TopicData(
                     key = user.observationKey,
                     topic = topic,
+                    offset = startInstant.toEpochMilli().toDouble(),
                     value = it.toDailyActivity(startInstant),
                 )
             }

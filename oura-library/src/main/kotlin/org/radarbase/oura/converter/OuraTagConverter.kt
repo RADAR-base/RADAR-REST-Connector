@@ -30,6 +30,7 @@ class OuraTagConverter(
                             TopicData(
                                 key = user.observationKey,
                                 topic = topic,
+                                offset = startInstant.toEpochMilli().toDouble(),
                                 value = data.toTag(startInstant, it.textValue()),
                             )
                         }

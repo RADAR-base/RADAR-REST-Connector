@@ -29,17 +29,18 @@ class OuraDailyActivityClassConverter(
         return if (items.isEmpty()) {
             emptySequence()
         } else {
-            items.asSequence().mapIndexedCatching { index, value ->
+            items.asSequence().mapIndexedCatching { index, value -> 
+                val offset = ACTIVITY_CLASS_INTERVAL * index
+                val time = startTimeEpoch + offset
                 TopicData(
                     key = user.observationKey,
                     topic = topic,
+                    offset = time,
                     value =
                     toActivityClass(
-                        startTimeEpoch,
+                        time,
                         timeReceivedEpoch,
                         id,
-                        index,
-                        ACTIVITY_CLASS_INTERVAL,
                         value.toString(),
                     ),
                 )
@@ -51,15 +52,12 @@ class OuraDailyActivityClassConverter(
         startTimeEpoch: Double,
         timeReceivedEpoch: Double,
         idString: String,
-        index: Int,
-        interval: Int,
         value: String,
     ): OuraActivityClass {
-        val offset = interval * index
         return OuraActivityClass.newBuilder()
             .apply {
                 id = idString
-                time = startTimeEpoch + offset
+                time = startTimeEpoch
                 timeReceived = timeReceivedEpoch
                 type = value.classify()
             }

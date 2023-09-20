@@ -38,15 +38,16 @@ class OuraSessionHrvConverter(
         } else {
             items.asSequence()
                 .mapIndexedCatching { index, value ->
+                    val offset = index * interval
+                    val time = startTimeEpoch + offset
                     TopicData(
                         key = user.observationKey,
                         topic = topic,
+                        offset = time,
                         value = toHrv(
-                            startTimeEpoch,
+                            time,
                             timeReceivedEpoch,
                             id,
-                            index,
-                            interval,
                             value.floatValue(),
                         ),
                     )
@@ -58,14 +59,11 @@ class OuraSessionHrvConverter(
         startTimeEpoch: Double,
         timeReceivedEpoch: Double,
         idString: String,
-        index: Int,
-        interval: Int,
         value: Float,
     ): OuraHeartRateVariability {
-        val offset = interval * index
         return OuraHeartRateVariability.newBuilder().apply {
             id = idString
-            time = startTimeEpoch + offset
+            time = startTimeEpoch
             timeReceived = timeReceivedEpoch
             hrv = value
         }.build()

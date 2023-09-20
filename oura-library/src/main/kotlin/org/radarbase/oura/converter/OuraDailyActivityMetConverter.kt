@@ -38,15 +38,16 @@ class OuraDailyActivityMetConverter(
         } else {
             items.asSequence()
                 .mapIndexedCatching { index, value ->
+                    val offset = interval * index
+                    val time = startTimeEpoch + offset
                     TopicData(
                         key = user.observationKey,
                         topic = topic,
+                        offset = time,
                         value = toMet(
-                            startTimeEpoch,
+                            time,
                             timeReceivedEpoch,
                             id,
-                            index,
-                            interval,
                             value.floatValue(),
                         ),
                     )
@@ -58,14 +59,11 @@ class OuraDailyActivityMetConverter(
         startTimeEpoch: Double,
         timeReceivedEpoch: Double,
         idString: String,
-        index: Int,
-        interval: Int,
         value: Float,
     ): OuraMet {
-        val offset = interval * index
         return OuraMet.newBuilder().apply {
             id = idString
-            time = startTimeEpoch + offset
+            time = startTimeEpoch
             timeReceived = timeReceivedEpoch
             met = value
         }.build()

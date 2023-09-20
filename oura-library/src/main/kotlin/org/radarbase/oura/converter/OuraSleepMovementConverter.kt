@@ -40,15 +40,16 @@ class OuraSleepMovementConverter(
         } else {
             items.asSequence()
                 .mapIndexedCatching { index, value ->
+                    val offset = SLEEP_MOVEMENT_INTERVAL * index
+                    val time = startTimeEpoch + offset
                     TopicData(
                         key = user.observationKey,
                         topic = topic,
+                        offset = System.currentTimeMillis() / 1000.0,
                         value = toSleepMovement(
-                            startTimeEpoch,
+                            time,
                             timeReceivedEpoch,
                             id,
-                            index,
-                            SLEEP_MOVEMENT_INTERVAL,
                             value.toString(),
                         ),
                     )
@@ -60,14 +61,11 @@ class OuraSleepMovementConverter(
         startTimeEpoch: Double,
         timeReceivedEpoch: Double,
         idString: String,
-        index: Int,
-        interval: Int,
         value: String,
     ): OuraSleepMovement {
-        val offset = interval * index
         return OuraSleepMovement.newBuilder().apply {
             id = idString
-            time = startTimeEpoch + offset
+            time = startTimeEpoch
             timeReceived = timeReceivedEpoch
             movement = value.classify()
         }.build()

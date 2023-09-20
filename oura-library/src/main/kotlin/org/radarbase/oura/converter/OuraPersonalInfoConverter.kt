@@ -17,6 +17,7 @@ class OuraPersonalInfoConverter(
                 TopicData(
                     key = user.observationKey,
                     topic = topic,
+                    offset = System.currentTimeMillis() / 1000.0,
                     value = root.toPersonalInfo(),
                 )
             },

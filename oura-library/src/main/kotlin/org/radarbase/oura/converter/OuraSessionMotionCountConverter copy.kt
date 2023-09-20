@@ -38,15 +38,16 @@ class OuraSessionMotionCountConverter(
         } else {
             items.asSequence()
                 .mapIndexedCatching { index, value ->
+                    val offset = interval * index
+                    val time = startTimeEpoch + offset
                     TopicData(
                         key = user.observationKey,
                         topic = topic,
+                        offset = time,
                         value = toMotionCount(
                             startTimeEpoch,
                             timeReceivedEpoch,
                             id,
-                            index,
-                            interval,
                             value.intValue(),
                         ),
                     )
@@ -58,14 +59,11 @@ class OuraSessionMotionCountConverter(
         startTimeEpoch: Double,
         timeReceivedEpoch: Double,
         idString: String,
-        index: Int,
-        interval: Int,
         value: Int,
     ): OuraMotionCount {
-        val offset = interval * index
         return OuraMotionCount.newBuilder().apply {
             id = idString
-            time = startTimeEpoch + offset
+            time = startTimeEpoch
             timeReceived = timeReceivedEpoch
             motionCount = value
         }.build()
