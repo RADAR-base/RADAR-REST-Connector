@@ -78,6 +78,7 @@ public class OuraReqGenerator {
   private OuraRequestGenerator ouraRequestGenerator; 
   private AvroData avroData = new AvroData(20);
   private KafkaOffsetManager offsetManager;
+  String TIMESTAMP_OFFSET_KEY = "timestamp";
 
 
   public OuraReqGenerator() {
@@ -89,9 +90,10 @@ public class OuraReqGenerator {
     this.baseClient = new OkHttpClient();
 
     this.userRepository = ouraConfig.getUserRepository();
-    this.offsetManager = new KafkaOffsetManager(offsetStorageReader, this.getPartitions());
+    this.offsetManager = new KafkaOffsetManager(offsetStorageReader);
     this.ouraRequestGenerator = new OuraRequestGenerator(this.userRepository, this.offsetManager);
     this.routes = this.ouraRequestGenerator.getRoutes();
+    this.offsetManager.initialize(getPartitions());
   }
 
   public OkHttpClient getClient(User user) {
@@ -129,15 +131,14 @@ public class OuraReqGenerator {
   }
 
   public Stream<SourceRecord> handleRequest(RestRequest req) throws IOException {
-    Collection<SourceRecord> records;
-
     try (Response response = baseClient.newCall(req.getRequest()).execute()) {
       return this.ouraRequestGenerator.handleResponse(req, response).stream().map(r -> {
         SchemaAndValue avro = avroData.toConnectData(r.getValue().getSchema(), r.getValue());
         SchemaAndValue key = avroData.toConnectData(r.getKey().getSchema(), r.getKey());
+        Map<String, Object> partition = getPartition(req.getRoute().toString(), req.getUser());
+        Map<String, ?> offset = Collections.singletonMap(TIMESTAMP_OFFSET_KEY, r.getOffset());
 
-        // Fix offsets
-        return new SourceRecord(null, null, r.getTopic(),
+        return new SourceRecord(partition, offset, r.getTopic(),
               key.schema(), key.value(), avro.schema(), avro.value());
       });
     } catch (IOException ex) {

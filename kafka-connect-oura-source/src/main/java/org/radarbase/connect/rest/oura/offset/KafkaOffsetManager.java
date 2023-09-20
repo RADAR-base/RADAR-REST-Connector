@@ -18,6 +18,7 @@ import org.radarbase.oura.user.User;
 import org.radarbase.oura.request.OuraOffsetManager;
 
 public class KafkaOffsetManager implements OuraOffsetManager {
+  private OffsetStorageReader offsetStorageReader;
   private Map<String, Instant> offsets;
   private static final Logger logger = LoggerFactory.getLogger(KafkaOffsetManager.class);
 
@@ -25,9 +26,12 @@ public class KafkaOffsetManager implements OuraOffsetManager {
   protected static final Duration ONE_NANO = NANOS.getDuration();
 
   public KafkaOffsetManager(
-    OffsetStorageReader offsetStorageReader,
-    List<Map<String, Object>> partitions) {
-    this.offsets = offsetStorageReader.offsets(partitions).entrySet().stream()
+    OffsetStorageReader offsetStorageReader) {
+      this.offsetStorageReader = offsetStorageReader;
+    }
+
+  public void initialize(List<Map<String, Object>> partitions) {
+    this.offsets = this.offsetStorageReader.offsets(partitions).entrySet().stream()
       .filter(e -> e.getValue() != null && e.getValue().containsKey(TIMESTAMP_OFFSET_KEY))
       .collect(Collectors.toMap(
           e -> (String) e.getKey().get("user") + "-" + e.getKey().get("route"),
