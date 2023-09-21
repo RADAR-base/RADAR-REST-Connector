@@ -35,7 +35,7 @@ class OuraDailyActivityClassConverter(
                 TopicData(
                     key = user.observationKey,
                     topic = topic,
-                    offset = time,
+                    offset = time.toLong(),
                     value =
                     toActivityClass(
                         time,

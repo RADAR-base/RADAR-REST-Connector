@@ -44,7 +44,7 @@ class OuraSleepHeartRateConverter(
                     TopicData(
                         key = user.observationKey,
                         topic = topic,
-                        offset = time,
+                        offset = time.toLong(),
                         value = toHeartRate(
                             time,
                             timeReceivedEpoch,

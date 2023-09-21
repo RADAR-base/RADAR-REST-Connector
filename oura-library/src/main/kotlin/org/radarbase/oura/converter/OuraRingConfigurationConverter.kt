@@ -26,7 +26,7 @@ class OuraRingConfigurationConverter(
                 TopicData(
                     key = user.observationKey,
                     topic = topic,
-                    offset = System.currentTimeMillis() / 1000.0,
+                    offset = System.currentTimeMillis() / 1000,
                     value = it.toRingConfiguration(startInstant),
                 )
             }

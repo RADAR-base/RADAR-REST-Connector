@@ -25,7 +25,7 @@ class OuraSleepTimeRecommendationConverter(
                 TopicData(
                     key = user.observationKey,
                     topic = topic,
-                    offset = startInstant.toEpochMilli().toDouble(),
+                    offset = startInstant.toEpochMilli(),
                     value = it.toSleepTime(startInstant),
                 )
             }

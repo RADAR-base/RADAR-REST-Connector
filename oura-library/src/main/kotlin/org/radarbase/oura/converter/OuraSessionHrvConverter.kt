@@ -43,7 +43,7 @@ class OuraSessionHrvConverter(
                     TopicData(
                         key = user.observationKey,
                         topic = topic,
-                        offset = time,
+                        offset = time.toLong(),
                         value = toHrv(
                             time,
                             timeReceivedEpoch,
