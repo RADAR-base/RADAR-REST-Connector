@@ -39,15 +39,16 @@ class OuraSleepHeartRateConverter(
         } else {
             items.asSequence()
                 .mapIndexedCatching { index, value ->
+                    val offset = interval * index
+                    val time = startTimeEpoch + offset
                     TopicData(
                         key = user.observationKey,
                         topic = topic,
+                        offset = time,
                         value = toHeartRate(
-                            startTimeEpoch,
+                            time,
                             timeReceivedEpoch,
                             id,
-                            index,
-                            interval,
                             value.intValue(),
                         ),
                     )
@@ -59,14 +60,11 @@ class OuraSleepHeartRateConverter(
         startTimeEpoch: Double,
         timeReceivedEpoch: Double,
         idString: String,
-        index: Int,
-        interval: Int,
         value: Int,
     ): OuraHeartRate {
-        val offset = interval * index
         return OuraHeartRate.newBuilder().apply {
             id = idString
-            time = startTimeEpoch + offset
+            time = startTimeEpoch
             timeReceived = timeReceivedEpoch
             bpm = value
             source = OuraHeartRateSource.SLEEP

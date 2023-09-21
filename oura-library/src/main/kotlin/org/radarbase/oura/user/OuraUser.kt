@@ -18,7 +18,7 @@ data class OuraUser(
     @JsonProperty("startDate") override val startDate: Instant,
     @JsonProperty("endDate") override val endDate: Instant,
     @JsonProperty("version") override val version: String? = null,
-    @JsonProperty("serviceUserId") override val serviceUserId: String,
+    @JsonProperty("serviceUserId") override val serviceUserId: String? = null,
 ) : User {
     override val observationKey: ObservationKey = ObservationKey(projectId, userId, sourceId)
     override val versionedId: String = "$id${version?.let { "#$it" } ?: ""}"

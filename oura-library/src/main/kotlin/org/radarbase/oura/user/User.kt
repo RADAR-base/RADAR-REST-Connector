@@ -13,7 +13,7 @@ interface User {
     val endDate: Instant
     val createdAt: Instant
     val humanReadableUserId: String?
-    val serviceUserId: String
+    val serviceUserId: String?
     val version: String?
     val isAuthorized: Boolean
 

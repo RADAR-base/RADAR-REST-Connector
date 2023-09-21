@@ -23,6 +23,7 @@ class OuraDailyReadinessConverter(
                 TopicData(
                     key = user.observationKey,
                     topic = topic,
+                    offset = startInstant.toEpochMilli().toDouble(),
                     value = it.toDailyReadiness(startInstant),
                 )
             }

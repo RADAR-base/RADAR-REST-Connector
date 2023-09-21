@@ -25,6 +25,7 @@ class OuraWorkoutConverter(
                 TopicData(
                     key = user.observationKey,
                     topic = topic,
+                    offset = startInstant.toEpochMilli().toDouble(),
                     value = it.toWorkout(startInstant),
                 )
             }
