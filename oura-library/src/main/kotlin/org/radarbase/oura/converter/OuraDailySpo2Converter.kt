@@ -6,8 +6,9 @@ import org.radarcns.connector.oura.OuraDailyOxygenSaturation
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.time.OffsetDateTime
+import java.time.format.DateTimeFormatter
 
-class OuraDailyOxygenSaturationConverter(
+class OuraDailySpo2Converter(
     private val topic: String = "connect_oura_daily_spo2",
 ) : OuraDataConverter {
     override fun processRecords(
@@ -18,7 +19,7 @@ class OuraDailyOxygenSaturationConverter(
             ?: return emptySequence()
         return array.asSequence()
             .mapCatching {
-                val startTime = OffsetDateTime.parse(it["timestamp"].textValue())
+                val startTime = OffsetDateTime.parse(it["day"].textValue(), DateTimeFormatter.ISO_LOCAL_DATE)
                 val startInstant = startTime.toInstant()
                 TopicData(
                     key = user.observationKey,
@@ -43,6 +44,6 @@ class OuraDailyOxygenSaturationConverter(
     }
 
     companion object {
-        val logger = LoggerFactory.getLogger(OuraDailyOxygenSaturationConverter::class.java)
+        val logger = LoggerFactory.getLogger(OuraDailySpo2Converter::class.java)
     }
 }

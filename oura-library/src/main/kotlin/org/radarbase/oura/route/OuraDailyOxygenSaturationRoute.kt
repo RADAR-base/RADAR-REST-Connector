@@ -1,6 +1,6 @@
 package org.radarbase.oura.route
 
-import org.radarbase.oura.converter.OuraDailyOxygenSaturationConverter
+import org.radarbase.oura.converter.OuraDailySpo2Converter
 import org.radarbase.oura.user.UserRepository
 
 class OuraDailyOxygenSaturationRoute(
@@ -11,5 +11,5 @@ class OuraDailyOxygenSaturationRoute(
 
     override fun toString(): String = "oura_daily_oxygen_saturation"
 
-    override var converters = listOf(OuraDailyOxygenSaturationConverter())
+    override var converters = listOf(OuraDailySpo2Converter())
 }

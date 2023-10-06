@@ -21,13 +21,13 @@ class OuraRingConfigurationConverter(
             ?: return emptySequence()
         return array.asSequence()
             .mapCatching {
-                val startTime = OffsetDateTime.parse(it["set_up_at"].textValue())
-                val startInstant = startTime.toInstant()
+                val setupTime = OffsetDateTime.parse(it["set_up_at"].textValue())
+                val setupTimeInstant = setupTime.toInstant()
                 TopicData(
                     key = user.observationKey,
                     topic = topic,
                     offset = System.currentTimeMillis() / 1000,
-                    value = it.toRingConfiguration(startInstant),
+                    value = it.toRingConfiguration(setupTimeInstant),
                 )
             }
     }

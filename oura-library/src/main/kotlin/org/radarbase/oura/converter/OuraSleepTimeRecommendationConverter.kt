@@ -8,6 +8,7 @@ import org.radarcns.connector.oura.OuraSleepStatus
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.time.OffsetDateTime
+import java.time.format.DateTimeFormatter
 
 class OuraSleepTimeRecommendationConverter(
     private val topic: String = "connect_oura_recommended_sleep_time",
@@ -20,7 +21,7 @@ class OuraSleepTimeRecommendationConverter(
             ?: return emptySequence()
         return array.asSequence()
             .mapCatching {
-                val startTime = OffsetDateTime.parse(it["timestamp"].textValue())
+                val startTime = OffsetDateTime.parse(it["day"].textValue(), DateTimeFormatter.ISO_LOCAL_DATE)
                 val startInstant = startTime.toInstant()
                 TopicData(
                     key = user.observationKey,
@@ -40,9 +41,9 @@ class OuraSleepTimeRecommendationConverter(
             timeReceived = System.currentTimeMillis() / 1000.0
             id = data.get("id").textValue()
             day = data.get("day").textValue()
-            bedtimeStartOffset = data.get("optimal_bedtime")?.get("start_offset")?.intValue()
-            bedtimeEndOffset = data.get("optimal_bedtime")?.get("end_offset")?.intValue()
-            timezoneOffset = data.get("optimal_bedtime")?.get("day_tz")?.intValue()
+            optimalBedtimeStartOffset = data.get("optimal_bedtime")?.get("start_offset")?.intValue()
+            optimalBedtimeEndOffset = data.get("optimal_bedtime")?.get("end_offset")?.intValue()
+            optimalBedtimeTimezoneOffset = data.get("optimal_bedtime")?.get("day_tz")?.intValue()
             recommendation = data.get("recommendation").textValue()?.classifyRecommendation()
             status = data.get("status").textValue()?.classifyStatus()
         }.build()
