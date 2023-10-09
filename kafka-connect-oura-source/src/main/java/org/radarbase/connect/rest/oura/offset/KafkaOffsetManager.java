@@ -41,7 +41,7 @@ public class KafkaOffsetManager implements OuraOffsetManager {
   @Override
   public Offset getOffset(Route route, User user) {
     Instant offset = offsets.getOrDefault(getOffsetKey(route, user), user.getStartDate().minus(ONE_NANO));
-    return new Offset(user.getUserId(), route.toString(), offset);
+    return new Offset(user, route, offset);
   }
 
   @Override

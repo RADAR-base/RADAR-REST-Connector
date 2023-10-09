@@ -36,7 +36,7 @@ public abstract class AbstractRestSourceConnector extends SourceConnector {
 
   @Override
   public Class<? extends Task> taskClass() {
-    return RestSourceTask.class;
+    return OuraSourceTask.class;
   }
 
   @Override
