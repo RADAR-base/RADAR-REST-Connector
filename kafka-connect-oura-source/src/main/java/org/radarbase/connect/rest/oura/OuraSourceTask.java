@@ -36,8 +36,8 @@ import org.radarbase.connect.rest.util.VersionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RestSourceTask extends SourceTask {
-  private static final Logger logger = LoggerFactory.getLogger(RestSourceTask.class);
+public class OuraSourceTask extends SourceTask {
+  private static final Logger logger = LoggerFactory.getLogger(OuraSourceTask.class);
 
   private OuraReqGenerator requestGenerator;
 
