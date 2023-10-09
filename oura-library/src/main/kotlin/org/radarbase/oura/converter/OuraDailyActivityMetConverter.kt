@@ -43,7 +43,7 @@ class OuraDailyActivityMetConverter(
                     TopicData(
                         key = user.observationKey,
                         topic = topic,
-                        offset = time,
+                        offset = time.toLong(),
                         value = toMet(
                             time,
                             timeReceivedEpoch,

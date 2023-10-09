@@ -45,7 +45,7 @@ class OuraSleepMovementConverter(
                     TopicData(
                         key = user.observationKey,
                         topic = topic,
-                        offset = time,
+                        offset = time.toLong(),
                         value = toSleepMovement(
                             time,
                             timeReceivedEpoch,

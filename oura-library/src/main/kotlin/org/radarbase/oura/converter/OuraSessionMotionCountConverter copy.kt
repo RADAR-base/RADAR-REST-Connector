@@ -43,7 +43,7 @@ class OuraSessionMotionCountConverter(
                     TopicData(
                         key = user.observationKey,
                         topic = topic,
-                        offset = time,
+                        offset = time.toLong(),
                         value = toMotionCount(
                             startTimeEpoch,
                             timeReceivedEpoch,
