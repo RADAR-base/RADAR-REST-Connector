@@ -63,13 +63,6 @@ public class OuraSourceTask extends SourceTask {
     List<SourceRecord> requests = Collections.emptyList();
 
     do {
-      // FIX: Update timeout
-      long timeout = 10000L;
-      if (timeout > 0) {
-        logger.info("Waiting {} milliseconds for next available request", timeout);
-        Thread.sleep(timeout);
-      }
-
       Map<String, String> configs = context.configs();
       Iterator<? extends RestRequest> requestIterator = requestGenerator.requests()
           .iterator();
