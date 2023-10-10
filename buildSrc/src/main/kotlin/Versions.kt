@@ -4,7 +4,7 @@ object Versions {
     const val java = 11
     const val kotlin = "1.6.0"
 
-    const val radarCommons = "1.0.0"
+    const val radarCommons = "1.1.0"
     const val confluent = "7.4.0"
     const val kafka = "$confluent-ce"
     const val avro = "1.11.0"
