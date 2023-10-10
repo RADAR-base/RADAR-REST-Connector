@@ -20,7 +20,7 @@ object Versions {
     const val managementPortal = "2.0.0"
 
     const val firebaseAdmin = "9.1.0"
-    const val radarSchemas = "0.8.5-SNAPSHOT"
+    const val radarSchemas = "0.8.5"
 
     const val junit = "5.9.3"
     const val hamcrest = "2.2"
