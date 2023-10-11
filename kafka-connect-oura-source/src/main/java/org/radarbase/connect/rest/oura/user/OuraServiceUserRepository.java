@@ -107,6 +107,7 @@ public class OuraServiceUserRepository implements UserRepository {
   public void initialize(OuraRestSourceConnectorConfig config) {
     OuraRestSourceConnectorConfig ouraConfig = (OuraRestSourceConnectorConfig) config;
     this.baseUrl = ouraConfig.getOuraUserRepositoryUrl();
+    this.containedUsers.addAll(ouraConfig.getOuraUsers());
 
     URL tokenUrl = ouraConfig.getOuraUserRepositoryTokenUrl();
     String clientId = ouraConfig.getOuraUserRepositoryClientId();

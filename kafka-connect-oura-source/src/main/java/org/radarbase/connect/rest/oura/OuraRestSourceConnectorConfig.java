@@ -57,6 +57,13 @@ public class OuraRestSourceConnectorConfig extends AbstractConfig {
   private static final String SOURCE_URL_DOC = "Base URL for REST source connector.";
   private static final String SOURCE_URL_DISPLAY = "Base URL for REST source connector.";
 
+  public static final String OURA_USERS_CONFIG = "oura.users";
+  private static final String OURA_USERS_DOC =
+      "The user ID of Oura users to include in polling, separated by commas. "
+          + "Non existing user names will be ignored. "
+          + "If empty, all users in the user directory will be used.";
+  private static final String OURA_USERS_DISPLAY = "Oura users";
+
   public static final String OURA_API_CLIENT_CONFIG = "oura.api.client";
   private static final String OURA_API_CLIENT_DOC =
       "Client ID for the Oura API";
@@ -142,6 +149,16 @@ public class OuraRestSourceConnectorConfig extends AbstractConfig {
             Width.SHORT,
             SOURCE_URL_DISPLAY)
 
+        .define(OURA_USERS_CONFIG,
+            Type.LIST,
+            Collections.emptyList(),
+            Importance.HIGH,
+            OURA_USERS_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            OURA_USERS_DISPLAY)
+
         .define(OURA_API_CLIENT_CONFIG,
             Type.STRING,
             NO_DEFAULT_VALUE,
@@ -223,6 +240,10 @@ public class OuraRestSourceConnectorConfig extends AbstractConfig {
             Width.SHORT,
             OURA_USER_REPOSITORY_TOKEN_URL_DISPLAY)
         ;
+  }
+
+  public List<String> getOuraUsers() {
+    return getList(OURA_USERS_CONFIG);
   }
 
   public String getOuraClient() {

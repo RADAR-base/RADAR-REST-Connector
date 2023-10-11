@@ -38,6 +38,8 @@ import static kotlin.sequences.SequencesKt.*;
 import kotlin.sequences.Sequence;
 import kotlin.streams.jdk8.StreamsKt;
 
+import static org.radarbase.connect.rest.oura.OuraRestSourceConnectorConfig.OURA_USERS_CONFIG;
+
 public class OuraSourceConnector extends AbstractRestSourceConnector {
 
   private static final Logger logger = LoggerFactory.getLogger(OuraSourceConnector.class);
@@ -117,7 +119,7 @@ public class OuraSourceConnector extends AbstractRestSourceConnector {
           .values().stream()
           .map(u -> {
             Map<String, String> config = new HashMap<>(baseConfig);
-            config.put("oura.users", u);
+            config.put(OURA_USERS_CONFIG, u);
             return config;
           })
           .collect(Collectors.toList());
