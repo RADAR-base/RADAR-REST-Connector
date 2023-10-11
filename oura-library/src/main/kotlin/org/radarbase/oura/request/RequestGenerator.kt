@@ -15,5 +15,5 @@ interface RequestGenerator {
 
     fun requestSuccessful(request: RestRequest, response: Response): List<TopicData>
 
-    fun requestFailed(request: RestRequest, response: Response)
+    fun requestFailed(request: RestRequest, response: Response): OuraError
 }

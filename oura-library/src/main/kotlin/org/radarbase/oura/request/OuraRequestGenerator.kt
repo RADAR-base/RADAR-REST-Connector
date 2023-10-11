@@ -75,16 +75,14 @@ constructor(
         return route.generateRequests(user, startOffset, endTime)
     }
 
-    fun handleResponse(req: RestRequest, response: Response): List<TopicData> {
+    fun handleResponse(req: RestRequest, response: Response): OuraResult<List<TopicData>> {
         if (response.isSuccessful) {
-            return requestSuccessful(req, response)
+            return OuraResult.Success<List<TopicData>>(requestSuccessful(req, response))
         } else {
             try {
-                requestFailed(req, response)
-            }
-            catch (e: TooManyRequestsException) {}
-            finally {
-                return emptyList();
+                OuraResult.Error(requestFailed(req, response))
+            } catch (e: TooManyRequestsException) {} finally {
+                return OuraResult.Success(listOf<TopicData>())
             }
         }
     }
@@ -100,28 +98,37 @@ constructor(
         return records
     }
 
-    override fun requestFailed(request: RestRequest, response: Response) {
-        when (response.code) {
+    override fun requestFailed(request: RestRequest, response: Response): OuraError {
+        return when (response.code) {
             429 -> {
                 logger.info("Too many requests, rate limit reached. Backing off...")
                 nextRequestTime = Instant.now() + BACK_OFF_TIME
-                throw TooManyRequestsException()
+                OuraRateLimitError()
             }
             403 -> {
                 logger.warn(
                     "User ${request.user} has expired." +
-                        "Please renew the subscription. User backing off for $USER_BACK_OFF_TIME...",
+                        "Please renew the subscription...",
                 )
                 userNextRequest[request.user.versionedId] = Instant.now().plus(USER_BACK_OFF_TIME)
+                OuraAccessForbiddenError()
             }
-            426 -> {
+            401 -> {
                 logger.warn(
-                    "User ${request.user} does not have updated mobile app version." +
-                        "Please update the app. User backing off for $USER_BACK_OFF_TIME...",
+                    "User ${request.user} access token is" +
+                        " expired, malformed, or revoked..",
                 )
                 userNextRequest[request.user.versionedId] = Instant.now().plus(USER_BACK_OFF_TIME)
+                OuraUnauthorizedAccessError()
             }
-            else -> logger.warn("Request Failed: {}, {}", request, response)
+            400 -> {
+                logger.warn("Client exception..")
+                OuraClientException()
+            }
+            else -> {
+                logger.warn("Request Failed: {}, {}", request, response)
+                OuraValidationError()
+            }
         }
     }
 

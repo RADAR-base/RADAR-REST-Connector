@@ -36,7 +36,8 @@ class OuraRestModePeriodConverter(
         return OuraRestModePeriod.newBuilder().apply {
             time = startTime.toEpochMilli() / 1000.0
             timeReceived = System.currentTimeMillis() / 1000.0
-            endTime = OffsetDateTime.parse(data.get("end_time").textValue()).toInstant().toEpochMilli() / 1000.0
+            endTime = OffsetDateTime.parse(data.get("end_time").textValue())
+                .toInstant().toEpochMilli() / 1000.0
             id = data.get("id").textValue()
             startDay = data.get("start_day").textValue()
             endDay = data.get("end_day").textValue()

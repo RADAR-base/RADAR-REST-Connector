@@ -21,7 +21,8 @@ class OuraSleepTimeRecommendationConverter(
             ?: return emptySequence()
         return array.asSequence()
             .mapCatching {
-                val startTime = OffsetDateTime.parse(it["day"].textValue(), DateTimeFormatter.ISO_LOCAL_DATE)
+                val startTime =
+                    OffsetDateTime.parse(it["day"].textValue(), DateTimeFormatter.ISO_LOCAL_DATE)
                 val startInstant = startTime.toInstant()
                 TopicData(
                     key = user.observationKey,

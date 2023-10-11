@@ -18,7 +18,7 @@ object OuraRouteFactory {
             OuraWorkoutRoute(userRepository),
             OuraRingConfigurationRoute(userRepository),
             OuraRestModePeriodRoute(userRepository),
-            OuraSleepTimeRecommendationRoute(userRepository)
+            OuraSleepTimeRecommendationRoute(userRepository),
         )
     }
 }

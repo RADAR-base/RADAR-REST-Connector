@@ -52,17 +52,27 @@ class OuraSleepConverter(
             lowBatteryAlert = data.get("low_battery_alert").booleanValue()
             lowestHeartRate = data.get("lowest_heart_rate").intValue()
             period = data.get("period").intValue()
-            readinessContributorActivityBalance = data.get("readiness")?.get("contributors")?.get("activity_balance")?.intValue()
-            readinessContributorBodyTemperature = data.get("readiness")?.get("contributors")?.get("body_temperature")?.intValue()
-            readinessContributorHrvBalance = data.get("readiness")?.get("contributors")?.get("hrv_balance")?.intValue()
-            readinessContributorPreviousDayActivity = data.get("readiness")?.get("contributors")?.get("previous_day_activity")?.intValue()
-            readinessContributorPreviousNight = data.get("readiness")?.get("contributors")?.get("previous_night")?.intValue()
-            readinessContributorRecoveryIndex = data.get("readiness")?.get("contributors")?.get("recovery_index")?.intValue()
-            readinessContributorRestingHeartRate = data.get("readiness")?.get("contributors")?.get("resting_heart_rate")?.intValue()
-            readinessContributorSleepBalance = data.get("readiness")?.get("contributors")?.get("sleep_balance")?.intValue()
+            readinessContributorActivityBalance =
+                data.get("readiness")?.get("contributors")?.get("activity_balance")?.intValue()
+            readinessContributorBodyTemperature =
+                data.get("readiness")?.get("contributors")?.get("body_temperature")?.intValue()
+            readinessContributorHrvBalance =
+                data.get("readiness")?.get("contributors")?.get("hrv_balance")?.intValue()
+            readinessContributorPreviousDayActivity =
+                data.get("readiness")?.get("contributors")?.get("previous_day_activity")?.intValue()
+            readinessContributorPreviousNight =
+                data.get("readiness")?.get("contributors")?.get("previous_night")?.intValue()
+            readinessContributorRecoveryIndex =
+                data.get("readiness")?.get("contributors")?.get("recovery_index")?.intValue()
+            readinessContributorRestingHeartRate =
+                data.get("readiness")?.get("contributors")?.get("resting_heart_rate")?.intValue()
+            readinessContributorSleepBalance =
+                data.get("readiness")?.get("contributors")?.get("sleep_balance")?.intValue()
             readinessScore = data.get("readiness")?.get("score")?.intValue()
-            readinessTemperatureDeviation = data.get("readiness")?.get("temperature_deviation")?.intValue()
-            readinessTemperatureTrendDeviation = data.get("readiness")?.get("temperature_trend_deviation")?.intValue()
+            readinessTemperatureDeviation =
+                data.get("readiness")?.get("temperature_deviation")?.intValue()
+            readinessTemperatureTrendDeviation =
+                data.get("readiness")?.get("temperature_trend_deviation")?.intValue()
             readinessScoreDelta = data.get("readiness_score_delta").intValue()
             remSleepDuration = data.get("rem_sleep_duration").intValue()
             restlessPeriods = data.get("restless_periods").intValue()

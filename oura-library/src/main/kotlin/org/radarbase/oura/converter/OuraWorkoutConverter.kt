@@ -37,7 +37,8 @@ class OuraWorkoutConverter(
         val data = this
         return OuraWorkout.newBuilder().apply {
             time = startTime.toEpochMilli() / 1000.0
-            endTime = OffsetDateTime.parse(data.get("end_datetime").textValue()).toInstant().toEpochMilli() / 1000.0
+            endTime = OffsetDateTime.parse(data.get("end_datetime").textValue())
+                .toInstant().toEpochMilli() / 1000.0
             timeReceived = System.currentTimeMillis() / 1000.0
             id = data.get("id").textValue()
             activity = data.get("activity").textValue()

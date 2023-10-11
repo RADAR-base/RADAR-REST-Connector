@@ -2,7 +2,7 @@ package org.radarbase.oura.converter
 
 import com.fasterxml.jackson.databind.JsonNode
 import org.radarbase.oura.user.User
-import org.radarcns.connector.oura.OuraDailyOxygenSaturation
+import org.radarcns.connector.oura.OuraDailySpo2
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.time.OffsetDateTime
@@ -19,7 +19,10 @@ class OuraDailySpo2Converter(
             ?: return emptySequence()
         return array.asSequence()
             .mapCatching {
-                val startTime = OffsetDateTime.parse(it["day"].textValue(), DateTimeFormatter.ISO_LOCAL_DATE)
+                val startTime = OffsetDateTime.parse(
+                    it["day"].textValue(),
+                    DateTimeFormatter.ISO_LOCAL_DATE,
+                )
                 val startInstant = startTime.toInstant()
                 TopicData(
                     key = user.observationKey,
@@ -32,9 +35,9 @@ class OuraDailySpo2Converter(
 
     private fun JsonNode.toDailySpo2(
         startTime: Instant,
-    ): OuraDailyOxygenSaturation {
+    ): OuraDailySpo2 {
         val data = this
-        return OuraDailyOxygenSaturation.newBuilder().apply {
+        return OuraDailySpo2.newBuilder().apply {
             time = startTime.toEpochMilli() / 1000.0
             timeReceived = System.currentTimeMillis() / 1000.0
             id = data.get("id").textValue()
