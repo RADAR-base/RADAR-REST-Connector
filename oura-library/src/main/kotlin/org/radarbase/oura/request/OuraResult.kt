@@ -7,23 +7,58 @@ sealed class OuraResult<out T : Any> {
 
 sealed interface OuraError
 
-sealed class OuraErrorBase(val message: String, val cause: Exception? = null) : OuraError
+sealed class OuraErrorBase(
+    val message: String,
+    val cause: Exception? = null,
+    val code: String,
+) : OuraError
 
-class OuraRateLimitError : OuraErrorBase("Rate limit reached..", TooManyRequestsException())
-
-class OuraClientException : OuraErrorBase(
-    "Client unsupported or unauthorized..",
-    TooManyRequestsException(),
+class OuraRateLimitError(message: String, cause: Exception? = null, code: String) : OuraErrorBase(
+    message,
+    cause,
+    code,
 )
 
-class OuraUnauthorizedAccessError : OuraErrorBase(
-    "Access token expired or revoked..",
-    TooManyRequestsException(),
+class OuraClientException(message: String, cause: Exception? = null, code: String) : OuraErrorBase(
+    message,
+    cause,
+    code,
 )
 
-class OuraAccessForbiddenError : OuraErrorBase(
-    "Oura subscription has expired or API data not available..",
-    TooManyRequestsException(),
+class OuraUnauthorizedAccessError(
+    message: String,
+    cause: Exception? = null,
+    code: String,
+) : OuraErrorBase(
+    message,
+    cause,
+    code,
 )
 
-class OuraValidationError : OuraErrorBase("Invalid Oura data..", TooManyRequestsException())
+class OuraAccessForbiddenError(
+    message: String,
+    cause: Exception? = null,
+    code: String,
+) : OuraErrorBase(
+    message,
+    cause,
+    code,
+)
+
+class OuraValidationError(message: String, cause: Exception? = null, code: String) : OuraErrorBase(
+    message,
+    cause,
+    code,
+)
+
+class OuraGenericError(message: String, cause: Exception? = null, code: String) : OuraErrorBase(
+    message,
+    cause,
+    code,
+)
+
+class OuraNotFoundError(message: String, cause: Exception? = null, code: String) : OuraErrorBase(
+    message,
+    cause,
+    code,
+)
