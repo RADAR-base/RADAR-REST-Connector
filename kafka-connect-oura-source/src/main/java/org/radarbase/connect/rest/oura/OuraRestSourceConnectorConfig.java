@@ -43,9 +43,6 @@ import org.apache.kafka.common.config.ConfigDef.Validator;
 import org.apache.kafka.common.config.ConfigDef.Width;
 import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.connect.errors.ConnectException;
-import org.apache.kafka.connect.storage.OffsetStorageReader;
-import org.radarbase.connect.rest.config.ValidClass;
-import org.radarbase.connect.rest.oura.request.OuraReqGenerator;
 import org.radarbase.connect.rest.oura.user.OuraServiceUserRepository;
 
 public class OuraRestSourceConnectorConfig extends AbstractConfig {
@@ -99,7 +96,6 @@ public class OuraRestSourceConnectorConfig extends AbstractConfig {
 
   private OuraServiceUserRepository userRepository;
   private final Headers clientCredentials;
-  private OuraReqGenerator requestGenerator;
 
   public OuraRestSourceConnectorConfig(ConfigDef config, Map<String, String> parsedConfig, boolean doLog) {
     super(config, parsedConfig, doLog);
