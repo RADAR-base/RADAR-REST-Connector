@@ -11,6 +11,7 @@ import org.radarbase.oura.route.Route
 import org.radarbase.oura.user.User
 import org.radarbase.oura.user.UserRepository
 import org.slf4j.LoggerFactory
+import java.io.IOException
 import java.time.Duration
 import java.time.Instant
 import kotlin.streams.asSequence
@@ -103,7 +104,7 @@ constructor(
             429 -> {
                 logger.info("Too many requests, rate limit reached. Backing off...")
                 nextRequestTime = Instant.now() + BACK_OFF_TIME
-                OuraRateLimitError()
+                OuraRateLimitError("Rate limit reached..", TooManyRequestsException(), "429")
             }
             403 -> {
                 logger.warn(
@@ -111,7 +112,11 @@ constructor(
                         "Please renew the subscription...",
                 )
                 userNextRequest[request.user.versionedId] = Instant.now().plus(USER_BACK_OFF_TIME)
-                OuraAccessForbiddenError()
+                OuraAccessForbiddenError(
+                    "Oura subscription has expired or API data not available..",
+                    IOException("Unauthorized"),
+                    "403",
+                )
             }
             401 -> {
                 logger.warn(
@@ -119,15 +124,35 @@ constructor(
                         " expired, malformed, or revoked..",
                 )
                 userNextRequest[request.user.versionedId] = Instant.now().plus(USER_BACK_OFF_TIME)
-                OuraUnauthorizedAccessError()
+                OuraUnauthorizedAccessError(
+                    "Access token expired or revoked..",
+                    IOException("Unauthorized"),
+                    "401",
+                )
             }
             400 -> {
                 logger.warn("Client exception..")
-                OuraClientException()
+                OuraClientException(
+                    "Client unsupported or unauthorized..",
+                    IOException("Invalid client"),
+                    "400",
+                )
+            }
+            422 -> {
+                logger.warn("Request Failed: {}, {}", request, response)
+                OuraValidationError(
+                    response.body.toString(),
+                    IOException("Validation error"),
+                    "422",
+                )
+            }
+            404 -> {
+                logger.warn("Not found..")
+                OuraNotFoundError(response.body.toString(), IOException("Data not found"), "404")
             }
             else -> {
                 logger.warn("Request Failed: {}, {}", request, response)
-                OuraValidationError()
+                OuraGenericError(response.body.toString(), IOException("Unknown error"), "500")
             }
         }
     }
