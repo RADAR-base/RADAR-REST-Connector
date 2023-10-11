@@ -18,12 +18,13 @@
 package org.radarbase.connect.rest.oura.user;
 
 import static org.radarbase.connect.rest.converter.PayloadToSourceRecordConverter.MIN_INSTANT;
-import static org.radarbase.connect.rest.oura.request.OuraReqGenerator.JSON_READER;
 
+import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
-import kotlin.sequences.Sequence;
 import kotlin.sequences.*;
 
 import java.io.IOException;
@@ -63,6 +64,10 @@ import static kotlin.sequences.SequencesKt.*;
 
 @SuppressWarnings("unused")
 public class OuraServiceUserRepository implements UserRepository {
+    public static final JsonFactory JSON_FACTORY = new JsonFactory();
+  public static final ObjectReader JSON_READER = new ObjectMapper(JSON_FACTORY)
+      .registerModule(new JavaTimeModule())
+      .reader();
   private static final Logger logger = LoggerFactory.getLogger(OuraServiceUserRepository.class);
 
   private static final ObjectReader USER_LIST_READER = JSON_READER.forType(OuraUsers.class);

@@ -22,24 +22,102 @@ import static java.time.temporal.ChronoUnit.MILLIS;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.apache.kafka.connect.data.SchemaAndValue;
 import org.apache.kafka.connect.errors.ConnectException;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.apache.kafka.connect.source.SourceTask;
-import org.apache.kafka.connect.source.SourceTaskContext;
-import org.radarbase.connect.rest.oura.request.OuraReqGenerator;
+import org.apache.kafka.connect.storage.OffsetStorageReader;
+import org.radarbase.connect.rest.oura.offset.KafkaOffsetManager;
+import org.radarbase.connect.rest.oura.user.OuraServiceUserRepository;
+import org.radarbase.oura.converter.TopicData;
+import org.radarbase.oura.request.OuraRequestGenerator;
+import org.radarbase.oura.request.OuraResult;
+import org.radarbase.oura.request.OuraResult.Success;
 import org.radarbase.oura.request.RestRequest;
+import org.radarbase.oura.route.Route;
 import org.radarbase.connect.rest.util.VersionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.radarbase.oura.user.User;
+import io.confluent.connect.avro.AvroData;
+import kotlin.streams.jdk8.StreamsKt;
+import okhttp3.OkHttpClient;
+import okhttp3.Response;
 
 public class OuraSourceTask extends SourceTask {
   private static final Logger logger = LoggerFactory.getLogger(OuraSourceTask.class);
 
-  private OuraReqGenerator requestGenerator = new OuraReqGenerator();
+  private OkHttpClient baseClient;
+  private OuraServiceUserRepository userRepository;
+  private List<Route> routes;
+  private OuraRequestGenerator ouraRequestGenerator;
+  private AvroData avroData = new AvroData(20);
+  private KafkaOffsetManager offsetManager;
+  String TIMESTAMP_OFFSET_KEY = "timestamp";
+
+  public void initialize(OuraRestSourceConnectorConfig config, OffsetStorageReader offsetStorageReader) {
+    OuraRestSourceConnectorConfig ouraConfig = (OuraRestSourceConnectorConfig) config;
+    this.baseClient = new OkHttpClient();
+
+    this.userRepository = ouraConfig.getUserRepository();
+    this.offsetManager = new KafkaOffsetManager(offsetStorageReader);
+    this.ouraRequestGenerator = new OuraRequestGenerator(this.userRepository, this.offsetManager);
+    this.routes = this.ouraRequestGenerator.getRoutes();
+    this.offsetManager.initialize(getPartitions());
+  }
+
+    public List<Map<String, Object>> getPartitions() {
+    try {
+      return StreamsKt.asStream(userRepository.stream())
+          .flatMap(u -> this.routes.stream().map(r -> getPartition(r.toString(), u)))
+          .collect(Collectors.toList());
+    } catch (Exception e) {
+      logger.warn("Failed to initialize user partitions..");
+      return Collections.emptyList();
+    }
+  }
+
+  public Map<String, Object> getPartition(String route, User user) {
+    Map<String, Object> partition = new HashMap<>(4);
+    partition.put("user", user.getVersionedId());
+    partition.put("route", route);
+    return partition;
+  }
+
+  public Stream<RestRequest> requests() {
+    Stream<Route> routes = this.routes.stream();
+    return routes.flatMap((Route r) -> StreamsKt.asStream(ouraRequestGenerator.requests(r, 100)));
+  }
+
+  public Stream<SourceRecord> handleRequest(RestRequest req) throws IOException {
+    try (Response response = baseClient.newCall(req.getRequest()).execute()) {
+      OuraResult result = this.ouraRequestGenerator.handleResponse(req, response);
+      if (result instanceof OuraResult.Success) {
+        OuraResult.Success<List<TopicData>> success = (Success<List<TopicData>>) result;
+        return success.getValue().stream().map(r -> {
+          SchemaAndValue avro = avroData.toConnectData(r.getValue().getSchema(), r.getValue());
+          SchemaAndValue key = avroData.toConnectData(r.getKey().getSchema(), r.getKey());
+          Map<String, Object> partition = getPartition(req.getRoute().toString(), req.getUser());
+          Map<String, ?> offset = Collections.singletonMap(TIMESTAMP_OFFSET_KEY, r.getOffset());
+
+          return new SourceRecord(partition, offset, r.getTopic(),
+                key.schema(), key.value(), avro.schema(), avro.value());
+        });
+      } else {
+        logger.warn("Failed to make request: {}", result.toString());
+        return Stream.empty();
+      }
+    } catch (IOException ex) {
+      throw ex;
+    }
+  }
 
   @Override
   public void start(Map<String, String> map) {
@@ -54,7 +132,7 @@ public class OuraSourceTask extends SourceTask {
       throw new ConnectException("Connector " + map.get("connector.class")
           + " could not be instantiated", e);
     }
-    requestGenerator.initialize(connectorConfig, context.offsetStorageReader());
+    this.initialize(connectorConfig, context.offsetStorageReader());
   }
 
   @Override
@@ -64,7 +142,7 @@ public class OuraSourceTask extends SourceTask {
 
     do {
       Map<String, String> configs = context.configs();
-      Iterator<? extends RestRequest> requestIterator = requestGenerator.requests()
+      Iterator<? extends RestRequest> requestIterator = this.requests()
           .iterator();
 
 
@@ -75,7 +153,7 @@ public class OuraSourceTask extends SourceTask {
         requestsGenerated++;
 
         try {
-          requests = this.requestGenerator.handleRequest(request)
+          requests = this.handleRequest(request)
               .collect(Collectors.toList());
         } catch (IOException ex) {
           logger.warn("Failed to make request: {}", ex.toString());
