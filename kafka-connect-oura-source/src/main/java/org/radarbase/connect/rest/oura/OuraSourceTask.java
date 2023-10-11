@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
 public class OuraSourceTask extends SourceTask {
   private static final Logger logger = LoggerFactory.getLogger(OuraSourceTask.class);
 
-  private OuraReqGenerator requestGenerator;
+  private OuraReqGenerator requestGenerator = new OuraReqGenerator();
 
   @Override
   public void start(Map<String, String> map) {
@@ -54,7 +54,7 @@ public class OuraSourceTask extends SourceTask {
       throw new ConnectException("Connector " + map.get("connector.class")
           + " could not be instantiated", e);
     }
-    requestGenerator = connectorConfig.getRequestGenerator(context.offsetStorageReader());
+    requestGenerator.initialize(connectorConfig, context.offsetStorageReader());
   }
 
   @Override

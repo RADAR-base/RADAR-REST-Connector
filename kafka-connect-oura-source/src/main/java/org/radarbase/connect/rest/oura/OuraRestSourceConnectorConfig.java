@@ -60,13 +60,6 @@ public class OuraRestSourceConnectorConfig extends AbstractConfig {
   private static final String SOURCE_URL_DOC = "Base URL for REST source connector.";
   private static final String SOURCE_URL_DISPLAY = "Base URL for REST source connector.";
 
-  private static final String SOURCE_REQUEST_GENERATOR_CONFIG = "rest.source.request.generator.class";
-  private static final Class REQUEST_GENERATOR_DEFAULT =
-      OuraReqGenerator.class;
-  private static final String REQUEST_GENERATOR_DOC =
-      "Class to be used to generate REST requests";
-  private static final String REQUEST_GENERATOR_DISPLAY = "Request generator class";
-
   public static final String OURA_API_CLIENT_CONFIG = "oura.api.client";
   private static final String OURA_API_CLIENT_DOC =
       "Client ID for the Oura API";
@@ -119,7 +112,6 @@ public class OuraRestSourceConnectorConfig extends AbstractConfig {
 
   public OuraRestSourceConnectorConfig(Map<String, String> parsedConfig, boolean doLog) {
     this(OuraRestSourceConnectorConfig.conf(), parsedConfig, doLog);
-    requestGenerator = new OuraReqGenerator();
   }
 
   public static ConfigDef conf() {
@@ -153,16 +145,6 @@ public class OuraRestSourceConnectorConfig extends AbstractConfig {
             ++orderInGroup,
             Width.SHORT,
             SOURCE_URL_DISPLAY)
-
-        .define(SOURCE_REQUEST_GENERATOR_CONFIG,
-            Type.CLASS,
-            REQUEST_GENERATOR_DEFAULT,
-            Importance.LOW,
-            REQUEST_GENERATOR_DOC,
-            group,
-            ++orderInGroup,
-            Width.SHORT,
-            REQUEST_GENERATOR_DISPLAY)
 
         .define(OURA_API_CLIENT_CONFIG,
             Type.STRING,
@@ -327,8 +309,4 @@ public class OuraRestSourceConnectorConfig extends AbstractConfig {
       }
     }
   }
-    public OuraReqGenerator getRequestGenerator(OffsetStorageReader offsetStorageReader) {
-      requestGenerator.initialize(this, offsetStorageReader);
-      return requestGenerator;
-    }
 }
