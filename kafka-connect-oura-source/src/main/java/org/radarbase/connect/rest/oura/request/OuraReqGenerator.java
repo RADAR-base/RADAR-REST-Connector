@@ -50,6 +50,9 @@ import org.slf4j.LoggerFactory;
 import org.radarbase.oura.request.OuraRequestGenerator;
 import org.radarbase.connect.rest.oura.user.OuraServiceUserRepository;
 import org.radarbase.oura.request.RestRequest;
+import org.radarbase.oura.request.OuraResult.Success;
+import org.radarbase.oura.request.OuraResult;
+import org.radarbase.oura.converter.TopicData;
 import java.time.Instant;
 
 import org.apache.kafka.connect.data.Schema;
@@ -132,15 +135,22 @@ public class OuraReqGenerator {
 
   public Stream<SourceRecord> handleRequest(RestRequest req) throws IOException {
     try (Response response = baseClient.newCall(req.getRequest()).execute()) {
-      return this.ouraRequestGenerator.handleResponse(req, response).stream().map(r -> {
-        SchemaAndValue avro = avroData.toConnectData(r.getValue().getSchema(), r.getValue());
-        SchemaAndValue key = avroData.toConnectData(r.getKey().getSchema(), r.getKey());
-        Map<String, Object> partition = getPartition(req.getRoute().toString(), req.getUser());
-        Map<String, ?> offset = Collections.singletonMap(TIMESTAMP_OFFSET_KEY, r.getOffset());
+      OuraResult result = this.ouraRequestGenerator.handleResponse(req, response);
+      if (result instanceof OuraResult.Success) {
+        OuraResult.Success<List<TopicData>> success = (Success<List<TopicData>>) result;
+        return success.getValue().stream().map(r -> {
+          SchemaAndValue avro = avroData.toConnectData(r.getValue().getSchema(), r.getValue());
+          SchemaAndValue key = avroData.toConnectData(r.getKey().getSchema(), r.getKey());
+          Map<String, Object> partition = getPartition(req.getRoute().toString(), req.getUser());
+          Map<String, ?> offset = Collections.singletonMap(TIMESTAMP_OFFSET_KEY, r.getOffset());
 
-        return new SourceRecord(partition, offset, r.getTopic(),
-              key.schema(), key.value(), avro.schema(), avro.value());
-      });
+          return new SourceRecord(partition, offset, r.getTopic(),
+                key.schema(), key.value(), avro.schema(), avro.value());
+        });
+      } else {
+        logger.warn("Failed to make request: {}", result.toString());
+        return Stream.empty();
+      }
     } catch (IOException ex) {
       throw ex;
     }
