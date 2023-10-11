@@ -2,8 +2,8 @@ package org.radarbase.oura.converter
 
 import com.fasterxml.jackson.databind.JsonNode
 import org.radarbase.oura.user.User
-import org.radarcns.connector.oura.OuraRingConfiguration
 import org.radarcns.connector.oura.OuraRingColor
+import org.radarcns.connector.oura.OuraRingConfiguration
 import org.radarcns.connector.oura.OuraRingDesign
 import org.radarcns.connector.oura.OuraRingHardwareType
 import org.slf4j.LoggerFactory

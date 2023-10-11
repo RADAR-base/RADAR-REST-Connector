@@ -31,7 +31,8 @@ class OuraSleepHrvConverter(
         val startTimeEpoch = startTime.toInstant().toEpochMilli() / 1000.0
         val timeReceivedEpoch = System.currentTimeMillis() / 1000.0
         val id = this.get("id").textValue()
-        val interval = this.get("hrv")?.get("interval")?.intValue() ?: throw IOException("Unable to get sample interval.")
+        val interval = this.get("hrv")?.get("interval")?.intValue()
+            ?: throw IOException("Unable to get sample interval.")
         val items = this.get("hrv")?.get("items")
         return if (items == null) {
             emptySequence()

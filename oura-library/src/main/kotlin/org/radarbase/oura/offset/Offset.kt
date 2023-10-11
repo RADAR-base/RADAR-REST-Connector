@@ -1,8 +1,8 @@
 package org.radarbase.oura.offset
 
-import java.time.Instant
-import org.radarbase.oura.user.User
 import org.radarbase.oura.route.Route
+import org.radarbase.oura.user.User
+import java.time.Instant
 
 data class Offset(
     val user: User,

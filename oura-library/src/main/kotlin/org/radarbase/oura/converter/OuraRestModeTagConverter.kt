@@ -28,14 +28,14 @@ class OuraRestModeTagConverter(
                             val tags = it.get("tags")
                             val startTime = OffsetDateTime.parse(it["timestamp"].textValue())
                             val startInstant = startTime.toInstant()
-                            tags.asSequence().mapCatching { 
+                            tags.asSequence().mapCatching {
                                 TopicData(
                                     key = user.observationKey,
                                     topic = topic,
                                     offset = startInstant.toEpochMilli(),
                                     value = data.toTag(startInstant, it.textValue()),
-                                ) 
-                             }
+                                )
+                            }
                         }
                 }
             }

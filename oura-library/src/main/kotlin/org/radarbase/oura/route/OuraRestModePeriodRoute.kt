@@ -14,6 +14,6 @@ class OuraRestModePeriodRoute(
 
     override var converters = listOf(
         OuraRestModePeriodConverter(),
-        OuraRestModeTagConverter()
-        )
+        OuraRestModeTagConverter(),
+    )
 }

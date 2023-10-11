@@ -29,7 +29,7 @@ class OuraDailyActivityClassConverter(
         return if (items.isEmpty()) {
             emptySequence()
         } else {
-            items.asSequence().mapIndexedCatching { index, value -> 
+            items.asSequence().mapIndexedCatching { index, value ->
                 val offset = ACTIVITY_CLASS_INTERVAL * index
                 val time = startTimeEpoch + offset
                 TopicData(

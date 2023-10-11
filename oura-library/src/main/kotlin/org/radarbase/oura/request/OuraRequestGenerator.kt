@@ -81,10 +81,8 @@ constructor(
         } else {
             try {
                 requestFailed(req, response)
-            }
-            catch (e: TooManyRequestsException) {}
-            finally {
-                return emptyList();
+            } catch (e: TooManyRequestsException) {} finally {
+                return emptyList()
             }
         }
     }
@@ -110,7 +108,7 @@ constructor(
             403 -> {
                 logger.warn(
                     "User ${request.user} has expired." +
-                        "Please renew the subscription. User backing off for $USER_BACK_OFF_TIME...",
+                        "Please renew the subscription...",
                 )
                 userNextRequest[request.user.versionedId] = Instant.now().plus(USER_BACK_OFF_TIME)
             }

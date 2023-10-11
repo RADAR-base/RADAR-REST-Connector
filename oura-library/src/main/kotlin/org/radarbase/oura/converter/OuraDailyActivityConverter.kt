@@ -38,11 +38,13 @@ class OuraDailyActivityConverter(
             timeReceived = System.currentTimeMillis() / 1000.0
             id = data.get("id").textValue()
             activeCalories = data.get("active_calories").intValue()
-            contributorMeetDailyTargets = data.get("contributors")?.get("meet_daily_targets")?.intValue()
+            contributorMeetDailyTargets =
+                data.get("contributors")?.get("meet_daily_targets")?.intValue()
             contributorMoveEveryHour = data.get("contributors")?.get("move_every_hour")?.intValue()
             contributorRecoveryTime = data.get("contributors")?.get("recovery_time")?.intValue()
             contributorStayActive = data.get("contributors")?.get("stay_active")?.intValue()
-            contributorTrainingFrequency = data.get("contributors")?.get("training_frequency")?.intValue()
+            contributorTrainingFrequency =
+                data.get("contributors")?.get("training_frequency")?.intValue()
             contributorTrainingVolume = data.get("contributors")?.get("training_volume")?.intValue()
             equivalentWalkingDistance = data.get("equivalent_walking_distance").intValue()
             highActivityMetMinutes = data.get("high_activity_met_minutes").intValue()
