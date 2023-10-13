@@ -35,7 +35,7 @@ public class KafkaOffsetManager implements OuraOffsetManager {
       .filter(e -> e.getValue() != null && e.getValue().containsKey(TIMESTAMP_OFFSET_KEY))
       .collect(Collectors.toMap(
           e -> (String) e.getKey().get("user") + "-" + e.getKey().get("route"),
-          e -> Instant.ofEpochMilli((Long) e.getValue().get(TIMESTAMP_OFFSET_KEY))));
+          e -> Instant.ofEpochMilli(((Number) e.getValue().get(TIMESTAMP_OFFSET_KEY)).longValue())));
   }
 
   @Override
