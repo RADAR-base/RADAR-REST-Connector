@@ -190,7 +190,7 @@ public class OuraServiceUserRepository implements UserRepository {
 
   public void applyPendingUpdates() throws IOException {
     logger.info("Requesting user information from webservice");
-    Request request = requestFor("users?source-type=FitBit").build();
+    Request request = requestFor("users?source-type=Oura").build();
     this.timedCachedUsers =
         this.<OuraUsers>makeRequest(request, USER_LIST_READER).getUsers().stream()
             .filter(u -> (containedUsers.isEmpty()
