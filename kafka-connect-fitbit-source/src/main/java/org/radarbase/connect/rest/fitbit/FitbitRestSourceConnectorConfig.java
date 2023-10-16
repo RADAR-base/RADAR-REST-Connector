@@ -100,6 +100,11 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
   private static final String FITBIT_INTRADAY_HEART_RATE_TOPIC_DISPLAY = "Intraday heartrate topic";
   private static final String FITBIT_INTRADAY_HEART_RATE_TOPIC_DEFAULT = "connect_fitbit_intraday_heart_rate";
 
+  private static final String FITBIT_INTRADAY_HEART_RATE_VARIABILITY_TOPIC_CONFIG = "fitbit.intraday.heart.rate.variability.topic";
+  private static final String FITBIT_INTRADAY_HEART_RATE_VARIABILITY_TOPIC_DOC = "Topic for Fitbit intraday intraday_heart_rate_variability";
+  private static final String FITBIT_INTRADAY_HEART_RATE_VARIABILITY_TOPIC_DISPLAY = "Intraday heart rate variability topic";
+  private static final String FITBIT_INTRADAY_HEART_RATE_VARIABILITY_TOPIC_DEFAULT = "connect_fitbit_intraday_heart_rate_variability";
+
   private static final String FITBIT_RESTING_HEART_RATE_TOPIC_CONFIG = "fitbit.resting.heart.rate.topic";
   private static final String FITBIT_RESTING_HEART_RATE_TOPIC_DOC = "Topic for Fitbit resting heart_rate";
   private static final String FITBIT_RESTING_HEART_RATE_TOPIC_DISPLAY = "Resting heartrate topic";
@@ -456,6 +461,10 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
 
   public String getFitbitIntradayHeartRateTopic() {
     return getString(FITBIT_INTRADAY_HEART_RATE_TOPIC_CONFIG);
+  }
+
+  public String getFitbitIntradayHeartRateVariabilityTopic() {
+    return getString(FITBIT_INTRADAY_HEART_RATE_VARIABILITY_TOPIC_CONFIG);
   }
 
   public String getFitbitRestingHeartRateTopic() {
