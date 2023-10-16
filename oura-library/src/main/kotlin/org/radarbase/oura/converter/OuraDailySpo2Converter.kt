@@ -5,7 +5,8 @@ import org.radarbase.oura.user.User
 import org.radarcns.connector.oura.OuraDailySpo2
 import org.slf4j.LoggerFactory
 import java.time.Instant
-import java.time.OffsetDateTime
+import java.time.LocalDate
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 class OuraDailySpo2Converter(
@@ -19,11 +20,11 @@ class OuraDailySpo2Converter(
             ?: return emptySequence()
         return array.asSequence()
             .mapCatching {
-                val startTime = OffsetDateTime.parse(
+                val localDate = LocalDate.parse(
                     it["day"].textValue(),
                     DateTimeFormatter.ISO_LOCAL_DATE,
                 )
-                val startInstant = startTime.toInstant()
+                val startInstant = localDate.atStartOfDay(ZoneId.systemDefault()).toInstant()
                 TopicData(
                     key = user.observationKey,
                     topic = topic,
