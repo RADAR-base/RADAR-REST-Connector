@@ -3,6 +3,7 @@ object Versions {
 
     const val java = 11
     const val kotlin = "1.9.10"
+    const val wrapper = "8.4"
 
     const val radarCommons = "1.1.1"
     const val confluent = "7.5.0"
