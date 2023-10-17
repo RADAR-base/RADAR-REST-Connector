@@ -18,10 +18,15 @@ class OuraSleepHrvConverter(
     ): Sequence<Result<TopicData>> {
         val array = root.get("data")
             ?: return emptySequence()
-        return array.asSequence()
-            .flatMap {
-                it.processSamples(user)
-            }
+        try {
+            return array.asSequence()
+                .flatMap {
+                    it.processSamples(user)
+                }
+        } catch (e: Exception) {
+            logger.error("Error processing records", e)
+            return emptySequence()
+        }
     }
 
     private fun JsonNode.processSamples(
@@ -32,7 +37,10 @@ class OuraSleepHrvConverter(
         val timeReceivedEpoch = System.currentTimeMillis() / 1000.0
         val id = this.get("id").textValue()
         val interval = this.get("hrv")?.get("interval")?.intValue()
-            ?: throw IOException("Unable to get sample interval. " + this.toString())
+            ?: throw IOException(
+                "Unable to get sample interval. " +
+                    this.get("hrv").toString(),
+            )
         val items = this.get("hrv")?.get("items")
         return if (items == null) {
             emptySequence()
