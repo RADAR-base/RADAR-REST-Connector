@@ -47,7 +47,11 @@ constructor(
         return userRepository
             .stream()
             .flatMap { user ->
-                return@flatMap generateRequests(route, user)
+                if (user.ready()) {
+                    return@flatMap generateRequests(route, user)
+                } else {
+                    emptySequence()
+                }
             }
             .takeWhile { !shouldBackoff }
     }
@@ -121,7 +125,7 @@ constructor(
             401 -> {
                 logger.warn(
                     "User ${request.user} access token is" +
-                        " expired, malformed, or revoked..",
+                        " expired, malformed, or revoked. " + response.body?.string(),
                 )
                 userNextRequest[request.user.versionedId] = Instant.now().plus(USER_BACK_OFF_TIME)
                 OuraUnauthorizedAccessError(
@@ -141,18 +145,18 @@ constructor(
             422 -> {
                 logger.warn("Request Failed: {}, {}", request, response)
                 OuraValidationError(
-                    response.body.toString(),
+                    response.body!!.string(),
                     IOException("Validation error"),
                     "422",
                 )
             }
             404 -> {
                 logger.warn("Not found..")
-                OuraNotFoundError(response.body.toString(), IOException("Data not found"), "404")
+                OuraNotFoundError(response.body!!.string(), IOException("Data not found"), "404")
             }
             else -> {
                 logger.warn("Request Failed: {}, {}", request, response)
-                OuraGenericError(response.body.toString(), IOException("Unknown error"), "500")
+                OuraGenericError(response.body!!.string(), IOException("Unknown error"), "500")
             }
         }
     }

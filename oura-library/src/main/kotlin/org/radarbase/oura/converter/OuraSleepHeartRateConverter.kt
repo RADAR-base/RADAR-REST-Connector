@@ -19,10 +19,15 @@ class OuraSleepHeartRateConverter(
     ): Sequence<Result<TopicData>> {
         val array = root.get("data")
             ?: return emptySequence()
-        return array.asSequence()
-            .flatMap {
-                it.processSamples(user)
-            }
+        try {
+            return array.asSequence()
+                .flatMap {
+                    it.processSamples(user)
+                }
+        } catch (e: Exception) {
+            logger.error("Error processing records", e)
+            return emptySequence()
+        }
     }
 
     private fun JsonNode.processSamples(
@@ -33,7 +38,10 @@ class OuraSleepHeartRateConverter(
         val timeReceivedEpoch = System.currentTimeMillis() / 1000.0
         val id = this.get("id").textValue()
         val interval = this.get("heart_rate")?.get("interval")?.intValue()
-            ?: throw IOException("Unable to get sample interval.")
+            ?: throw IOException(
+                "Unable to get sample interval. " +
+                    this.get("heart_rate").toString(),
+            )
         val items = this.get("heart_rate")?.get("items")
         return if (items == null) {
             emptySequence()
