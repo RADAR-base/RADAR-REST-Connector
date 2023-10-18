@@ -1,11 +1,12 @@
 object Versions {
-    const val project = "0.4.1"
+    const val project = "0.4.2-SNAPSHOT"
 
     const val java = 11
-    const val kotlin = "1.6.0"
+    const val kotlin = "1.9.10"
+    const val wrapper = "8.4"
 
-    const val radarCommons = "1.1.0"
-    const val confluent = "7.4.0"
+    const val radarCommons = "1.1.1"
+    const val confluent = "7.5.0"
     const val kafka = "$confluent-ce"
     const val avro = "1.11.0"
 
@@ -13,7 +14,7 @@ object Versions {
     const val jackson = "2.14.2"
 
     const val log4j2 = "2.20.0"
-    const val slf4j = "2.0.7"
+    const val slf4j = "2.0.9"
 
     const val okhttp = "4.11.0"
 
@@ -23,7 +24,6 @@ object Versions {
     const val radarSchemas = "0.8.5"
 
     const val junit = "5.9.3"
-    const val hamcrest = "2.2"
     const val wiremock = "2.27.2"
     const val mockito = "5.3.1"
 
