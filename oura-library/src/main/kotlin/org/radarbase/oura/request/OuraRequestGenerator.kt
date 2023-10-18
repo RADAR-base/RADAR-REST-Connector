@@ -171,7 +171,7 @@ constructor(
 
     companion object {
         private val logger = LoggerFactory.getLogger(OuraRequestGenerator::class.java)
-        private val BACK_OFF_TIME = Duration.ofMinutes(1L)
+        private val BACK_OFF_TIME = Duration.ofMinutes(5L)
         private val USER_BACK_OFF_TIME = Duration.ofDays(1L)
         val JSON_FACTORY = JsonFactory()
         val JSON_READER = ObjectMapper(JSON_FACTORY).registerModule(JavaTimeModule()).reader()
