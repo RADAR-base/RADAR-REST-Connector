@@ -18,8 +18,10 @@ data class OuraUser(
     @JsonProperty("startDate") override val startDate: Instant,
     @JsonProperty("endDate") override val endDate: Instant,
     @JsonProperty("version") override val version: String? = null,
-    @JsonProperty("serviceUserId") override val serviceUserId: String? = null,
+    @JsonProperty("serviceUserId") override val serviceUserId: String,
 ) : User {
     override val observationKey: ObservationKey = ObservationKey(projectId, userId, sourceId)
     override val versionedId: String = "$id${version?.let { "#$it" } ?: ""}"
+
+    fun isComplete() = isAuthorized && startDate.isBefore(endDate)
 }
