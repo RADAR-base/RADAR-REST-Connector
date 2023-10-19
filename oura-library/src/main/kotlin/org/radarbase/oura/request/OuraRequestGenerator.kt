@@ -76,6 +76,7 @@ constructor(
         }
         val endDate = user.endDate
         if (endDate <= startOffset) return emptySequence()
+        if (endDate >= Instant.now()) return emptySequence()
         val endTime = (startOffset + defaultQueryRange).coerceAtMost(endDate)
         return route.generateRequests(user, startOffset, endTime)
     }
