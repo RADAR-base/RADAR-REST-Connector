@@ -193,7 +193,7 @@ public class OuraServiceUserRepository implements UserRepository {
     Request request = requestFor("users?source-type=Oura").build();
     this.timedCachedUsers =
         this.<OuraUsers>makeRequest(request, USER_LIST_READER).getUsers().stream()
-            .filter(u -> (containedUsers.isEmpty()
+            .filter(u -> u.isComplete() && (containedUsers.isEmpty()
                 || containedUsers.contains(u.getVersionedId())))
             .collect(Collectors.toSet());
     nextFetch.set(Instant.now().plus(FETCH_THRESHOLD));
