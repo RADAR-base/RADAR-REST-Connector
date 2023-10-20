@@ -9,6 +9,7 @@ import java.time.OffsetDateTime
 
 class OuraSessionHrvConverter(
     private val topic: String = "connect_oura_heart_rate_variability",
+    private val sampleKey: String = "heart_rate_variability",
 ) : OuraDataConverter {
 
     @Throws(IOException::class)
@@ -18,15 +19,15 @@ class OuraSessionHrvConverter(
     ): Sequence<Result<TopicData>> {
         val array = root.get("data")
             ?: return emptySequence()
-        try {
-            return array.asSequence()
-                .flatMap {
+        return array.asSequence()
+            .flatMap {
+                runCatching {
                     it.processSamples(user)
+                }.getOrElse {
+                    logger.error("Error processing records", it.message)
+                    emptySequence()
                 }
-        } catch (e: Exception) {
-            logger.error("Error processing records", e)
-            return emptySequence()
-        }
+            }
     }
 
     private fun JsonNode.processSamples(
@@ -36,32 +37,25 @@ class OuraSessionHrvConverter(
         val startTimeEpoch = startTime.toInstant().toEpochMilli() / 1000.0
         val timeReceivedEpoch = System.currentTimeMillis() / 1000.0
         val id = this.get("id").textValue()
-        val interval = this.get("heart_rate_variability")?.get("interval")?.intValue()
-            ?: throw IOException(
-                "Unable to get sample interval. " +
-                    this.get("heart_rate_variability").toString(),
-            )
-        val items = this.get("heart_rate_variability")?.get("items")
-        return if (items == null) {
-            emptySequence()
-        } else {
-            items.asSequence()
-                .mapIndexedCatching { index, value ->
-                    val offset = index * interval
-                    val time = startTimeEpoch + offset
-                    TopicData(
-                        key = user.observationKey,
-                        topic = topic,
-                        offset = time.toLong(),
-                        value = toHrv(
-                            time,
-                            timeReceivedEpoch,
-                            id,
-                            value.floatValue(),
-                        ),
-                    )
-                }
-        }
+        val interval = this.get(sampleKey)?.get("interval")?.intValue()
+            ?: throw IOException("Unable to get sample interval.")
+        val items = this.get(sampleKey)?.get("items") ?: throw IOException("Unable to get items.")
+        return items.asSequence()
+            .mapIndexedCatching { index, value ->
+                val offset = index * interval
+                val time = startTimeEpoch + offset
+                TopicData(
+                    key = user.observationKey,
+                    topic = topic,
+                    offset = time.toLong(),
+                    value = toHrv(
+                        time,
+                        timeReceivedEpoch,
+                        id,
+                        value.floatValue(),
+                    ),
+                )
+            }
     }
 
     private fun toHrv(
