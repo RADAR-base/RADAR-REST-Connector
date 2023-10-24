@@ -7,5 +7,5 @@ data class TopicData(
     val topic: String,
     val key: SpecificRecord,
     val value: SpecificRecord,
-    val offset: Long?,
+    val offset: Long,
 )
