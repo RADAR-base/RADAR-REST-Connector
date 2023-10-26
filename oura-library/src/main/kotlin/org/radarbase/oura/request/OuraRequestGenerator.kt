@@ -48,7 +48,7 @@ constructor(
             .stream()
             .flatMap { user ->
                 if (user.ready()) {
-                    return@flatMap generateRequests(route, user)
+                    generateRequests(route, user)
                 } else {
                     emptySequence()
                 }
@@ -74,11 +74,10 @@ constructor(
             logger.debug("Offsets found in persistence.")
             offset.offset.coerceAtLeast(startDate)
         }
-        val endDate = user.endDate
+        val endDate = if (user.endDate >= Instant.now()) Instant.now() else user.endDate
         if (endDate <= startOffset) return emptySequence()
-        if (endDate >= Instant.now()) return emptySequence()
         val endTime = (startOffset + defaultQueryRange).coerceAtMost(endDate)
-        return route.generateRequests(user, startOffset, endTime)
+        return route.generateRequests(user, startOffset, endTime, USER_MAX_REQUESTS)
     }
 
     fun handleResponse(req: RestRequest, response: Response): OuraResult<List<TopicData>> {
@@ -94,13 +93,21 @@ constructor(
     }
 
     override fun requestSuccessful(request: RestRequest, response: Response): List<TopicData> {
-        logger.debug("Request successful: {}. Writing to offsets...", request.request)
+        logger.debug("Request successful: {}..", request.request)
         val body: ResponseBody? = response.body
         val data = body?.bytes()!!
         val records = request.route.converters.flatMap {
             it.convert(request, response.headers, data)
         }
-        ouraOffsetManager.updateOffsets(request.route, request.user, request.endDate)
+        val offset = records.maxByOrNull { it -> it.offset }?.offset
+        if (offset != null) {
+            logger.info("Writing ${records.size} records to offsets...")
+            ouraOffsetManager.updateOffsets(
+                request.route,
+                request.user,
+                Instant.ofEpochMilli(offset),
+            )
+        }
         return records
     }
 
@@ -174,6 +181,7 @@ constructor(
         private val logger = LoggerFactory.getLogger(OuraRequestGenerator::class.java)
         private val BACK_OFF_TIME = Duration.ofMinutes(5L)
         private val USER_BACK_OFF_TIME = Duration.ofDays(1L)
+        private val USER_MAX_REQUESTS = 20
         val JSON_FACTORY = JsonFactory()
         val JSON_READER = ObjectMapper(JSON_FACTORY).registerModule(JavaTimeModule()).reader()
     }
