@@ -19,6 +19,7 @@ package org.radarbase.connect.rest.oura;
 
 import static org.apache.kafka.common.config.ConfigDef.NO_DEFAULT_VALUE;
 
+import static io.ktor.http.URLUtilsKt.URLBuilder;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -44,6 +45,8 @@ import org.apache.kafka.common.config.ConfigDef.Width;
 import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.connect.errors.ConnectException;
 import org.radarbase.connect.rest.oura.user.OuraServiceUserRepository;
+import io.ktor.http.URLParserException;
+import io.ktor.http.Url;
 
 public class OuraRestSourceConnectorConfig extends AbstractConfig {
   public static final Pattern COLON_PATTERN = Pattern.compile(":");
@@ -280,18 +283,18 @@ public class OuraRestSourceConnectorConfig extends AbstractConfig {
     }
   }
 
-  public HttpUrl getOuraUserRepositoryUrl() {
+  public Url getOuraUserRepositoryUrl() {
     String urlString = getString(OURA_USER_REPOSITORY_URL_CONFIG).trim();
     if (urlString.charAt(urlString.length() - 1) != '/') {
       urlString += '/';
     }
-    HttpUrl url = HttpUrl.parse(urlString);
-    if (url == null) {
+    try {
+      return URLBuilder(urlString).build();
+    } catch (URLParserException ex) {
       throw new ConfigException(OURA_USER_REPOSITORY_URL_CONFIG,
           getString(OURA_USER_REPOSITORY_URL_CONFIG),
-          "User repository URL " + urlString + " cannot be parsed as URL.");
+          "User repository URL " + urlString + " cannot be parsed as URL: " + ex);
     }
-    return url;
   }
 
   public Headers getClientCredentials() {
@@ -314,15 +317,17 @@ public class OuraRestSourceConnectorConfig extends AbstractConfig {
     return getPassword(OURA_USER_REPOSITORY_CLIENT_SECRET_CONFIG).value();
   }
 
-  public URL getOuraUserRepositoryTokenUrl() {
+  public Url getOuraUserRepositoryTokenUrl() {
     String value = getString(OURA_USER_REPOSITORY_TOKEN_URL_CONFIG);
     if (value == null || value.isEmpty()) {
       return null;
     } else {
       try {
-        return new URL(getString(OURA_USER_REPOSITORY_TOKEN_URL_CONFIG));
-      } catch (MalformedURLException e) {
-        throw new ConfigException("Oura user repository token URL is invalid.");
+        return URLBuilder(value).build();
+      } catch (URLParserException ex) {
+        throw new ConfigException(OURA_USER_REPOSITORY_TOKEN_URL_CONFIG,
+                getString(OURA_USER_REPOSITORY_TOKEN_URL_CONFIG),
+                "Oura user repository token URL " + value + " cannot be parsed as URL: " + ex);
       }
     }
   }
