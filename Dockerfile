@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM --platform=$BUILDPLATFORM gradle:8.1-jdk11 as builder
+FROM --platform=$BUILDPLATFORM gradle:8.4-jdk11 as builder
 
 RUN mkdir /code
 WORKDIR /code
@@ -32,7 +32,7 @@ COPY ./kafka-connect-fitbit-source/src/ /code/kafka-connect-fitbit-source/src
 
 RUN gradle jar
 
-FROM confluentinc/cp-kafka-connect-base:7.4.0
+FROM confluentinc/cp-kafka-connect-base:7.5.0
 
 MAINTAINER Joris Borgdorff <joris@thehyve.nl>
 
