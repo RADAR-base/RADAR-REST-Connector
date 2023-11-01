@@ -166,7 +166,7 @@ class OuraServiceUserRepository : UserRepository {
 
         (valueInCache ?: userCache.get())
             .stream()
-            // .filter { it.isComplete() }
+            .filter { it.isComplete() }
             .asSequence()
     }
 
