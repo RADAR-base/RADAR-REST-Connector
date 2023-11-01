@@ -16,9 +16,11 @@
  */
 package org.radarbase.connect.rest.fitbit.user
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.readValue
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.ktor.client.HttpClient
-import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.auth.Auth
@@ -41,9 +43,11 @@ import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import io.ktor.http.takeFrom
 import io.ktor.serialization.jackson.jackson
+import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
 import org.radarbase.connect.rest.RestSourceConnectorConfig
 import org.radarbase.connect.rest.fitbit.FitbitRestSourceConnectorConfig
 import org.radarbase.kotlin.coroutines.CacheConfig
@@ -67,6 +71,7 @@ class ServiceUserRepository : UserRepository {
     private val credentialCaches = ConcurrentHashMap<String, CachedValue<OAuth2UserCredentials>>()
     private val credentialCacheConfig =
         CacheConfig(refreshDuration = 1.days, retryDuration = 1.minutes)
+    private val mapper = ObjectMapper().registerKotlinModule().registerModule(JavaTimeModule())
 
     @Throws(IOException::class)
     override fun get(key: String): User = runBlocking(Dispatchers.Default) {
@@ -113,6 +118,13 @@ class ServiceUserRepository : UserRepository {
                         clientSecret,
                     ).copyWithEnv("MANAGEMENT_PORTAL"),
                     baseUrl.host,
+                )
+            }
+            install(ContentNegotiation) {
+                json(
+                    Json {
+                        ignoreUnknownKeys = true
+                    },
                 )
             }
         } else if (clientId != null && clientSecret != null) {
@@ -242,7 +254,7 @@ class ServiceUserRepository : UserRepository {
             }
             throw HttpResponseException(message, response.status.value)
         }
-        response.body<T>()
+        mapper.readValue<T>(response.bodyAsText())
     }
 
     companion object {
