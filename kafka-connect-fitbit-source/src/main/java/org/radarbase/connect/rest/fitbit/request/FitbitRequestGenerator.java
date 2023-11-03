@@ -35,14 +35,7 @@ import java.util.stream.Stream;
 import okhttp3.OkHttpClient;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
 import org.radarbase.connect.rest.fitbit.FitbitRestSourceConnectorConfig;
-import org.radarbase.connect.rest.fitbit.route.FitbitActivityLogRoute;
-import org.radarbase.connect.rest.fitbit.route.FitbitIntradayCaloriesRoute;
-import org.radarbase.connect.rest.fitbit.route.FitbitIntradayHeartRateRoute;
-import org.radarbase.connect.rest.fitbit.route.FitbitIntradayHeartRateVariabilityRoute;
-import org.radarbase.connect.rest.fitbit.route.FitbitIntradayStepsRoute;
-import org.radarbase.connect.rest.fitbit.route.FitbitRestingHeartRateRoute;
-import org.radarbase.connect.rest.fitbit.route.FitbitSleepRoute;
-import org.radarbase.connect.rest.fitbit.route.FitbitTimeZoneRoute;
+import org.radarbase.connect.rest.fitbit.route.*;
 import org.radarbase.connect.rest.fitbit.user.User;
 import org.radarbase.connect.rest.fitbit.user.UserRepository;
 import org.radarbase.connect.rest.request.RequestGeneratorRouter;
@@ -96,6 +89,8 @@ public class FitbitRequestGenerator extends RequestGeneratorRouter {
       localRoutes.add(new FitbitIntradayStepsRoute(this, userRepository, avroData));
       localRoutes.add(new FitbitIntradayHeartRateRoute(this, userRepository, avroData));
       localRoutes.add(new FitbitIntradayHeartRateVariabilityRoute(this, userRepository, avroData));
+      localRoutes.add(new FitbitBreathingRateRoute(this, userRepository, avroData));
+      localRoutes.add(new FitbitSkinTemperatureRoute(this, userRepository, avroData));
       localRoutes.add(new FitbitIntradayCaloriesRoute(this, userRepository, avroData));
     }
     return localRoutes;
