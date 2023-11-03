@@ -105,7 +105,7 @@ constructor(
             ouraOffsetManager.updateOffsets(
                 request.route,
                 request.user,
-                Instant.ofEpochMilli(offset),
+                Instant.ofEpochSecond(offset),
             )
         }
         return records
