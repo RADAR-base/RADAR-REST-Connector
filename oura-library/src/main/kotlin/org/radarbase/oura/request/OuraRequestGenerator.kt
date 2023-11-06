@@ -109,7 +109,7 @@ constructor(
             ouraOffsetManager.updateOffsets(
                 request.route,
                 request.user,
-                Instant.ofEpochSecond(offset).plus(Duration.ofMillis(500),
+                Instant.ofEpochSecond(offset).plus(Duration.ofMillis(500)),
             )
         } else {
             if (request.startDate.plus(TIME_AFTER_REQUEST).isBefore(Instant.now())) {
