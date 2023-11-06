@@ -32,7 +32,7 @@ class OuraRestModeTagConverter(
                                 TopicData(
                                     key = user.observationKey,
                                     topic = topic,
-                                    offset = startInstant.toEpochMilli(),
+                                    offset = startInstant.toEpoch(),
                                     value = data.toTag(startInstant, it.textValue()),
                                 )
                             }
