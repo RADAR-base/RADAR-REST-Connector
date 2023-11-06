@@ -58,7 +58,7 @@ constructor(
 
     override fun requests(route: Route, user: User, max: Int): Sequence<RestRequest> {
         return if (user.ready()) {
-            return generateRequests(route, user)
+            return generateRequests(route, user).takeWhile { !shouldBackoff }
         } else {
             emptySequence()
         }
@@ -75,7 +75,11 @@ constructor(
             offset.offset.coerceAtLeast(startDate)
         }
         val endDate = if (user.endDate >= Instant.now()) Instant.now() else user.endDate
-        if (endDate <= startOffset) return emptySequence()
+        if (Duration.between(startOffset, endDate).toDays() <= ONE_DAY) {
+            logger.info("Interval between dates is too short. Backing off..")
+            userNextRequest[user.versionedId] = Instant.now().plus(USER_BACK_OFF_TIME)
+            return emptySequence()
+        }
         val endTime = (startOffset + defaultQueryRange).coerceAtMost(endDate)
         return route.generateRequests(user, startOffset, endTime, USER_MAX_REQUESTS)
     }
@@ -105,8 +109,16 @@ constructor(
             ouraOffsetManager.updateOffsets(
                 request.route,
                 request.user,
-                Instant.ofEpochSecond(offset),
+                Instant.ofEpochSecond(offset).plus(Duration.ofDays(1)),
             )
+        } else {
+            if (request.startDate.plus(TIME_AFTER_REQUEST).isBefore(Instant.now())) {
+                ouraOffsetManager.updateOffsets(
+                    request.route,
+                    request.user,
+                    request.endDate,
+                )
+            }
         }
         return records
     }
@@ -144,6 +156,7 @@ constructor(
             }
             400 -> {
                 logger.warn("Client exception..")
+                nextRequestTime = Instant.now() + BACK_OFF_TIME
                 OuraClientException(
                     "Client unsupported or unauthorized..",
                     IOException("Invalid client"),
@@ -179,7 +192,9 @@ constructor(
 
     companion object {
         private val logger = LoggerFactory.getLogger(OuraRequestGenerator::class.java)
-        private val BACK_OFF_TIME = Duration.ofMinutes(5L)
+        private val BACK_OFF_TIME = Duration.ofMinutes(10L)
+        private val ONE_DAY = 1L
+        private val TIME_AFTER_REQUEST = Duration.ofMinutes(1)
         private val USER_BACK_OFF_TIME = Duration.ofDays(1L)
         private val USER_MAX_REQUESTS = 20
         val JSON_FACTORY = JsonFactory()
