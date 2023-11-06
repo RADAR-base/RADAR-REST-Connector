@@ -38,6 +38,7 @@ import org.radarbase.connect.rest.fitbit.FitbitRestSourceConnectorConfig;
 import org.radarbase.connect.rest.fitbit.route.FitbitActivityLogRoute;
 import org.radarbase.connect.rest.fitbit.route.FitbitIntradayCaloriesRoute;
 import org.radarbase.connect.rest.fitbit.route.FitbitIntradayHeartRateRoute;
+import org.radarbase.connect.rest.fitbit.route.FitbitIntradayHeartRateVariabilityRoute;
 import org.radarbase.connect.rest.fitbit.route.FitbitIntradayStepsRoute;
 import org.radarbase.connect.rest.fitbit.route.FitbitRestingHeartRateRoute;
 import org.radarbase.connect.rest.fitbit.route.FitbitSleepRoute;
@@ -94,6 +95,7 @@ public class FitbitRequestGenerator extends RequestGeneratorRouter {
     if (config.hasIntradayAccess()) {
       localRoutes.add(new FitbitIntradayStepsRoute(this, userRepository, avroData));
       localRoutes.add(new FitbitIntradayHeartRateRoute(this, userRepository, avroData));
+      localRoutes.add(new FitbitIntradayHeartRateVariabilityRoute(this, userRepository, avroData));
       localRoutes.add(new FitbitIntradayCaloriesRoute(this, userRepository, avroData));
     }
     return localRoutes;
