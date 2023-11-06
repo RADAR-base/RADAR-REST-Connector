@@ -28,7 +28,7 @@ class OuraDailySpo2Converter(
                 TopicData(
                     key = user.observationKey,
                     topic = topic,
-                    offset = startInstant.toEpochMilli(),
+                    offset = startInstant.toEpoch(),
                     value = it.toDailySpo2(startInstant),
                 )
             }

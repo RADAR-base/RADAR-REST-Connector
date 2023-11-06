@@ -5,6 +5,8 @@ import okhttp3.Headers
 import org.radarbase.oura.request.OuraRequestGenerator.Companion.JSON_READER
 import org.radarbase.oura.request.RestRequest
 import org.radarbase.oura.user.User
+import java.time.Instant
+
 /**
  * Abstract class to help convert Fitbit data to Avro Data.
  */
@@ -35,5 +37,9 @@ interface OuraDataConverter : RecordConverter {
                 )
             }
             .toList()
+    }
+
+    fun Instant.toEpoch(): Long {
+        return this.toEpochMilli() / 1000
     }
 }
