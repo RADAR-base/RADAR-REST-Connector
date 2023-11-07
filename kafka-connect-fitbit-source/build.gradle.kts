@@ -17,6 +17,8 @@ dependencies {
     implementation("io.ktor:ktor-client-content-negotiation:${Versions.ktor}")
     implementation("io.ktor:ktor-serialization-jackson:${Versions.ktor}")
     implementation("io.ktor:ktor-client-cio-jvm:${Versions.ktor}")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:${Versions.ktor}")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:${Versions.jackson}")
 
     // Included in connector runtime
     compileOnly("org.apache.kafka:connect-api:${Versions.kafka}")
