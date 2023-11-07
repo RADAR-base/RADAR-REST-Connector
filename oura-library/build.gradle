@@ -1,0 +1,47 @@
+
+group = 'org.radarbase'
+version = '0.0.1'
+
+apply plugin: 'maven-publish'
+
+repositories {
+    // Use jcenter for resolving dependencies.
+    // You can declare any Maven/Ivy/file repository here.
+    mavenCentral()
+}
+
+dependencies {
+    // Use the Kotlin JDK 8 standard library.
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
+
+    implementation "com.squareup.okhttp3:okhttp:$Versions.okhttp"
+
+    implementation "org.radarbase:radar-schemas-commons:$Versions.radarSchemas"
+
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: "$Versions.jackson"
+
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: "$Versions.jackson"
+
+    implementation group: 'org.apache.avro', name: 'avro', version: "$Versions.avro"
+
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$Versions.jackson"
+
+    // Use the Kotlin test library.
+    testImplementation 'org.jetbrains.kotlin:kotlin-test'
+
+    // Use the Kotlin JUnit integration.
+    testImplementation 'org.jetbrains.kotlin:kotlin-test-junit'
+}
+
+project.afterEvaluate {
+    publishing {
+        publications {
+            library(MavenPublication) {
+                setGroupId "$group"
+                setArtifactId "oura-library"
+                version "$version"
+                from components.java
+            }
+        }
+    }
+}

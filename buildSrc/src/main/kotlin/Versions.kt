@@ -9,6 +9,7 @@ object Versions {
     const val radarCommons = "1.1.1"
     const val confluent = "7.5.0"
     const val kafka = "$confluent-ce"
+    const val avro = "1.11.0"
 
     // From image
     const val jackson = "2.14.2"
@@ -25,4 +26,6 @@ object Versions {
     const val junit = "5.9.3"
     const val wiremock = "2.27.2"
     const val mockito = "5.3.1"
+
+    const val kotlinVersion = "1.8.21"
 }
