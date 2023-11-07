@@ -40,6 +40,8 @@ import org.radarbase.oura.converter.TopicData;
 import org.radarbase.oura.request.OuraRequestGenerator;
 import org.radarbase.oura.request.OuraResult;
 import org.radarbase.oura.request.OuraResult.Success;
+import org.radarbase.oura.request.OuraResult.Error;
+import org.radarbase.oura.request.OuraErrorBase;
 import org.radarbase.oura.request.RestRequest;
 import org.radarbase.oura.route.Route;
 import org.radarbase.connect.rest.util.VersionUtil;
@@ -111,7 +113,8 @@ public class OuraSourceTask extends SourceTask {
                 key.schema(), key.value(), avro.schema(), avro.value());
         });
       } else {
-        logger.warn("Failed to make request: {}", result.toString());
+        OuraErrorBase e = (OuraErrorBase) ((OuraResult.Error) result).getError();
+        logger.warn("Failed to make request: {} {} {}", e.getMessage(), e.getCause().toString(), e.getCode());
         return Stream.empty();
       }
     } catch (IOException ex) {
@@ -138,7 +141,7 @@ public class OuraSourceTask extends SourceTask {
   @Override
   public List<SourceRecord> poll() throws InterruptedException {
     long requestsGenerated = 0;
-    List<SourceRecord> requests = Collections.emptyList();
+    List<SourceRecord> sourceRecords = Collections.emptyList();
 
     do {
       Map<String, String> configs = context.configs();
@@ -146,24 +149,25 @@ public class OuraSourceTask extends SourceTask {
           .iterator();
 
 
-      while (requests.isEmpty() && requestIterator.hasNext()) {
+      while (sourceRecords.isEmpty() && requestIterator.hasNext()) {
         RestRequest request = requestIterator.next();
 
         logger.info("Requesting {}", request.getRequest().url());
         requestsGenerated++;
 
         try {
-          requests = this.handleRequest(request)
+          sourceRecords = this.handleRequest(request)
               .collect(Collectors.toList());
         } catch (IOException ex) {
           logger.warn("Failed to make request: {}", ex.toString());
         }
       }
-    } while (requests.isEmpty());
+    } while (sourceRecords.isEmpty());
 
-    logger.info("Processed {} records from {} URLs", requests.size(), requestsGenerated);
 
-    return requests;
+    logger.info("Processed {} records from {} URLs", sourceRecords.size(), requestsGenerated);
+
+    return sourceRecords;
   }
 
   @Override
