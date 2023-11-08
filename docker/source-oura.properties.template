@@ -1,0 +1,12 @@
+name=radar-oura-source
+connector.class=org.radarbase.connect.rest.oura.OuraSourceConnector
+tasks.max=4
+rest.source.base.url=https://api.ouraring.com
+rest.source.poll.interval.ms=5000
+oura.api.client=?
+oura.api.secret=?
+oura.user.repository.class=org.radarbase.connect.rest.oura.user.OuraServiceUserRepository
+oura.user.repository.url=
+oura.user.repository.client.id=radar_oura_connector
+oura.user.repository.client.secret=
+oura.user.repository.oauth2.token.url=
