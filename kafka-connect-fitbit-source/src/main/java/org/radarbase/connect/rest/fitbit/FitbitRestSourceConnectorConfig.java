@@ -105,6 +105,16 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
   private static final String FITBIT_INTRADAY_HEART_RATE_VARIABILITY_TOPIC_DISPLAY = "Intraday heart rate variability topic";
   private static final String FITBIT_INTRADAY_HEART_RATE_VARIABILITY_TOPIC_DEFAULT = "connect_fitbit_intraday_heart_rate_variability";
 
+  private static final String FITBIT_BREATHING_RATE_TOPIC_CONFIG = "fitbit.breathing.rate.topic";
+  private static final String FITBIT_BREATHING_RATE_TOPIC_DOC = "Topic for Fitbit breathing rate";
+  private static final String FITBIT_BREATHING_RATE_TOPIC_DISPLAY = "Breathing rate topic";
+  private static final String FITBIT_BREATHING_RATE_TOPIC_DEFAULT = "connect_fitbit_breathing_rate";
+
+  private static final String FITBIT_SKIN_TEMPERATURE_TOPIC_CONFIG = "fitbit.skin.temperature.rate.topic";
+  private static final String FITBIT_SKIN_TEMPERATURE_TOPIC_DOC = "Topic for Fitbit skin temperature";
+  private static final String FITBIT_SKIN_TEMPERATURE_TOPIC_DISPLAY = "Skin temperature topic";
+  private static final String FITBIT_SKIN_TEMPERATURE_TOPIC_DEFAULT = "connect_fitbit_skin_temperature";
+
   private static final String FITBIT_RESTING_HEART_RATE_TOPIC_CONFIG = "fitbit.resting.heart.rate.topic";
   private static final String FITBIT_RESTING_HEART_RATE_TOPIC_DOC = "Topic for Fitbit resting heart_rate";
   private static final String FITBIT_RESTING_HEART_RATE_TOPIC_DISPLAY = "Resting heartrate topic";
@@ -465,6 +475,14 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
 
   public String getFitbitIntradayHeartRateVariabilityTopic() {
     return getString(FITBIT_INTRADAY_HEART_RATE_VARIABILITY_TOPIC_CONFIG);
+  }
+
+  public String getFitbitBreathingRateTopic() {
+    return getString(FITBIT_BREATHING_RATE_TOPIC_CONFIG);
+  }
+
+  public String getFitbitSkinTemperatureTopic() {
+    return getString(FITBIT_SKIN_TEMPERATURE_TOPIC_CONFIG);
   }
 
   public String getFitbitRestingHeartRateTopic() {
