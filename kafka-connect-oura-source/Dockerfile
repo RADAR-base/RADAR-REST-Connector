@@ -21,14 +21,14 @@ ENV GRADLE_USER_HOME=/code/.gradlecache \
   GRADLE_OPTS="-Dorg.gradle.vfs.watch=false -Djdk.lang.Process.launchMechanism=vfork"
 
 COPY buildSrc /code/buildSrc
-COPY ./build.gradle.kts ../settings.gradle.kts ../gradle.properties /code/
-COPY build.gradle.kts /code/
-COPY ../oura-library/build.gradle /code/oura-library/
+COPY ./build.gradle.kts ./settings.gradle.kts ./gradle.properties /code/
+COPY kafka-connect-oura-source/build.gradle.kts /code/kafka-connect-oura-source/
+COPY oura-library/build.gradle /code/oura-library/
 
 RUN gradle downloadDependencies copyDependencies
 
-COPY . /code/kafka-connect-oura-source/
-COPY ../oura-library/ /code/oura-library/
+COPY ./kafka-connect-oura-source/src/ /code/kafka-connect-oura-source/src
+COPY ./oura-library/src/ /code/oura-library/src
 
 RUN gradle jar
 
@@ -43,8 +43,10 @@ ENV CONNECT_PLUGIN_PATH="/usr/share/java/kafka-connect/plugins" \
 
 # To isolate the classpath from the plugin path as recommended
 COPY --from=builder /code/kafka-connect-oura-source/build/third-party/*.jar ${CONNECT_PLUGIN_PATH}/kafka-connect-oura-source/
+COPY --from=builder /code/oura-library/build/third-party/*.jar ${CONNECT_PLUGIN_PATH}/kafka-connect-oura-source/
 
 COPY --from=builder /code/kafka-connect-oura-source/build/libs/*.jar ${CONNECT_PLUGIN_PATH}/kafka-connect-oura-source/
+COPY --from=builder /code/oura-library/build/libs/*.jar ${CONNECT_PLUGIN_PATH}/kafka-connect-oura-source/
 
 # Load topics validator
 COPY  --chown=appuser:appuser ./docker/kafka-wait /usr/bin/kafka-wait
