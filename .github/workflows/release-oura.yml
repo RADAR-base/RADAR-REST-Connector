@@ -87,9 +87,9 @@ jobs:
           # Use runtime labels from docker_meta_backend as well as fixed labels
           labels: |
             ${{ steps.docker_meta.outputs.labels }}
-            maintainer=Joris Borgdorff <joris@thehyve.nl>, Nivethika Mahasivam <nivethika@thehyve.nl>, Pauline Conde <pauline.conde@kcl.ac.uk>
+            maintainer=Pauline Conde <pauline.conde@kcl.ac.uk>, Yatharth Ranjan <yatharth.ranjan@kcl.ac.uk>
             org.opencontainers.image.description=RADAR-base upload connector backend application
-            org.opencontainers.image.authors=Joris Borgdorff <joris@thehyve.nl>, Nivethika Mahasivam <nivethika@thehyve.nl>, Pauline Conde <pauline.conde@kcl.ac.uk>
+            org.opencontainers.image.authors=Pauline Conde <pauline.conde@kcl.ac.uk>, Yatharth Ranjan <yatharth.ranjan@kcl.ac.uk>
             org.opencontainers.image.vendor=RADAR-base
             org.opencontainers.image.licenses=Apache-2.0
 
