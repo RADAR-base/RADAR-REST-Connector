@@ -1,5 +1,5 @@
 ---
-version: '2.4'
+version: "2.4"
 
 volumes:
   fitbit-logs: {}
@@ -143,7 +143,9 @@ services:
   # RADAR Fitbit connector                                                     #
   #---------------------------------------------------------------------------#
   radar-fitbit-connector:
-    build: .
+    build:
+      context: .
+      dockerfile: ./kafka-connect-fitbit-source/Dockerfile
     image: radarbase/radar-connect-fitbit-source
     restart: on-failure
     volumes:
@@ -175,6 +177,47 @@ services:
       CONNECT_REST_ADVERTISED_HOST_NAME: "radar-fitbit-connector"
       CONNECT_ZOOKEEPER_CONNECT: zookeeper-1:2181,zookeeper-2:2181,zookeeper-3:2181
       CONNECTOR_PROPERTY_FILE_PREFIX: "source-fitbit"
+      KAFKA_HEAP_OPTS: "-Xms256m -Xmx768m"
+      KAFKA_BROKERS: 3
+      CONNECT_LOG4J_LOGGERS: "org.reflections=ERROR"
+
+  #---------------------------------------------------------------------------#
+  # RADAR Oura connector                                                     #
+  #---------------------------------------------------------------------------#
+  radar-oura-connector:
+    build:
+      context: .
+      dockerfile: ./kafka-connect-oura-source/Dockerfile
+    image: radarbase/radar-connect-oura-source
+    restart: on-failure
+    volumes:
+      - ./docker/source-oura.properties:/etc/kafka-connect/source-oura.properties
+      - ./docker/users:/var/lib/kafka-connect-oura-source/users
+    depends_on:
+      - zookeeper-1
+      - zookeeper-2
+      - zookeeper-3
+      - kafka-1
+      - kafka-2
+      - kafka-3
+      - schema-registry-1
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: PLAINTEXT://kafka-1:9092,PLAINTEXT://kafka-2:9092,PLAINTEXT://kafka-3:9092
+      CONNECT_REST_PORT: 8083
+      CONNECT_GROUP_ID: "default"
+      CONNECT_CONFIG_STORAGE_TOPIC: "default.config"
+      CONNECT_OFFSET_STORAGE_TOPIC: "default.offsets"
+      CONNECT_STATUS_STORAGE_TOPIC: "default.status"
+      CONNECT_KEY_CONVERTER: "io.confluent.connect.avro.AvroConverter"
+      CONNECT_VALUE_CONVERTER: "io.confluent.connect.avro.AvroConverter"
+      CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: "http://schema-registry-1:8081"
+      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: "http://schema-registry-1:8081"
+      CONNECT_INTERNAL_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_INTERNAL_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_OFFSET_STORAGE_FILE_FILENAME: "/var/lib/kafka-connect-oura-source/logs/connect.offsets"
+      CONNECT_REST_ADVERTISED_HOST_NAME: "radar-oura-connector"
+      CONNECT_ZOOKEEPER_CONNECT: zookeeper-1:2181,zookeeper-2:2181,zookeeper-3:2181
+      CONNECTOR_PROPERTY_FILE_PREFIX: "source-oura"
       KAFKA_HEAP_OPTS: "-Xms256m -Xmx768m"
       KAFKA_BROKERS: 3
       CONNECT_LOG4J_LOGGERS: "org.reflections=ERROR"
