@@ -31,11 +31,13 @@ jobs:
         uses: gradle/gradle-build-action@v2
 
       - name: Compile code
-        run: ./gradlew assemble
+        run: gradle assemble
+        working-directory: ./kafka-connect-oura-source
 
       # Gradle check
       - name: Check
-        run: ./gradlew check
+        run: gradle check
+        working-directory: ./kafka-connect-oura-source
 
   docker:
     # The type of runner that the job will run on
