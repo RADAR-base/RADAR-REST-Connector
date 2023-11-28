@@ -143,7 +143,9 @@ services:
   # RADAR Fitbit connector                                                     #
   #---------------------------------------------------------------------------#
   radar-fitbit-connector:
-    build: .
+    build:
+      context: .
+      dockerfile: ./kafka-connect-fitbit-source/Dockerfile
     image: radarbase/radar-connect-fitbit-source
     restart: on-failure
     volumes:
@@ -183,7 +185,9 @@ services:
   # RADAR Oura connector                                                     #
   #---------------------------------------------------------------------------#
   radar-oura-connector:
-    build: .
+    build:
+      context: .
+      dockerfile: ./kafka-connect-oura-source/Dockerfile
     image: radarbase/radar-connect-oura-source
     restart: on-failure
     volumes:
