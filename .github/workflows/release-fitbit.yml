@@ -79,6 +79,7 @@ jobs:
       - name: Build docker
         uses: docker/build-push-action@v3
         with:
+          file: ./kafka-connect-fitbit-source/Dockerfile
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
