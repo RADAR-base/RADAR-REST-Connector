@@ -6,7 +6,7 @@ on:
     types: [ published ]
 
 env:
-  DOCKER_IMAGE: radarbase/kafka-connect-rest-fitbit-source
+  DOCKER_IMAGE: radarbase/kafka-connect-rest-oura-source
 
 jobs:
   uploadBackend:
@@ -79,6 +79,7 @@ jobs:
       - name: Build docker
         uses: docker/build-push-action@v3
         with:
+          file: ./kafka-connect-oura-source/Dockerfile
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
@@ -86,9 +87,9 @@ jobs:
           # Use runtime labels from docker_meta_backend as well as fixed labels
           labels: |
             ${{ steps.docker_meta.outputs.labels }}
-            maintainer=Joris Borgdorff <joris@thehyve.nl>, Nivethika Mahasivam <nivethika@thehyve.nl>, Pauline Conde <pauline.conde@kcl.ac.uk>
+            maintainer=Pauline Conde <pauline.conde@kcl.ac.uk>, Yatharth Ranjan <yatharth.ranjan@kcl.ac.uk>
             org.opencontainers.image.description=RADAR-base upload connector backend application
-            org.opencontainers.image.authors=Joris Borgdorff <joris@thehyve.nl>, Nivethika Mahasivam <nivethika@thehyve.nl>, Pauline Conde <pauline.conde@kcl.ac.uk>
+            org.opencontainers.image.authors=Pauline Conde <pauline.conde@kcl.ac.uk>, Yatharth Ranjan <yatharth.ranjan@kcl.ac.uk>
             org.opencontainers.image.vendor=RADAR-base
             org.opencontainers.image.licenses=Apache-2.0
 

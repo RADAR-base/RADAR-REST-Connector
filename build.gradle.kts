@@ -6,10 +6,17 @@ plugins {
     id("org.radarbase.radar-kotlin") version Versions.radarCommons apply false
 }
 
+repositories {
+    // Use jcenter for resolving dependencies.
+    // You can declare any Maven/Ivy/file repository here.
+    mavenCentral()
+}
+
 description = "Kafka connector for REST API sources"
 
 radarRootProject {
     projectVersion.set(Versions.project)
+    gradleVersion.set(Versions.wrapper)
 }
 
 subprojects {

@@ -104,6 +104,7 @@ jobs:
       - name: Build docker
         uses: docker/build-push-action@v3
         with:
+          file: ./kafka-connect-fitbit-source/Dockerfile
           context: .
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: ${{ steps.cache-parameters.outputs.cache-to }}
