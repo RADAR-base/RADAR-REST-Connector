@@ -331,6 +331,39 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
             Width.SHORT,
             FITBIT_INTRADAY_HEART_RATE_TOPIC_DISPLAY)
 
+        .define(FITBIT_INTRADAY_HEART_RATE_VARIABILITY_TOPIC_CONFIG,
+            Type.STRING,
+            FITBIT_INTRADAY_HEART_RATE_VARIABILITY_TOPIC_DEFAULT,
+            nonControlChar,
+            Importance.LOW,
+            FITBIT_INTRADAY_HEART_RATE_VARIABILITY_TOPIC_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            FITBIT_INTRADAY_HEART_RATE_VARIABILITY_TOPIC_DISPLAY)
+
+        .define(FITBIT_BREATHING_RATE_TOPIC_CONFIG,
+            Type.STRING,
+            FITBIT_BREATHING_RATE_TOPIC_DEFAULT,
+            nonControlChar,
+            Importance.LOW,
+            FITBIT_BREATHING_RATE_TOPIC_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            FITBIT_BREATHING_RATE_TOPIC_DISPLAY)
+
+        .define(FITBIT_SKIN_TEMPERATURE_TOPIC_CONFIG,
+            Type.STRING,
+            FITBIT_SKIN_TEMPERATURE_TOPIC_DEFAULT,
+            nonControlChar,
+            Importance.LOW,
+            FITBIT_SKIN_TEMPERATURE_TOPIC_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            FITBIT_SKIN_TEMPERATURE_TOPIC_DISPLAY)
+
         .define(FITBIT_RESTING_HEART_RATE_TOPIC_CONFIG,
             Type.STRING,
             FITBIT_RESTING_HEART_RATE_TOPIC_DEFAULT,
