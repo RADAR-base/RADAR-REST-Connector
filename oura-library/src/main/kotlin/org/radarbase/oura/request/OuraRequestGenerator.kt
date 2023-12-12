@@ -111,6 +111,7 @@ constructor(
                 request.user,
                 Instant.ofEpochSecond(offset).plus(Duration.ofMillis(500)),
             )
+            userNextRequest[request.user.versionedId] = Instant.now().plus(SUCCESS_BACK_OFF_TIME)
         } else {
             if (request.startDate.plus(TIME_AFTER_REQUEST).isBefore(Instant.now())) {
                 ouraOffsetManager.updateOffsets(
@@ -196,6 +197,7 @@ constructor(
         private val ONE_DAY = 1L
         private val TIME_AFTER_REQUEST = Duration.ofDays(30)
         private val USER_BACK_OFF_TIME = Duration.ofMinutes(2L)
+        private val SUCCESS_BACK_OFF_TIME = Duration.ofSeconds(3L)
         private val USER_MAX_REQUESTS = 20
         val JSON_FACTORY = JsonFactory()
         val JSON_READER = ObjectMapper(JSON_FACTORY).registerModule(JavaTimeModule()).reader()
