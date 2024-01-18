@@ -68,10 +68,11 @@ constructor(
         val offset = ouraOffsetManager.getOffset(route, user)
         val startDate = user.startDate
         val startOffset: Instant = if (offset == null) {
-            logger.debug("No offsets found for $user, using the start date.")
+            logger.info("No offsets found for $user, using the start date.")
             startDate
         } else {
-            logger.debug("Offsets found in persistence.")
+            logger.info("Offsets found in persistence: " + offset.offset.toString())
+            logger.info(offset.offset.coerceAtLeast(startDate).toString())
             offset.offset.coerceAtLeast(startDate)
         }
         val endDate = if (user.endDate >= Instant.now()) Instant.now() else user.endDate

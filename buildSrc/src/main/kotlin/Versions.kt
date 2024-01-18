@@ -1,5 +1,15 @@
 @Suppress("ConstPropertyName", "MemberVisibilityCanBePrivate")
 object Versions {
+
+    object Plugins {
+        const val kotlin = "1.9.10"
+        const val kotlinSerialization = kotlin
+        const val kotlinAllOpen = kotlin
+        const val avro = "1.8.0"
+        const val gradle = "8.3"
+    }
+    
+
     const val project = "0.4.2-SNAPSHOT"
 
     const val java = 11
@@ -10,6 +20,8 @@ object Versions {
     const val confluent = "7.5.0"
     const val kafka = "$confluent-ce"
     const val avro = "1.11.0"
+
+    const val managementPortal = "2.0.0"
 
     // From image
     const val jackson = "2.14.2"
