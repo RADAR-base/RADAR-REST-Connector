@@ -57,7 +57,6 @@ import org.radarbase.ktor.auth.ClientCredentialsConfig
 import org.radarbase.ktor.auth.clientCredentials
 import org.radarbase.oura.user.OuraUser
 import org.radarbase.oura.user.User
-import org.radarbase.oura.user.UserRepository
 import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
@@ -68,7 +67,7 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 @Suppress("unused")
-class OuraServiceUserRepositoryKtor : UserRepository {
+class OuraServiceUserRepository : OuraServiceUserRepositoryLegacy() {
     private lateinit var userCache: CachedSet<OuraUser>
     private lateinit var client: HttpClient
     private val credentialCaches = ConcurrentHashMap<String, CachedValue<OAuth2UserCredentials>>()
@@ -82,7 +81,7 @@ class OuraServiceUserRepositoryKtor : UserRepository {
             makeRequest { url("users/$key") }
         }
 
-    fun initialize(config: OuraRestSourceConnectorConfig) {
+    override fun initialize(config: OuraRestSourceConnectorConfig) {
         val containedUsers = config.ouraUsers.toHashSet()
 
         client =
@@ -189,7 +188,7 @@ class OuraServiceUserRepositoryKtor : UserRepository {
     }
 
     @Throws(IOException::class, UserNotAuthorizedException::class)
-    fun refreshAccessToken(user: User): String {
+    override fun refreshAccessToken(user: User): String {
         if (!user.isAuthorized) {
             throw UserNotAuthorizedException("User is not authorized")
         }
@@ -228,13 +227,13 @@ class OuraServiceUserRepositoryKtor : UserRepository {
             throw ex
         }
 
-    fun hasPendingUpdates(): Boolean =
+    override fun hasPendingUpdates(): Boolean =
         runBlocking(Dispatchers.Default) {
             userCache.isStale()
         }
 
     @Throws(IOException::class)
-    fun applyPendingUpdates() {
+    override fun applyPendingUpdates() {
         logger.info("Requesting user information from webservice")
 
         runBlocking(Dispatchers.Default) {

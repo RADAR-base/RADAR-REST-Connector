@@ -60,7 +60,7 @@
  import static kotlin.sequences.SequencesKt.*;
  
  @SuppressWarnings("unused")
- public class OuraServiceUserRepository implements UserRepository {
+ public class OuraServiceUserRepositoryLegacy implements UserRepository {
   Instant MIN_INSTANT = Instant.EPOCH;
 
   public static final JsonFactory JSON_FACTORY = new JsonFactory();
@@ -88,7 +88,7 @@
    private OAuth2Client repositoryClient;
    private String basicCredentials;
  
-   public OuraServiceUserRepository() {
+   public OuraServiceUserRepositoryLegacy() {
      this.client = new OkHttpClient.Builder()
          .connectTimeout(CONNECTION_TIMEOUT)
          .readTimeout(CONNECTION_READ_TIMEOUT)
