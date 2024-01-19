@@ -43,8 +43,8 @@ import org.apache.kafka.common.config.ConfigDef.Validator;
 import org.apache.kafka.common.config.ConfigDef.Width;
 import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.connect.errors.ConnectException;
+import org.radarbase.connect.rest.oura.user.OuraUserRepository;
 import org.radarbase.connect.rest.oura.user.OuraServiceUserRepository;
-import org.radarbase.connect.rest.oura.user.OuraServiceUserRepositoryLegacy;
 
 public class OuraRestSourceConnectorConfig extends AbstractConfig {
   public static final Pattern COLON_PATTERN = Pattern.compile(":");
@@ -102,7 +102,7 @@ public class OuraRestSourceConnectorConfig extends AbstractConfig {
   private static final String OURA_USER_REPOSITORY_TOKEN_URL_DOC = "OAuth 2.0 token url for retrieving client credentials.";
   private static final String OURA_USER_REPOSITORY_TOKEN_URL_DISPLAY = "OAuth 2.0 token URL.";
 
-  private OuraServiceUserRepository userRepository;
+  private OuraUserRepository userRepository;
   private final Headers clientCredentials;
 
   public OuraRestSourceConnectorConfig(ConfigDef config, Map<String, String> parsedConfig, boolean doLog) {
@@ -193,7 +193,7 @@ public class OuraRestSourceConnectorConfig extends AbstractConfig {
 
         .define(OURA_USER_REPOSITORY_CONFIG,
             Type.CLASS,
-            OuraServiceUserRepositoryLegacy.class,
+            OuraServiceUserRepository.class,
             Importance.MEDIUM,
             OURA_USER_REPOSITORY_DOC,
             group,
@@ -255,7 +255,7 @@ public class OuraRestSourceConnectorConfig extends AbstractConfig {
     return getPassword(OURA_API_SECRET_CONFIG).value();
   }
 
-  public OuraServiceUserRepository getUserRepository(OuraServiceUserRepository reuse) {
+  public OuraUserRepository getUserRepository(OuraUserRepository reuse) {
     if (reuse != null && reuse.getClass().equals(getClass(OURA_USER_REPOSITORY_CONFIG))) {
       userRepository = reuse;
     } else {
@@ -265,15 +265,15 @@ public class OuraRestSourceConnectorConfig extends AbstractConfig {
     return userRepository;
   }
 
-  public OuraServiceUserRepository getUserRepository() {
+  public OuraUserRepository getUserRepository() {
     userRepository.initialize(this);
     return userRepository;
   }
 
   @SuppressWarnings("unchecked")
-  public OuraServiceUserRepository createUserRepository() {
+  public OuraUserRepository createUserRepository() {
     try {
-      return ((Class<? extends OuraServiceUserRepository>)
+      return ((Class<? extends OuraUserRepository>)
           getClass(OURA_USER_REPOSITORY_CONFIG)).getDeclaredConstructor().newInstance();
     } catch (IllegalAccessException | InstantiationException
         | InvocationTargetException | NoSuchMethodException e) {

@@ -67,7 +67,7 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 @Suppress("unused")
-class OuraServiceUserRepository : OuraServiceUserRepositoryLegacy() {
+class OuraServiceUserRepository : OuraUserRepository() {
     private lateinit var userCache: CachedSet<OuraUser>
     private lateinit var client: HttpClient
     private val credentialCaches = ConcurrentHashMap<String, CachedValue<OAuth2UserCredentials>>()

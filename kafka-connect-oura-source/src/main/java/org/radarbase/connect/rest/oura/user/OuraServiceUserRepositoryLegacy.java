@@ -60,14 +60,14 @@
  import static kotlin.sequences.SequencesKt.*;
  
  @SuppressWarnings("unused")
- public class OuraServiceUserRepositoryLegacy implements UserRepository {
+ public class OuraServiceUserRepositoryLegacy extends OuraUserRepository {
   Instant MIN_INSTANT = Instant.EPOCH;
 
   public static final JsonFactory JSON_FACTORY = new JsonFactory();
    public static final ObjectReader JSON_READER = new ObjectMapper(JSON_FACTORY)
        .registerModule(new JavaTimeModule())
        .reader();
-   private static final Logger logger = LoggerFactory.getLogger(OuraServiceUserRepository.class);
+   private static final Logger logger = LoggerFactory.getLogger(OuraServiceUserRepositoryLegacy.class);
  
    private static final ObjectReader USER_LIST_READER = JSON_READER.forType(OuraUsers.class);
    private static final ObjectReader USER_READER = JSON_READER.forType(User.class);
@@ -153,6 +153,7 @@
      }
    }
  
+   @Override
    public String refreshAccessToken(User user) throws IOException, UserNotAuthorizedException {
      if (!user.isAuthorized()) {
        throw new UserNotAuthorizedException("User is not authorized");
