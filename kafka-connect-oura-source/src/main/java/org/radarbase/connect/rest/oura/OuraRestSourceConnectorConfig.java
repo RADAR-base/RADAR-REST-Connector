@@ -44,7 +44,7 @@ import org.apache.kafka.common.config.ConfigDef.Width;
 import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.connect.errors.ConnectException;
 import org.radarbase.connect.rest.oura.user.OuraUserRepository;
-import org.radarbase.connect.rest.oura.user.OuraServiceUserRepository;
+import org.radarbase.connect.rest.oura.user.OuraServiceUserRepositoryLegacy;
 
 public class OuraRestSourceConnectorConfig extends AbstractConfig {
   public static final Pattern COLON_PATTERN = Pattern.compile(":");
@@ -193,7 +193,7 @@ public class OuraRestSourceConnectorConfig extends AbstractConfig {
 
         .define(OURA_USER_REPOSITORY_CONFIG,
             Type.CLASS,
-            OuraServiceUserRepository.class,
+            OuraServiceUserRepositoryLegacy.class,
             Importance.MEDIUM,
             OURA_USER_REPOSITORY_DOC,
             group,
