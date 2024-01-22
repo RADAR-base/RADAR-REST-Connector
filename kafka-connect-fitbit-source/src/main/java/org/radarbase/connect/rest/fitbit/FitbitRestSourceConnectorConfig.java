@@ -17,7 +17,6 @@
 
 package org.radarbase.connect.rest.fitbit;
 
-import static io.ktor.http.URLUtilsKt.URLBuilder;
 import static org.apache.kafka.common.config.ConfigDef.NO_DEFAULT_VALUE;
 
 import java.lang.reflect.InvocationTargetException;
@@ -32,8 +31,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import io.ktor.http.URLParserException;
-import io.ktor.http.Url;
 import okhttp3.Headers;
 import okhttp3.HttpUrl;
 
