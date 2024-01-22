@@ -21,6 +21,8 @@ import static io.ktor.http.URLUtilsKt.URLBuilder;
 import static org.apache.kafka.common.config.ConfigDef.NO_DEFAULT_VALUE;
 
 import java.lang.reflect.InvocationTargetException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -33,6 +35,8 @@ import java.util.Map;
 import io.ktor.http.URLParserException;
 import io.ktor.http.Url;
 import okhttp3.Headers;
+import okhttp3.HttpUrl;
+
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.config.ConfigDef.Importance;
 import org.apache.kafka.common.config.ConfigDef.NonEmptyString;
@@ -530,18 +534,18 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
     return Paths.get(getString(FITBIT_USER_CREDENTIALS_DIR_CONFIG));
   }
 
-  public Url getFitbitUserRepositoryUrl() {
+  public HttpUrl getFitbitUserRepositoryUrl() {
     String urlString = getString(FITBIT_USER_REPOSITORY_URL_CONFIG).trim();
     if (urlString.charAt(urlString.length() - 1) != '/') {
       urlString += '/';
     }
-    try {
-      return URLBuilder(urlString).build();
-    } catch (URLParserException ex) {
+    HttpUrl url = HttpUrl.parse(urlString);
+    if (url == null) {
       throw new ConfigException(FITBIT_USER_REPOSITORY_URL_CONFIG,
           getString(FITBIT_USER_REPOSITORY_URL_CONFIG),
-          "User repository URL " + urlString + " cannot be parsed as URL: " + ex);
+          "User repository URL " + urlString + " cannot be parsed as URL.");
     }
+    return url;
   }
 
   public Headers getClientCredentials() {
@@ -584,17 +588,15 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
     return getPassword(FITBIT_USER_REPOSITORY_CLIENT_SECRET_CONFIG).value();
   }
 
-  public Url getFitbitUserRepositoryTokenUrl() {
+  public URL getFitbitUserRepositoryTokenUrl() {
     String value = getString(FITBIT_USER_REPOSITORY_TOKEN_URL_CONFIG);
     if (value == null || value.isEmpty()) {
       return null;
     } else {
       try {
-        return URLBuilder(value).build();
-      } catch (URLParserException ex) {
-        throw new ConfigException(FITBIT_USER_REPOSITORY_URL_CONFIG,
-                getString(FITBIT_USER_REPOSITORY_URL_CONFIG),
-                "Fitbit user repository token URL " + value + " cannot be parsed as URL: " + ex);
+        return new URL(getString(FITBIT_USER_REPOSITORY_TOKEN_URL_CONFIG));
+      } catch (MalformedURLException ex) {
+        throw new ConfigException("Fitbit user repository token URL is invalid.");
       }
     }
   }
