@@ -132,16 +132,17 @@ constructor(
                 request.user,
                 Instant.ofEpochSecond(offset).plus(Duration.ofMillis(500)),
             )
-            val nextRequestTime = userNextRequest[request.user.versionedId]
+            val currentNextRequestTime = userNextRequest[request.user.versionedId]
+            val nextRequestTime = Instant.now().plus(SUCCESS_BACK_OFF_TIME)
             userNextRequest[request.user.versionedId] =
-                nextRequestTime?.let {
-                    if (nextRequestTime > Instant.now()) {
-                        nextRequestTime
+                currentNextRequestTime?.let {
+                    if (currentNextRequestTime > nextRequestTime) {
+                        currentNextRequestTime
                     } else {
-                        Instant.now().plus(SUCCESS_BACK_OFF_TIME)
+                        nextRequestTime
                     }
                 }
-                    ?: Instant.now().plus(SUCCESS_BACK_OFF_TIME)
+                    ?: nextRequestTime
         } else {
             if (request.startDate.plus(TIME_AFTER_REQUEST).isBefore(Instant.now())) {
                 ouraOffsetManager.updateOffsets(
