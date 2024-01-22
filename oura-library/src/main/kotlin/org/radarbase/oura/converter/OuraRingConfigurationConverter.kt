@@ -48,7 +48,10 @@ class OuraRingConfigurationConverter(
             design = data.get("design").textValue()?.classifyDesign()
             firmwareVersion = data.get("firmware_version").textValue()
             hardwareType = data.get("hardware_type").textValue()?.classifyHardware()
-            setUpAt = if (setupTime == null) null else setupTime.toEpochMilli() / 1000.0
+            setUpAt =
+                setupTime?.toEpochMilli()?.let {
+                    it / 1000.0
+                }
             size = data.get("size").intValue()
         }.build()
     }

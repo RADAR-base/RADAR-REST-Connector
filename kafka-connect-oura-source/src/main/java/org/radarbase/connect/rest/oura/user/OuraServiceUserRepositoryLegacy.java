@@ -63,8 +63,8 @@
  public class OuraServiceUserRepositoryLegacy extends OuraUserRepository {
   Instant MIN_INSTANT = Instant.EPOCH;
 
-  public static final JsonFactory JSON_FACTORY = new JsonFactory();
-   public static final ObjectReader JSON_READER = new ObjectMapper(JSON_FACTORY)
+  protected static final  JsonFactory JSON_FACTORY = new JsonFactory();
+  protected static final  ObjectReader JSON_READER = new ObjectMapper(JSON_FACTORY)
        .registerModule(new JavaTimeModule())
        .reader();
    private static final Logger logger = LoggerFactory.getLogger(OuraServiceUserRepositoryLegacy.class);
