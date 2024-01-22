@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.config.ConfigException;
 import org.radarbase.oura.user.User;
-import org.radarbase.connect.rest.oura.user.OuraServiceUserRepository;
+import org.radarbase.connect.rest.oura.user.OuraUserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +45,7 @@ public class OuraSourceConnector extends AbstractRestSourceConnector {
   private static final Logger logger = LoggerFactory.getLogger(OuraSourceConnector.class);
   private ScheduledExecutorService executor;
   private Set<? extends User> configuredUsers;
-  private OuraServiceUserRepository repository;
+  private OuraUserRepository repository;
 
   @Override
   public void start(Map<String, String> props) {

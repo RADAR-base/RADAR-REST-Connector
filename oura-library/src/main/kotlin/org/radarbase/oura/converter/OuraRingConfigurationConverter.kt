@@ -17,12 +17,18 @@ class OuraRingConfigurationConverter(
         root: JsonNode,
         user: User,
     ): Sequence<Result<TopicData>> {
-        val array = root.get("data")
-            ?: return emptySequence()
+        val array =
+            root.get("data")
+                ?: return emptySequence()
         return array.asSequence()
             .mapCatching {
-                val setupTime = OffsetDateTime.parse(it["set_up_at"].textValue())
-                val setupTimeInstant = setupTime.toInstant()
+                val setUpAt = it["set_up_at"]
+                val setupTimeInstant =
+                    setUpAt?.textValue()?.let {
+                        OffsetDateTime.parse(
+                            it,
+                        )
+                    }?.toInstant()
                 TopicData(
                     key = user.observationKey,
                     topic = topic,
@@ -32,9 +38,7 @@ class OuraRingConfigurationConverter(
             }
     }
 
-    private fun JsonNode.toRingConfiguration(
-        setupTime: Instant,
-    ): OuraRingConfiguration {
+    private fun JsonNode.toRingConfiguration(setupTime: Instant?): OuraRingConfiguration {
         val data = this
         return OuraRingConfiguration.newBuilder().apply {
             time = System.currentTimeMillis() / 1000.0
@@ -44,7 +48,10 @@ class OuraRingConfigurationConverter(
             design = data.get("design").textValue()?.classifyDesign()
             firmwareVersion = data.get("firmware_version").textValue()
             hardwareType = data.get("hardware_type").textValue()?.classifyHardware()
-            setUpAt = setupTime.toEpochMilli() / 1000.0
+            setUpAt =
+                setupTime?.toEpochMilli()?.let {
+                    it / 1000.0
+                }
             size = data.get("size").intValue()
         }.build()
     }
@@ -77,6 +84,7 @@ class OuraRingConfigurationConverter(
             else -> OuraRingHardwareType.UNKNOWN
         }
     }
+
     companion object {
         val logger = LoggerFactory.getLogger(OuraRingConfigurationConverter::class.java)
     }

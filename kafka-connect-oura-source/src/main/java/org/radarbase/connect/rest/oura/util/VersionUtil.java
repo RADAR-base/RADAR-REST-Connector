@@ -15,10 +15,18 @@
  *
  */
 
-package org.radarbase.connect.rest.oura.user;
+package org.radarbase.connect.rest.oura.util;
 
-public class UserNotAuthorizedException extends RuntimeException {
-    public UserNotAuthorizedException(String message) {
-        super(message);
+public final class VersionUtil {
+  private VersionUtil() {
+    // utility class
+  }
+
+  public static String getVersion() {
+    try {
+      return VersionUtil.class.getPackage().getImplementationVersion();
+    } catch (Exception ex) {
+      return "0.0.0.0";
     }
+  }
 }
