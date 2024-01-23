@@ -19,7 +19,6 @@ package org.radarbase.connect.rest.oura;
 
 import static org.apache.kafka.common.config.ConfigDef.NO_DEFAULT_VALUE;
 
-import static io.ktor.http.URLUtilsKt.URLBuilder;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -44,9 +43,8 @@ import org.apache.kafka.common.config.ConfigDef.Validator;
 import org.apache.kafka.common.config.ConfigDef.Width;
 import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.connect.errors.ConnectException;
-import org.radarbase.connect.rest.oura.user.OuraServiceUserRepository;
-import io.ktor.http.URLParserException;
-import io.ktor.http.Url;
+import org.radarbase.connect.rest.oura.user.OuraUserRepository;
+import org.radarbase.connect.rest.oura.user.OuraServiceUserRepositoryLegacy;
 
 public class OuraRestSourceConnectorConfig extends AbstractConfig {
   public static final Pattern COLON_PATTERN = Pattern.compile(":");
@@ -104,7 +102,7 @@ public class OuraRestSourceConnectorConfig extends AbstractConfig {
   private static final String OURA_USER_REPOSITORY_TOKEN_URL_DOC = "OAuth 2.0 token url for retrieving client credentials.";
   private static final String OURA_USER_REPOSITORY_TOKEN_URL_DISPLAY = "OAuth 2.0 token URL.";
 
-  private OuraServiceUserRepository userRepository;
+  private OuraUserRepository userRepository;
   private final Headers clientCredentials;
 
   public OuraRestSourceConnectorConfig(ConfigDef config, Map<String, String> parsedConfig, boolean doLog) {
@@ -195,7 +193,7 @@ public class OuraRestSourceConnectorConfig extends AbstractConfig {
 
         .define(OURA_USER_REPOSITORY_CONFIG,
             Type.CLASS,
-            OuraServiceUserRepository.class,
+            OuraServiceUserRepositoryLegacy.class,
             Importance.MEDIUM,
             OURA_USER_REPOSITORY_DOC,
             group,
@@ -257,7 +255,7 @@ public class OuraRestSourceConnectorConfig extends AbstractConfig {
     return getPassword(OURA_API_SECRET_CONFIG).value();
   }
 
-  public OuraServiceUserRepository getUserRepository(OuraServiceUserRepository reuse) {
+  public OuraUserRepository getUserRepository(OuraUserRepository reuse) {
     if (reuse != null && reuse.getClass().equals(getClass(OURA_USER_REPOSITORY_CONFIG))) {
       userRepository = reuse;
     } else {
@@ -267,15 +265,15 @@ public class OuraRestSourceConnectorConfig extends AbstractConfig {
     return userRepository;
   }
 
-  public OuraServiceUserRepository getUserRepository() {
+  public OuraUserRepository getUserRepository() {
     userRepository.initialize(this);
     return userRepository;
   }
 
   @SuppressWarnings("unchecked")
-  public OuraServiceUserRepository createUserRepository() {
+  public OuraUserRepository createUserRepository() {
     try {
-      return ((Class<? extends OuraServiceUserRepository>)
+      return ((Class<? extends OuraUserRepository>)
           getClass(OURA_USER_REPOSITORY_CONFIG)).getDeclaredConstructor().newInstance();
     } catch (IllegalAccessException | InstantiationException
         | InvocationTargetException | NoSuchMethodException e) {
@@ -283,18 +281,18 @@ public class OuraRestSourceConnectorConfig extends AbstractConfig {
     }
   }
 
-  public Url getOuraUserRepositoryUrl() {
+  public HttpUrl getOuraUserRepositoryUrl() {
     String urlString = getString(OURA_USER_REPOSITORY_URL_CONFIG).trim();
     if (urlString.charAt(urlString.length() - 1) != '/') {
       urlString += '/';
     }
-    try {
-      return URLBuilder(urlString).build();
-    } catch (URLParserException ex) {
+    HttpUrl url = HttpUrl.parse(urlString);
+    if (url == null) {
       throw new ConfigException(OURA_USER_REPOSITORY_URL_CONFIG,
           getString(OURA_USER_REPOSITORY_URL_CONFIG),
-          "User repository URL " + urlString + " cannot be parsed as URL: " + ex);
+          "User repository URL " + urlString + " cannot be parsed as URL.");
     }
+    return url;
   }
 
   public Headers getClientCredentials() {
@@ -317,17 +315,15 @@ public class OuraRestSourceConnectorConfig extends AbstractConfig {
     return getPassword(OURA_USER_REPOSITORY_CLIENT_SECRET_CONFIG).value();
   }
 
-  public Url getOuraUserRepositoryTokenUrl() {
+  public URL getOuraUserRepositoryTokenUrl() {
     String value = getString(OURA_USER_REPOSITORY_TOKEN_URL_CONFIG);
     if (value == null || value.isEmpty()) {
       return null;
     } else {
       try {
-        return URLBuilder(value).build();
-      } catch (URLParserException ex) {
-        throw new ConfigException(OURA_USER_REPOSITORY_TOKEN_URL_CONFIG,
-                getString(OURA_USER_REPOSITORY_TOKEN_URL_CONFIG),
-                "Oura user repository token URL " + value + " cannot be parsed as URL: " + ex);
+        return new URL(getString(OURA_USER_REPOSITORY_TOKEN_URL_CONFIG));
+      } catch (MalformedURLException e) {
+        throw new ConfigException("Oura user repository token URL is invalid.");
       }
     }
   }

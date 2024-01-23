@@ -35,7 +35,7 @@ import org.apache.kafka.connect.source.SourceRecord;
 import org.apache.kafka.connect.source.SourceTask;
 import org.apache.kafka.connect.storage.OffsetStorageReader;
 import org.radarbase.connect.rest.oura.offset.KafkaOffsetManager;
-import org.radarbase.connect.rest.oura.user.OuraServiceUserRepository;
+import org.radarbase.connect.rest.oura.user.OuraUserRepository;
 import org.radarbase.connect.rest.oura.util.VersionUtil;
 import org.radarbase.oura.converter.TopicData;
 import org.radarbase.oura.request.OuraRequestGenerator;
@@ -57,7 +57,7 @@ public class OuraSourceTask extends SourceTask {
   private static final Logger logger = LoggerFactory.getLogger(OuraSourceTask.class);
 
   private OkHttpClient baseClient;
-  private OuraServiceUserRepository userRepository;
+  private OuraUserRepository userRepository;
   private List<Route> routes;
   private OuraRequestGenerator ouraRequestGenerator;
   private AvroData avroData = new AvroData(20);

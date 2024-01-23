@@ -37,6 +37,7 @@ import io.ktor.client.statement.request
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.URLBuilder
 import io.ktor.http.Url
 import io.ktor.http.contentLength
 import io.ktor.http.contentType
@@ -85,8 +86,8 @@ class ServiceUserRepository : UserRepository {
         val containedUsers = config.fitbitUsers.toHashSet()
 
         client = createClient(
-            baseUrl = config.fitbitUserRepositoryUrl,
-            tokenUrl = config.fitbitUserRepositoryTokenUrl,
+            baseUrl = URLBuilder(config.fitbitUserRepositoryUrl.toString()).build(),
+            tokenUrl = URLBuilder(config.fitbitUserRepositoryTokenUrl.toString()).build(),
             clientId = config.fitbitUserRepositoryClientId,
             clientSecret = config.fitbitUserRepositoryClientSecret,
         )

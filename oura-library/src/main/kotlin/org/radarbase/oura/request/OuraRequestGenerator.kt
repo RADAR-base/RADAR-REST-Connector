@@ -16,14 +16,14 @@ import java.time.Duration
 import java.time.Instant
 import kotlin.streams.asSequence
 
-class OuraRequestGenerator @JvmOverloads
+class OuraRequestGenerator
+@JvmOverloads
 constructor(
     private val userRepository: UserRepository,
     private val defaultQueryRange: Duration = Duration.ofDays(15),
     private val ouraOffsetManager: OuraOffsetManager,
     public val routes: List<Route> = OuraRouteFactory.getRoutes(userRepository),
 ) : RequestGenerator {
-
     private val userNextRequest: MutableMap<String, Instant> = mutableMapOf()
 
     public var nextRequestTime: Instant = Instant.MIN
@@ -31,7 +31,10 @@ constructor(
     private val shouldBackoff: Boolean
         get() = Instant.now() < nextRequestTime
 
-    override fun requests(user: User, max: Int): Sequence<RestRequest> {
+    override fun requests(
+        user: User,
+        max: Int,
+    ): Sequence<RestRequest> {
         return if (user.ready()) {
             routes.asSequence()
                 .flatMap { route ->
@@ -43,7 +46,10 @@ constructor(
         }
     }
 
-    override fun requests(route: Route, max: Int): Sequence<RestRequest> {
+    override fun requests(
+        route: Route,
+        max: Int,
+    ): Sequence<RestRequest> {
         return userRepository
             .stream()
             .flatMap { user ->
@@ -56,7 +62,11 @@ constructor(
             .takeWhile { !shouldBackoff }
     }
 
-    override fun requests(route: Route, user: User, max: Int): Sequence<RestRequest> {
+    override fun requests(
+        route: Route,
+        user: User,
+        max: Int,
+    ): Sequence<RestRequest> {
         return if (user.ready()) {
             return generateRequests(route, user).takeWhile { !shouldBackoff }
         } else {
@@ -64,16 +74,21 @@ constructor(
         }
     }
 
-    fun generateRequests(route: Route, user: User): Sequence<RestRequest> {
+    fun generateRequests(
+        route: Route,
+        user: User,
+    ): Sequence<RestRequest> {
         val offset = ouraOffsetManager.getOffset(route, user)
         val startDate = user.startDate
-        val startOffset: Instant = if (offset == null) {
-            logger.debug("No offsets found for $user, using the start date.")
-            startDate
-        } else {
-            logger.debug("Offsets found in persistence.")
-            offset.offset.coerceAtLeast(startDate)
-        }
+        val startOffset: Instant =
+            if (offset == null) {
+                logger.info("No offsets found for $user, using the start date.")
+                startDate
+            } else {
+                val offsetTime = offset.offset
+                logger.info("Offsets found in persistence: " + offsetTime.toString())
+                offsetTime.coerceAtLeast(startDate)
+            }
         val endDate = if (user.endDate >= Instant.now()) Instant.now() else user.endDate
         if (Duration.between(startOffset, endDate).toDays() <= ONE_DAY) {
             logger.info("Interval between dates is too short. Backing off..")
@@ -84,25 +99,31 @@ constructor(
         return route.generateRequests(user, startOffset, endTime, USER_MAX_REQUESTS)
     }
 
-    fun handleResponse(req: RestRequest, response: Response): OuraResult<List<TopicData>> {
+    fun handleResponse(
+        req: RestRequest,
+        response: Response,
+    ): OuraResult<List<TopicData>> {
         if (response.isSuccessful) {
             return OuraResult.Success<List<TopicData>>(requestSuccessful(req, response))
         } else {
             try {
                 OuraResult.Error(requestFailed(req, response))
-            } catch (e: TooManyRequestsException) {} finally {
+            } catch (e: TooManyRequestsException) {
+            } finally {
                 return OuraResult.Success(listOf<TopicData>())
             }
         }
     }
 
-    override fun requestSuccessful(request: RestRequest, response: Response): List<TopicData> {
+    override fun requestSuccessful(
+        request: RestRequest,
+        response: Response,
+    ): List<TopicData> {
         logger.debug("Request successful: {}..", request.request)
         val body: ResponseBody? = response.body
         val data = body?.bytes()!!
-        val records = request.route.converters.flatMap {
-            it.convert(request, response.headers, data)
-        }
+        val records =
+            request.route.converters.flatMap { it.convert(request, response.headers, data) }
         val offset = records.maxByOrNull { it -> it.offset }?.offset
         if (offset != null) {
             logger.info("Writing ${records.size} records to offsets...")
@@ -111,6 +132,17 @@ constructor(
                 request.user,
                 Instant.ofEpochSecond(offset).plus(Duration.ofMillis(500)),
             )
+            val currentNextRequestTime = userNextRequest[request.user.versionedId]
+            val nextRequestTime = Instant.now().plus(SUCCESS_BACK_OFF_TIME)
+            userNextRequest[request.user.versionedId] =
+                currentNextRequestTime?.let {
+                    if (currentNextRequestTime > nextRequestTime) {
+                        currentNextRequestTime
+                    } else {
+                        nextRequestTime
+                    }
+                }
+                    ?: nextRequestTime
         } else {
             if (request.startDate.plus(TIME_AFTER_REQUEST).isBefore(Instant.now())) {
                 ouraOffsetManager.updateOffsets(
@@ -123,7 +155,10 @@ constructor(
         return records
     }
 
-    override fun requestFailed(request: RestRequest, response: Response): OuraError {
+    override fun requestFailed(
+        request: RestRequest,
+        response: Response,
+    ): OuraError {
         return when (response.code) {
             429 -> {
                 logger.info("Too many requests, rate limit reached. Backing off...")
@@ -132,10 +167,13 @@ constructor(
             }
             403 -> {
                 logger.warn(
-                    "User ${request.user} has expired." +
-                        "Please renew the subscription...",
+                    "User ${request.user} has expired." + "Please renew the subscription...",
                 )
-                userNextRequest[request.user.versionedId] = Instant.now().plus(USER_BACK_OFF_TIME)
+                userNextRequest[request.user.versionedId] =
+                    Instant.now()
+                        .plus(
+                            USER_BACK_OFF_TIME,
+                        )
                 OuraAccessForbiddenError(
                     "Oura subscription has expired or API data not available..",
                     IOException("Unauthorized"),
@@ -145,9 +183,14 @@ constructor(
             401 -> {
                 logger.warn(
                     "User ${request.user} access token is" +
-                        " expired, malformed, or revoked. " + response.body?.string(),
+                        " expired, malformed, or revoked. " +
+                        response.body?.string(),
                 )
-                userNextRequest[request.user.versionedId] = Instant.now().plus(USER_BACK_OFF_TIME)
+                userNextRequest[request.user.versionedId] =
+                    Instant.now()
+                        .plus(
+                            USER_BACK_OFF_TIME,
+                        )
                 OuraUnauthorizedAccessError(
                     "Access token expired or revoked..",
                     IOException("Unauthorized"),
@@ -173,7 +216,11 @@ constructor(
             }
             404 -> {
                 logger.warn("Not found..")
-                OuraNotFoundError(response.body!!.string(), IOException("Data not found"), "404")
+                OuraNotFoundError(
+                    response.body!!.string(),
+                    IOException("Data not found"),
+                    "404",
+                )
             }
             else -> {
                 logger.warn("Request Failed: {}, {}", request, response)
@@ -196,6 +243,7 @@ constructor(
         private val ONE_DAY = 1L
         private val TIME_AFTER_REQUEST = Duration.ofDays(30)
         private val USER_BACK_OFF_TIME = Duration.ofMinutes(2L)
+        private val SUCCESS_BACK_OFF_TIME = Duration.ofSeconds(3L)
         private val USER_MAX_REQUESTS = 20
         val JSON_FACTORY = JsonFactory()
         val JSON_READER = ObjectMapper(JSON_FACTORY).registerModule(JavaTimeModule()).reader()
