@@ -95,6 +95,7 @@ public class FitbitSleepAvroConverter extends FitbitAvroConverter {
         .flatMap(tryOrNull(s -> {
           Instant startTime = Instant.from(DATE_TIME_FORMAT.parse(s.get("startTime").asText()));
           boolean isStages = s.get("type") == null || s.get("type").asText().equals("stages");
+          int efficiency = s.has("efficiency") ? s.get("efficiency").asInt() : null;
 
           // use an intermediate offset for all records but the last. Since the query time
           // depends only on the start time of a sleep stages group, this will reprocess the entire
@@ -109,7 +110,6 @@ public class FitbitSleepAvroConverter extends FitbitAvroConverter {
                 String dateTime = d.get("dateTime").asText();
                 int duration = d.get("seconds").asInt();
                 String level = d.get("level").asText();
-                int efficiency = d.get("efficiency").asInt();
 
                 if (isStages) {
                   sleep = new FitbitSleepStage(
