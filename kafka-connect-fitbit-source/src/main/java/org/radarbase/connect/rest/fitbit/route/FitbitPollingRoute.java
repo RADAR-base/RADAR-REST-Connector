@@ -95,6 +95,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
   protected static final Duration LOOKBACK_TIME = Duration.ofDays(1); // 1 day
   protected static final long HISTORICAL_TIME_DAYS = 14L;
   protected static final Duration ONE_DAY = DAYS.getDuration();
+  protected static final Duration THIRTY_DAYS = Duration.ofDays(30);
   protected static final Duration ONE_NANO = NANOS.getDuration();
   protected static final TemporalAmount ONE_SECOND = SECONDS.getDuration();
   protected static final TemporalAmount ONE_MINUTE = MINUTES.getDuration();

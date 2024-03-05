@@ -31,7 +31,6 @@ import java.time.Duration;
 
 public class FitbitSkinTemperatureRoute extends FitbitPollingRoute {
   private final FitbitSkinTemperatureAvroConverter converter;
-  protected static final Duration REQUEST_INTERVAL = Duration.ofDays(30);
 
   public FitbitSkinTemperatureRoute(FitbitRequestGenerator generator,
                                     UserRepository userRepository, AvroData avroData) {
@@ -50,9 +49,10 @@ public class FitbitSkinTemperatureRoute extends FitbitPollingRoute {
             user.getExternalUserId(), DATE_FORMAT.format(dateRange.start())));
   }
 
+  /** Limit range to 30 days as documented here: https://dev.fitbit.com/build/reference/web-api/temperature/get-temperature-skin-summary-by-interval */
   @Override
   Duration getDateRangeInterval() {
-    return REQUEST_INTERVAL;
+    return THIRTY_DAYS;
   }
 
   @Override

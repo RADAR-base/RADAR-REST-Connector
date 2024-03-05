@@ -32,7 +32,6 @@ import java.time.Duration;
 
 public class FitbitIntradayHeartRateVariabilityRoute extends FitbitPollingRoute {
   private final FitbitIntradayHeartRateVariabilityAvroConverter converter;
-  protected static final Duration REQUEST_INTERVAL = Duration.ofDays(30);
 
   public FitbitIntradayHeartRateVariabilityRoute(FitbitRequestGenerator generator,
       UserRepository userRepository, AvroData avroData) {
@@ -51,9 +50,10 @@ public class FitbitIntradayHeartRateVariabilityRoute extends FitbitPollingRoute 
             user.getExternalUserId(), DATE_FORMAT.format(dateRange.start())));
   }
 
+  /** Limit range to 30 days as documented here: https://dev.fitbit.com/build/reference/web-api/intraday/get-hrv-intraday-by-interval/ */
   @Override
   Duration getDateRangeInterval() {
-    return REQUEST_INTERVAL;
+    return THIRTY_DAYS;
   }
 
   @Override
