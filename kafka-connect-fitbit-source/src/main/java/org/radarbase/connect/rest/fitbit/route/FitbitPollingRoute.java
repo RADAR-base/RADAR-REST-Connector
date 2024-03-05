@@ -326,7 +326,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
   }
 
   /**
-   * Generate one date per day, using UTC time zone. The first date will have the time from the
+   * Generate one date per day (or specified rangeInterval), using UTC time zone. The first date will have the time from the
    * given startDate. Following time stamps will start at 00:00. This will not up to the date of
    * {@link #getLookbackTime()} (exclusive).
    */
@@ -345,12 +345,12 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
         return Stream.empty();
       }
     } else {
-      long numElements = DAYS.between(startDate, lookBack);
+      Duration rangeInterval = getDateRangeInterval();
 
       Stream<DateRange> elements = Stream
-          .iterate(dateTime, t -> t.plus(ONE_DAY).truncatedTo(DAYS))
-          .limit(numElements)
-          .map(s -> new DateRange(s, s.plus(ONE_DAY).truncatedTo(DAYS).minus(ONE_NANO)));
+          .iterate(dateTime, t -> t.plus(rangeInterval).truncatedTo(DAYS))
+          .takeWhile(u -> u.isBefore(lookBackDateStart))
+          .map(s -> new DateRange(s, s.plus(rangeInterval).truncatedTo(DAYS).minus(ONE_NANO)));
 
       // we're polling at exactly 00:00, should not poll the last date
       if (lookBackDateStart.equals(lookBackDate)) {
@@ -361,5 +361,9 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
             Stream.of(new DateRange(lookBackDateStart, lookBackDate)));
       }
     }
+  }
+
+  Duration getDateRangeInterval() {
+    return ONE_DAY;
   }
 }
