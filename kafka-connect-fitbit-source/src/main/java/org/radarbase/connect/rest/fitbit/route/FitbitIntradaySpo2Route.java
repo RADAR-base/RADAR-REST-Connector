@@ -32,7 +32,6 @@ import java.time.Duration;
 
 public class FitbitIntradaySpo2Route extends FitbitPollingRoute {
   private final FitbitIntradaySpo2AvroConverter converter;
-  protected static final Duration REQUEST_INTERVAL = Duration.ofDays(30);
 
   public FitbitIntradaySpo2Route(FitbitRequestGenerator generator,
       UserRepository userRepository, AvroData avroData) {
@@ -51,9 +50,10 @@ public class FitbitIntradaySpo2Route extends FitbitPollingRoute {
             user.getExternalUserId(), DATE_FORMAT.format(dateRange.start())));
   }
 
+  /** Limit range to 30 days as documented here: https://dev.fitbit.com/build/reference/web-api/intraday/get-spo2-intraday-by-interval/ */
   @Override
   Duration getDateRangeInterval() {
-    return REQUEST_INTERVAL;
+    return THIRTY_DAYS;
   }
 
   @Override
