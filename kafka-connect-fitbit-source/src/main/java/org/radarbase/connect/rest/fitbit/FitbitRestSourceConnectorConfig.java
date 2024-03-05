@@ -106,6 +106,11 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
   private static final String FITBIT_INTRADAY_HEART_RATE_VARIABILITY_TOPIC_DISPLAY = "Intraday heart rate variability topic";
   private static final String FITBIT_INTRADAY_HEART_RATE_VARIABILITY_TOPIC_DEFAULT = "connect_fitbit_intraday_heart_rate_variability";
 
+  private static final String FITBIT_INTRADAY_SPO2_TOPIC_CONFIG = "fitbit.intraday.spo2.topic";
+  private static final String FITBIT_INTRADAY_SPO2_TOPIC_DOC = "Topic for Fitbit intraday intraday_spo2";
+  private static final String FITBIT_INTRADAY_SPO2_TOPIC_DISPLAY = "Intraday spo2 topic";
+  private static final String FITBIT_INTRADAY_SPO2_TOPIC_DEFAULT = "connect_fitbit_intraday_spo2";
+
   private static final String FITBIT_BREATHING_RATE_TOPIC_CONFIG = "fitbit.breathing.rate.topic";
   private static final String FITBIT_BREATHING_RATE_TOPIC_DOC = "Topic for Fitbit breathing rate";
   private static final String FITBIT_BREATHING_RATE_TOPIC_DISPLAY = "Breathing rate topic";
@@ -343,6 +348,17 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
             Width.SHORT,
             FITBIT_INTRADAY_HEART_RATE_VARIABILITY_TOPIC_DISPLAY)
 
+        .define(FITBIT_INTRADAY_SPO2_TOPIC_CONFIG,
+            Type.STRING,
+            FITBIT_INTRADAY_SPO2_TOPIC_DEFAULT,
+            nonControlChar,
+            Importance.LOW,
+            FITBIT_INTRADAY_SPO2_TOPIC_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            FITBIT_INTRADAY_SPO2_TOPIC_DISPLAY)
+
         .define(FITBIT_BREATHING_RATE_TOPIC_CONFIG,
             Type.STRING,
             FITBIT_BREATHING_RATE_TOPIC_DEFAULT,
@@ -509,6 +525,10 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
 
   public String getFitbitIntradayHeartRateVariabilityTopic() {
     return getString(FITBIT_INTRADAY_HEART_RATE_VARIABILITY_TOPIC_CONFIG);
+  }
+
+  public String getFitbitIntradaySpo2Topic() {
+    return getString(FITBIT_INTRADAY_SPO2_TOPIC_CONFIG);
   }
 
   public String getFitbitBreathingRateTopic() {
