@@ -46,7 +46,7 @@ public class FitbitBreathingRateRoute extends FitbitPollingRoute {
   protected Stream<FitbitRestRequest> createRequests(User user) {
     return startDateGenerator(getOffset(user).plus(ONE_SECOND).truncatedTo(SECONDS))
         .map(dateRange -> newRequest(user, dateRange,
-            user.getExternalUserId(), DATE_FORMAT.format(dateRange.start())));
+            user.getExternalUserId(), DATE_FORMAT.format(dateRange.start()), DATE_FORMAT.format(dateRange.end())));
   }
 
     /** Limit range to 30 days as documented here: https://dev.fitbit.com/build/reference/web-api/intraday/get-br-intraday-by-interval/ */

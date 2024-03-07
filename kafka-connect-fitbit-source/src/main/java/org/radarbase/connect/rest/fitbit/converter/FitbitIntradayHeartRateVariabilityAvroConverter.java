@@ -73,7 +73,7 @@ public class FitbitIntradayHeartRateVariabilityAvroConverter extends FitbitAvroC
       }
       FitbitIntradayHeartRateVariability fitbitHrv = new FitbitIntradayHeartRateVariability(time.toEpochMilli() / 1000d,
               timeReceived,
-              (float) value.get("dailyRmssd").asDouble(),
+              (float) value.get("rmssd").asDouble(),
               (float) value.get("coverage").asDouble(),
               (float) value.get("hf").asDouble(),
               (float) value.get("lf").asDouble());
