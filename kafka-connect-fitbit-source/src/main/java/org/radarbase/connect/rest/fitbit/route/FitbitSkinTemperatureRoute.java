@@ -40,7 +40,7 @@ public class FitbitSkinTemperatureRoute extends FitbitPollingRoute {
 
   @Override
   protected String getUrlFormat(String baseUrl) {
-    return baseUrl + "/1/user/%s/temp/skin/date/%s/%s/.json";
+    return baseUrl + "/1/user/%s/temp/skin/date/%s/%s.json";
   }
 
   protected Stream<FitbitRestRequest> createRequests(User user) {
