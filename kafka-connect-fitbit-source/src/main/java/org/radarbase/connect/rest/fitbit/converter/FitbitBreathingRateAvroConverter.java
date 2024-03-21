@@ -26,9 +26,7 @@ import org.radarcns.connector.fitbit.FitbitBreathingRate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.util.stream.Stream;
 
 import static org.radarbase.connect.rest.util.ThrowingFunction.tryOrNull;
@@ -58,23 +56,22 @@ public class FitbitBreathingRateAvroConverter extends FitbitAvroConverter {
 
         return iterableToStream(br)
             .filter(m -> m != null && m.isObject())
-            .flatMap(FitbitAvroConverter::iterableToStream)
             .map(tryOrNull(m -> parseBr(m, startDate, timeReceived),
                 (a, ex) -> logger.warn("Failed to convert breathing rate from request {}, {}", request, a, ex)));
     }
 
     private TopicData parseBr(JsonNode data, ZonedDateTime startDate, double timeReceived) {
-      Instant time = startDate.with(LocalDateTime.parse(data.get("dateTime").asText())).toInstant();
+      Instant time = LocalDate.parse(data.get("dateTime").asText()).atStartOfDay(ZoneOffset.UTC).toInstant();
       JsonNode value = data.get("value");
       if (value == null || !value.isObject()) {
         return null;
       }
       FitbitBreathingRate fitbitBr = new FitbitBreathingRate(time.toEpochMilli() / 1000d,
               timeReceived,
-              (float) value.get("deepSleepBrSummary").get("breathingRate").asDouble(),
-              (float) value.get("remSleepBrSummary").get("breathingRate").asDouble(),
-              (float) value.get("fullSleepBrSummary").get("breathingRate").asDouble(),
-              (float) value.get("lightSleepBrSummary").get("breathingRate").asDouble());
+              (float) value.get("deepSleepSummary").get("breathingRate").asDouble(),
+              (float) value.get("remSleepSummary").get("breathingRate").asDouble(),
+              (float) value.get("fullSleepSummary").get("breathingRate").asDouble(),
+              (float) value.get("lightSleepSummary").get("breathingRate").asDouble());
       return new TopicData(time, breathingRateTopic, fitbitBr);
     }
 }

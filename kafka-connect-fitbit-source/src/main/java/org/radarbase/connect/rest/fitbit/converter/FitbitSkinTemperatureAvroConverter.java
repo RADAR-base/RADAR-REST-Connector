@@ -26,9 +26,7 @@ import org.radarcns.connector.fitbit.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -68,24 +66,23 @@ public class FitbitSkinTemperatureAvroConverter extends FitbitAvroConverter {
 
         return iterableToStream(tempSkin)
                 .filter(m -> m != null && m.isObject())
-                .flatMap(FitbitAvroConverter::iterableToStream)
                 .map(tryOrNull(m -> parseTempSkin(m, startDate, timeReceived),
                         (a, ex) -> logger.warn("Failed to convert skin temperature from request {}, {}", request, a, ex)));
     }
 
     private TopicData parseTempSkin(JsonNode data, ZonedDateTime startDate, double timeReceived) {
-      Instant time = startDate.with(LocalDateTime.parse(data.get("dateTime").asText())).toInstant();
+      Instant time = LocalDate.parse(data.get("dateTime").asText()).atStartOfDay(ZoneOffset.UTC).toInstant();
       JsonNode value = data.get("value");
       if (value == null || !value.isObject()) {
         return null;
       }
-      String logType = data.get("level").asText();
-      FitbitSkinTemperature fitbitHrv = new FitbitSkinTemperature(
+      String logType = data.get("logType").asText();
+      FitbitSkinTemperature fitbitSkinTemperature = new FitbitSkinTemperature(
           time.toEpochMilli() / 1000d,
           timeReceived,
           (float) value.get("nightlyRelative").asDouble(),
           LOG_TYPE_MAP.getOrDefault(logType, FitbitSkinTemperatureLogType.UNKNOWN)
       );
-      return new TopicData(time, skinTemperatureTopic, fitbitHrv);
+      return new TopicData(time, skinTemperatureTopic, fitbitSkinTemperature);
     }
 }
