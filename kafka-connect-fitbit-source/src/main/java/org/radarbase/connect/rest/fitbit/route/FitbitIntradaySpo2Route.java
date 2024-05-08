@@ -18,7 +18,7 @@
 package org.radarbase.connect.rest.fitbit.route;
 
 import io.confluent.connect.avro.AvroData;
-import org.radarbase.connect.rest.fitbit.converter.FitbitBreathingRateAvroConverter;
+import org.radarbase.connect.rest.fitbit.converter.FitbitIntradaySpo2AvroConverter;
 import org.radarbase.connect.rest.fitbit.request.FitbitRequestGenerator;
 import org.radarbase.connect.rest.fitbit.request.FitbitRestRequest;
 import org.radarbase.connect.rest.fitbit.user.User;
@@ -29,18 +29,19 @@ import java.util.stream.Stream;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import java.time.Duration;
 
-public class FitbitBreathingRateRoute extends FitbitPollingRoute {
-  private final FitbitBreathingRateAvroConverter converter;
 
-  public FitbitBreathingRateRoute(FitbitRequestGenerator generator,
-                                  UserRepository userRepository, AvroData avroData) {
-    super(generator, userRepository, "breathing_rate");
-    this.converter = new FitbitBreathingRateAvroConverter(avroData);
+public class FitbitIntradaySpo2Route extends FitbitPollingRoute {
+  private final FitbitIntradaySpo2AvroConverter converter;
+
+  public FitbitIntradaySpo2Route(FitbitRequestGenerator generator,
+      UserRepository userRepository, AvroData avroData) {
+    super(generator, userRepository, "intraday_spo2");
+    this.converter = new FitbitIntradaySpo2AvroConverter(avroData);
   }
 
   @Override
   protected String getUrlFormat(String baseUrl) {
-    return baseUrl + "/1/user/%s/br/date/%s/%s/all.json";
+    return baseUrl + "/1/user/%s/spo2/date/%s/%s/all.json";
   }
 
   protected Stream<FitbitRestRequest> createRequests(User user) {
@@ -49,14 +50,14 @@ public class FitbitBreathingRateRoute extends FitbitPollingRoute {
             user.getExternalUserId(), DATE_FORMAT.format(dateRange.start()), DATE_FORMAT.format(dateRange.end())));
   }
 
-    /** Limit range to 30 days as documented here: https://dev.fitbit.com/build/reference/web-api/intraday/get-br-intraday-by-interval/ */
+  /** Limit range to 30 days as documented here: https://dev.fitbit.com/build/reference/web-api/intraday/get-spo2-intraday-by-interval/ */
   @Override
   Duration getDateRangeInterval() {
     return THIRTY_DAYS;
   }
 
   @Override
-  public FitbitBreathingRateAvroConverter converter() {
+  public FitbitIntradaySpo2AvroConverter converter() {
     return converter;
   }
 }

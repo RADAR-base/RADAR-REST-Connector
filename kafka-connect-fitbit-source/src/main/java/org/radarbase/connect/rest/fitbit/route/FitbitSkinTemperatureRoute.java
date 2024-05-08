@@ -23,13 +23,11 @@ import org.radarbase.connect.rest.fitbit.request.FitbitRequestGenerator;
 import org.radarbase.connect.rest.fitbit.request.FitbitRestRequest;
 import org.radarbase.connect.rest.fitbit.user.User;
 import org.radarbase.connect.rest.fitbit.user.UserRepository;
-import org.radarbase.connect.rest.fitbit.util.DateRange;
 
-import java.time.ZonedDateTime;
 import java.util.stream.Stream;
 
-import static java.time.ZoneOffset.UTC;
 import static java.time.temporal.ChronoUnit.SECONDS;
+import java.time.Duration;
 
 public class FitbitSkinTemperatureRoute extends FitbitPollingRoute {
   private final FitbitSkinTemperatureAvroConverter converter;
@@ -42,16 +40,19 @@ public class FitbitSkinTemperatureRoute extends FitbitPollingRoute {
 
   @Override
   protected String getUrlFormat(String baseUrl) {
-    return baseUrl + "/1/user/%s/temp/skin/date/%s/%s/.json";
+    return baseUrl + "/1/user/%s/temp/skin/date/%s/%s.json";
   }
 
   protected Stream<FitbitRestRequest> createRequests(User user) {
-    ZonedDateTime startDate = this.getOffset(user).plus(ONE_SECOND)
-            .atZone(UTC)
-            .truncatedTo(SECONDS);
-    ZonedDateTime now = ZonedDateTime.now(UTC);
-    return Stream.of(newRequest(user, new DateRange(startDate, now),
-            user.getExternalUserId(), DATE_FORMAT.format(startDate), DATE_FORMAT.format(now)));
+    return startDateGenerator(getOffset(user).plus(ONE_SECOND).truncatedTo(SECONDS))
+        .map(dateRange -> newRequest(user, dateRange,
+            user.getExternalUserId(), DATE_FORMAT.format(dateRange.start()), DATE_FORMAT.format(dateRange.end())));
+  }
+
+  /** Limit range to 30 days as documented here: https://dev.fitbit.com/build/reference/web-api/temperature/get-temperature-skin-summary-by-interval */
+  @Override
+  Duration getDateRangeInterval() {
+    return THIRTY_DAYS;
   }
 
   @Override

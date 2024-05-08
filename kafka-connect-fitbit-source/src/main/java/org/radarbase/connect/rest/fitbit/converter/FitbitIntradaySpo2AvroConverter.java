@@ -22,7 +22,7 @@ import io.confluent.connect.avro.AvroData;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
 import org.radarbase.connect.rest.fitbit.FitbitRestSourceConnectorConfig;
 import org.radarbase.connect.rest.fitbit.request.FitbitRestRequest;
-import org.radarcns.connector.fitbit.FitbitIntradayHeartRateVariability;
+import org.radarcns.connector.fitbit.FitbitIntradaySpo2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,50 +33,47 @@ import java.util.stream.Stream;
 
 import static org.radarbase.connect.rest.util.ThrowingFunction.tryOrNull;
 
-public class FitbitIntradayHeartRateVariabilityAvroConverter extends FitbitAvroConverter {
-    private static final Logger logger = LoggerFactory.getLogger(FitbitIntradayHeartRateVariabilityAvroConverter.class);
-    private String heartRateVariabilityTopic;
+public class FitbitIntradaySpo2AvroConverter extends FitbitAvroConverter {
+    private static final Logger logger = LoggerFactory.getLogger(FitbitIntradaySpo2AvroConverter.class);
+    private String spo2Topic;
 
-    public FitbitIntradayHeartRateVariabilityAvroConverter(AvroData avroData) {
+    public FitbitIntradaySpo2AvroConverter(AvroData avroData) {
         super(avroData);
     }
 
     @Override
     public void initialize(RestSourceConnectorConfig config) {
-        heartRateVariabilityTopic = ((FitbitRestSourceConnectorConfig) config).getFitbitIntradayHeartRateVariabilityTopic();
-        logger.info("Using intraday heart rate variability topic {}", heartRateVariabilityTopic);
+        spo2Topic = ((FitbitRestSourceConnectorConfig) config).getFitbitIntradaySpo2Topic();
+        logger.info("Using intraday spo2 topic {}", spo2Topic);
     }
 
     @Override
     protected Stream<TopicData> processRecords(FitbitRestRequest request, JsonNode root, double timeReceived) {
-        JsonNode hrv = root.get("hrv");
-        if (hrv == null || !hrv.isArray()) {
-            logger.warn("No HRV is provided for {}: {}", request, root);
+        JsonNode spo2 = root;
+        if (spo2 == null || !spo2.isArray()) {
+            logger.warn("No Spo2 is provided for {}: {}", request, root);
             return Stream.empty();
         }
         ZonedDateTime startDate = request.getDateRange().end();
 
-        return iterableToStream(hrv)
+        return iterableToStream(spo2)
                 .filter(m -> m != null && m.isObject())
                 .map(m -> m.get("minutes"))
                 .filter(minutes -> minutes != null && minutes.isArray())
                 .flatMap(FitbitAvroConverter::iterableToStream)
-                .map(tryOrNull(minuteData -> parseHrv(minuteData, startDate, timeReceived),
-                        (a, ex) -> logger.warn("Failed to convert heart rate variability from request {}, {}", request, a, ex)));
+                .map(tryOrNull(minuteData -> parseSpo2(minuteData, startDate, timeReceived),
+                        (a, ex) -> logger.warn("Failed to convert spo2 from request {}, {}", request, a, ex)));
     }
 
-    private TopicData parseHrv(JsonNode minuteData, ZonedDateTime startDate, double timeReceived) {
+    private TopicData parseSpo2(JsonNode minuteData, ZonedDateTime startDate, double timeReceived) {
       Instant time = startDate.with(LocalDateTime.parse(minuteData.get("minute").asText())).toInstant();
-      JsonNode value = minuteData.get("value");
-      if (value == null || !value.isObject()) {
+      Float value = (float) minuteData.get("value").asDouble();
+      if (value == null) {
         return null;
       }
-      FitbitIntradayHeartRateVariability fitbitHrv = new FitbitIntradayHeartRateVariability(time.toEpochMilli() / 1000d,
+      FitbitIntradaySpo2 fitbitSpo2 = new FitbitIntradaySpo2(time.toEpochMilli() / 1000d,
               timeReceived,
-              (float) value.get("rmssd").asDouble(),
-              (float) value.get("coverage").asDouble(),
-              (float) value.get("hf").asDouble(),
-              (float) value.get("lf").asDouble());
-      return new TopicData(time, heartRateVariabilityTopic, fitbitHrv);
+              (float) value);
+      return new TopicData(time, spo2Topic, fitbitSpo2);
     }
 }
