@@ -34,6 +34,13 @@ RUN gradle jar
 
 FROM confluentinc/cp-kafka-connect-base:7.5.0
 
+USER root
+
+RUN yum remove -y zulu11-ca-jdk-headless && yum remove -y zulu11-ca-jre-headless
+RUN yum install -y zulu17-ca-jdk-headless && yum install -y zulu17-ca-jre-headless
+
+USER appuser
+
 MAINTAINER Joris Borgdorff <joris@thehyve.nl>
 
 LABEL description="Kafka REST API Source connector"
