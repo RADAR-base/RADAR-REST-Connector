@@ -28,4 +28,6 @@ dependencies {
     compileOnly("com.fasterxml.jackson.core:jackson-databind")
 
     testImplementation("org.apache.kafka:connect-api:${Versions.kafka}")
+    testImplementation("com.github.tomakehurst:wiremock:${Versions.wiremock}")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:${Versions.mockitoKotlin}")
 }

@@ -7,8 +7,6 @@ dependencies {
     compileOnly("org.apache.kafka:connect-api:${Versions.kafka}")
     compileOnly("org.slf4j:slf4j-api:${Versions.slf4j}")
 
-    testImplementation("org.mockito:mockito-core:${Versions.mockito}")
     testImplementation("com.github.tomakehurst:wiremock:${Versions.wiremock}")
-
     testImplementation("org.apache.kafka:connect-api:${Versions.kafka}")
 }

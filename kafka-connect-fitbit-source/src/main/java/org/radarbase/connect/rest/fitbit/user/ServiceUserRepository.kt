@@ -29,6 +29,7 @@ import io.ktor.client.plugins.auth.providers.basic
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.client.request.headers
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.client.request.url
@@ -41,6 +42,7 @@ import io.ktor.http.URLBuilder
 import io.ktor.http.Url
 import io.ktor.http.contentLength
 import io.ktor.http.contentType
+import io.ktor.http.headers
 import io.ktor.http.isSuccess
 import io.ktor.http.takeFrom
 import io.ktor.serialization.jackson.jackson
@@ -110,6 +112,7 @@ class ServiceUserRepository : UserRepository {
         clientId: String?,
         clientSecret: String?,
     ): HttpClient = HttpClient(CIO) {
+        //TODO tokenURL can never be NULL
         if (tokenUrl != null) {
             install(Auth) {
                 clientCredentials(
@@ -201,7 +204,9 @@ class ServiceUserRepository : UserRepository {
     private suspend fun credentialCache(user: User): CachedValue<OAuth2UserCredentials> =
         credentialCaches.computeIfAbsent(user.id) {
             CachedValue(credentialCacheConfig) {
-                requestAccessToken(user) { url("users/${user.id}/token") }
+                requestAccessToken(user) {
+                    url("users/${user.id}/token")
+                }
             }
         }
 
