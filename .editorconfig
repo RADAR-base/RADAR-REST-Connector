@@ -15,3 +15,9 @@ max_line_length=100
 
 [*.{gradle,py,kt,kts}]
 indent_size = 4
+
+[*.{kt,kts}]
+ij_kotlin_allow_trailing_comma_on_call_site = true
+ij_kotlin_allow_trailing_comma = true
+# To satisfy ktlint rules, see: https://stackoverflow.com/questions/59849619/intellij-does-not-sort-kotlin-imports-according-to-ktlints-expectations
+ij_kotlin_imports_layout = *,java.**,javax.**,kotlin.**,^
