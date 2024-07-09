@@ -240,7 +240,10 @@ class ServiceUserRepository : UserRepository {
     ): T = withContext(Dispatchers.IO) {
         val response = client.request(builder)
         val contentLength = response.contentLength()
-        val hasBody = contentLength != null && contentLength > 0
+        // if Transfer-Encoding: chunked, then the request has data but contentLength will be null.
+        val transferEncoding = response.headers["Transfer-Encoding"]
+        val hasBody = (contentLength != null && contentLength > 0) ||
+            (transferEncoding != null && transferEncoding.contains("chunked"))
         if (response.status == HttpStatusCode.NotFound) {
             throw NoSuchElementException("URL " + response.request.url + " does not exist")
         } else if (!response.status.isSuccess() || !hasBody) {
