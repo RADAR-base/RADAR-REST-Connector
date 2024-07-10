@@ -16,7 +16,7 @@ data class OuraUser(
     @JsonProperty("externalId") override val externalId: String?,
     @JsonProperty("isAuthorized") override val isAuthorized: Boolean,
     @JsonProperty("startDate") override val startDate: Instant,
-    @JsonProperty("endDate") override val endDate: Instant,
+    @JsonProperty("endDate") override val endDate: Instant? = null,
     @JsonProperty("version") override val version: String? = null,
     @JsonProperty("serviceUserId") override val serviceUserId: String? = null,
 ) : User {
