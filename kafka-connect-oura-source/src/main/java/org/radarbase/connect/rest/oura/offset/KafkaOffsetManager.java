@@ -36,7 +36,7 @@ public class KafkaOffsetManager implements OuraOffsetManager {
       .filter(e -> e.getValue() != null && e.getValue().containsKey(TIMESTAMP_OFFSET_KEY))
       .collect(Collectors.toMap(
           e -> (String) e.getKey().get("user") + "-" + e.getKey().get("route"),
-          e -> Instant.ofEpochMilli(((Number) e.getValue().get(TIMESTAMP_OFFSET_KEY)).longValue())));
+          e -> Instant.ofEpochSecond(((Number) e.getValue().get(TIMESTAMP_OFFSET_KEY)).longValue())));
     } else {
       logger.warn("Offset storage reader is null, will resume from an empty state.");
     }
