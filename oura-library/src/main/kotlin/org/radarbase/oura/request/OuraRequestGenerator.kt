@@ -151,7 +151,7 @@ constructor(
                     request.user,
                     request.endDate,
                 )
-                userNextRequest[request.user.versionedId] = Instant.now().plus(BACK_OFF_TIME)
+                userNextRequest[request.user.versionedId] = Instant.now().plus(ONE_DAY)
             }
         }
         return records
