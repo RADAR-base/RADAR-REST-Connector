@@ -90,7 +90,7 @@ constructor(
                 offsetTime.coerceAtLeast(startDate)
             }
         val endDate = if (user.endDate >= Instant.now()) Instant.now() else user.endDate
-        if (Duration.between(startOffset, endDate).toDays() <= ONE_DAY) {
+        if (Duration.between(startOffset, endDate) <= ONE_DAY) {
             logger.info("Interval between dates is too short. Backing off..")
             userNextRequest[user.versionedId] = Instant.now().plus(USER_BACK_OFF_TIME)
             return emptySequence()
@@ -145,11 +145,13 @@ constructor(
                     ?: nextRequestTime
         } else {
             if (request.startDate.plus(TIME_AFTER_REQUEST).isBefore(Instant.now())) {
+                logger.info("No records found, updating offsets to end date..")
                 ouraOffsetManager.updateOffsets(
                     request.route,
                     request.user,
                     request.endDate,
                 )
+                userNextRequest[request.user.versionedId] = Instant.now().plus(BACK_OFF_TIME)
             }
         }
         return records
@@ -240,7 +242,7 @@ constructor(
     companion object {
         private val logger = LoggerFactory.getLogger(OuraRequestGenerator::class.java)
         private val BACK_OFF_TIME = Duration.ofMinutes(10L)
-        private val ONE_DAY = 1L
+        private val ONE_DAY = Duration.ofDays(1L)
         private val TIME_AFTER_REQUEST = Duration.ofDays(30)
         private val USER_BACK_OFF_TIME = Duration.ofHours(12L)
         private val SUCCESS_BACK_OFF_TIME = Duration.ofMinutes(1L)
