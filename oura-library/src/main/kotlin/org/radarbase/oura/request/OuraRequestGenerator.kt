@@ -89,17 +89,7 @@ constructor(
                 logger.info("Offsets found in persistence: " + offsetTime.toString())
                 offsetTime.coerceAtLeast(startDate)
             }
-        val endDate = user.endDate!!.let {
-            if (user.endDate == null) {
-                Instant.now()
-            }
-            else {
-               if (it >= Instant.now()) {
-                Instant.now()
-               }
-               it
-            }
-        }
+        val endDate = user.endDate?.coerceAtMost(Instant.now()) ?: Instant.now()
         if (Duration.between(startOffset, endDate) <= ONE_DAY) {
             logger.info("Interval between dates is too short. Backing off..")
             userNextRequest[user.versionedId] = Instant.now().plus(USER_BACK_OFF_TIME)
