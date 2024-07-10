@@ -10,7 +10,7 @@ interface User {
     val sourceId: String
     val externalId: String?
     val startDate: Instant
-    val endDate: Instant
+    val endDate: Instant?
     val createdAt: Instant
     val humanReadableUserId: String?
     val serviceUserId: String?
