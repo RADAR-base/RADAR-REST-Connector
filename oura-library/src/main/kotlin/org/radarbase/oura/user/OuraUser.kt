@@ -23,5 +23,6 @@ data class OuraUser(
     override val observationKey: ObservationKey = ObservationKey(projectId, userId, sourceId)
     override val versionedId: String = "$id${version?.let { "#$it" } ?: ""}"
 
-    fun isComplete() = isAuthorized && (endDate == null || startDate.isBefore(endDate)) && serviceUserId != null
+    fun isComplete() =
+        isAuthorized && (endDate == null || startDate.isBefore(endDate)) && serviceUserId != null
 }
