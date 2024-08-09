@@ -132,9 +132,10 @@ constructor(
                 Instant.ofEpochSecond(offset).plus(ONE_DAY),
             )
             val nextRequestTime = Instant.now().plus(SUCCESS_BACK_OFF_TIME)
-            userNextRequest[request.user.versionedId] = userNextRequest[request.user.versionedId]?.let {
-                if (it > nextRequestTime) it else nextRequestTime
-            } ?: nextRequestTime
+            userNextRequest[request.user.versionedId] =
+                userNextRequest[request.user.versionedId]?.let {
+                    if (it > nextRequestTime) it else nextRequestTime
+                } ?: nextRequestTime
         } else {
             if (request.startDate.plus(TIME_AFTER_REQUEST).isBefore(Instant.now())) {
                 logger.info("No records found, updating offsets to end date..")
