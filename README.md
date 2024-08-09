@@ -156,6 +156,7 @@ sequenceDiagram
   connector ->> fitbit: Get required data @ api.fitbit.com/1/user/<id>/<data-type>/date/<daterange>
   connector ->> kafka: Send data
   kafka ->> connector: 200 OK
+  connector ->> connector: Update offset times
 ```
 
 ## Contributing
