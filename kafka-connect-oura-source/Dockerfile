@@ -60,3 +60,9 @@ COPY  --chown=appuser:appuser ./docker/kafka-wait /usr/bin/kafka-wait
 
 # Load modified launcher
 COPY  --chown=appuser:appuser ./docker/launch /etc/confluent/docker/launch
+
+# Overwrite the log4j configuration to include Sentry monitoring.
+COPY ./docker/log4j.properties.template /etc/confluent/docker/log4j.properties.template
+# Copy Sentry monitoring jars.
+COPY --from=builder /code/kafka-connect-oura-source/build/third-party/sentry-* /etc/kafka-connect/jars
+
