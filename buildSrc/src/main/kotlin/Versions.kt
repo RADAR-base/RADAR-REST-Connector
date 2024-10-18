@@ -11,7 +11,7 @@ object Versions {
     const val kafka = "$confluent-ce"
     const val avro = "1.11.4"
 
-    const val managementPortal = "2.0.0"
+    const val managementPortal = "2.1.5"
 
     // From image
     const val jackson = "2.17.0"
