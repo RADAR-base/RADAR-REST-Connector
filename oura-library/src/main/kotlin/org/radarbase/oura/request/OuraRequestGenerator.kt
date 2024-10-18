@@ -89,10 +89,9 @@ constructor(
                 logger.info("Offsets found in persistence: " + offsetTime.toString())
                 offsetTime.coerceAtLeast(startDate)
             }
-        val endDate = if (user.endDate >= Instant.now()) Instant.now() else user.endDate
+        val endDate = user.endDate?.coerceAtMost(Instant.now()) ?: Instant.now()
         if (Duration.between(startOffset, endDate) <= ONE_DAY) {
-            logger.info("Interval between dates is too short. Backing off..")
-            userNextRequest[user.versionedId] = Instant.now().plus(USER_BACK_OFF_TIME)
+            logger.info("Interval between dates is too short. Not requesting..")
             return emptySequence()
         }
         val endTime = (startOffset + defaultQueryRange).coerceAtMost(endDate)
@@ -130,19 +129,13 @@ constructor(
             ouraOffsetManager.updateOffsets(
                 request.route,
                 request.user,
-                Instant.ofEpochSecond(offset).plus(Duration.ofMillis(500)),
+                Instant.ofEpochSecond(offset).plus(ONE_DAY),
             )
-            val currentNextRequestTime = userNextRequest[request.user.versionedId]
             val nextRequestTime = Instant.now().plus(SUCCESS_BACK_OFF_TIME)
             userNextRequest[request.user.versionedId] =
-                currentNextRequestTime?.let {
-                    if (currentNextRequestTime > nextRequestTime) {
-                        currentNextRequestTime
-                    } else {
-                        nextRequestTime
-                    }
-                }
-                    ?: nextRequestTime
+                userNextRequest[request.user.versionedId]?.let {
+                    if (it > nextRequestTime) it else nextRequestTime
+                } ?: nextRequestTime
         } else {
             if (request.startDate.plus(TIME_AFTER_REQUEST).isBefore(Instant.now())) {
                 logger.info("No records found, updating offsets to end date..")
@@ -151,6 +144,8 @@ constructor(
                     request.user,
                     request.endDate,
                 )
+                userNextRequest[request.user.versionedId] = Instant.now().plus(BACK_OFF_TIME)
+            } else {
                 userNextRequest[request.user.versionedId] = Instant.now().plus(BACK_OFF_TIME)
             }
         }

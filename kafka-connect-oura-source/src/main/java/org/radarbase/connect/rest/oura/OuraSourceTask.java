@@ -63,6 +63,7 @@ public class OuraSourceTask extends SourceTask {
   private AvroData avroData = new AvroData(20);
   private KafkaOffsetManager offsetManager;
   String TIMESTAMP_OFFSET_KEY = "timestamp";
+  long TIMEOUT = 60000L;
 
   public void initialize(OuraRestSourceConnectorConfig config, OffsetStorageReader offsetStorageReader) {
     OuraRestSourceConnectorConfig ouraConfig = (OuraRestSourceConnectorConfig) config;
@@ -144,6 +145,8 @@ public class OuraSourceTask extends SourceTask {
     List<SourceRecord> sourceRecords = Collections.emptyList();
 
     do {
+      Thread.sleep(TIMEOUT);
+
       Map<String, String> configs = context.configs();
       Iterator<? extends RestRequest> requestIterator = this.requests()
           .iterator();
