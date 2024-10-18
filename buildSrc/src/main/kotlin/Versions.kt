@@ -21,7 +21,7 @@ object Versions {
 
     const val okhttp = "4.12.0"
 
-    const val firebaseAdmin = "9.2.0"
+    const val firebaseAdmin = "9.4.0"
     const val radarSchemas = "0.8.11"
     const val ktor = "2.3.10"
 
