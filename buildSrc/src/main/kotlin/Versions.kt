@@ -1,6 +1,6 @@
 @Suppress("ConstPropertyName", "MemberVisibilityCanBePrivate")
 object Versions {
-    const val project = "0.5.3"
+    const val project = "0.5.4"
 
     const val java = 17
     const val kotlin = "1.9.22"
@@ -21,8 +21,8 @@ object Versions {
 
     const val okhttp = "4.12.0"
 
-    const val firebaseAdmin = "9.2.0"
-    const val radarSchemas = "0.8.7-hotfix"
+    const val firebaseAdmin = "9.4.0"
+    const val radarSchemas = "0.8.11"
     const val ktor = "2.3.10"
 
     const val junit = "5.10.2"

@@ -120,6 +120,45 @@ docker-compose exec schema-registry-1 kafka-avro-console-consumer \
   --topic connect_fitbit_intraday_heart_rate
 ```
 
+## Flows
+
+The following diagrams shows the flow of the Fitbit source connector. The fitbit source connector is a Kafka Connect source connector that polls the Fitbit API for data. The data is then converted to Avro records and sent to Kafka topics.
+
+### Initialization
+
+On startup, the fitbit connector simply starts up and schedules its regular polling tasks.
+
+```mermaid
+sequenceDiagram
+  participant connector as Fitbit Source Connector
+  participant kafka as Kafka
+
+  connector ->> kafka: Check Kafka readiness (optional)
+  connector ->> connector: Schedule polling tasks
+```
+
+### Regular operation
+
+The Fitbit connector operates by regularly polling the user repository, and regularly polling all configured users for data
+
+```mermaid
+sequenceDiagram
+  participant connector as Fitbit Source Connector
+  participant userRepo as User Repository (rest-source-auth)
+  participant fitbit as Fitbit API
+  participant kafka as Kafka
+    
+  note over connector: Get users (every 5 minutes)
+  connector ->> userRepo: Get users @ /users?source-type=FitBit
+  note over connector: For each user (every 5 seconds)
+  connector ->> connector: What data should be fetched?  
+  connector ->> userRepo: Get fitbit access token @ users/<id>/token
+  connector ->> fitbit: Get required data @ api.fitbit.com/1/user/<id>/<data-type>/date/<daterange>
+  connector ->> kafka: Send data
+  kafka ->> connector: 200 OK
+  connector ->> connector: Update offset times
+```
+
 ## Contributing
 
 Code should be formatted using the [Google Java Code Style Guide](https://google.github.io/styleguide/javaguide.html).
