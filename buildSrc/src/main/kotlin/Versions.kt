@@ -9,7 +9,7 @@ object Versions {
     const val radarCommons = "1.1.2"
     const val confluent = "7.6.0"
     const val kafka = "$confluent-ce"
-    const val avro = "1.11.3"
+    const val avro = "1.11.4"
 
     const val managementPortal = "2.0.0"
 
