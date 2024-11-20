@@ -100,7 +100,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
   protected static final TemporalAmount ONE_SECOND = SECONDS.getDuration();
   protected static final TemporalAmount ONE_MINUTE = MINUTES.getDuration();
 
-  private static final Logger logger = LoggerFactory.getLogger(FitbitSleepRoute.class);
+  private static final Logger logger = LoggerFactory.getLogger(FitbitPollingRoute.class);
 
   /** Committed offsets. */
   private Map<String, Instant> offsets;
@@ -164,7 +164,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
   @Override
   public void requestFailed(RestRequest request, Response response) {
     if (response != null && response.code() == 429) {
-      User user = ((FitbitRestRequest)request).getUser();
+      User user = ((FitbitRestRequest) request).getUser();
       tooManyRequestsForUser.add(user);
       String cooldownString = response.header("Retry-After");
       Duration cooldown = getTooManyRequestsCooldown();
@@ -179,6 +179,8 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
       lastPollPerUser.put(user.getId(), backOff);
       logger.info("Too many requests for user {}. Backing off until {}",
           user, backOff.plus(getPollIntervalPerUser()));
+    } else if (response != null) {
+      logger.warn("Failed to make request {}. Response is: {}", request, response);
     } else {
       logger.warn("Failed to make request {}", request);
     }
@@ -197,8 +199,11 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
     lastPoll = Instant.now();
     try {
       return userRepository.stream()
+          // Collect Instant of nextPoll for each user
           .map(u -> new AbstractMap.SimpleImmutableEntry<>(u, nextPoll(u)))
+          // Keep users where the lastPoll is later than the nextPoll for the user (i.e., user needs to be polled)
           .filter(u -> lastPoll.isAfter(u.getValue()))
+          // Sort users by nextPoll (old to new?)
           .sorted(Map.Entry.comparingByValue())
           .flatMap(u -> this.createRequests(u.getKey()))
           .filter(Objects::nonNull);

@@ -37,6 +37,10 @@ your Fitbit App client ID and client secret. The following tables shows the poss
 <th>Importance</th>
 </tr>
 <tr>
+<td>application.loop.interval.ms</td><td>How often to perform the main application loop (only controls how often to poll for new user registrations).></td><td>long</td><td>300000</td><td></td><td></td></tr>
+<tr>
+<td>user.cache.refresh.interval.ms</td><td>How often to invalidate the cache and poll for new user registrations.</td><td>long</td><td>3600000</td><td></td><td></td></tr>
+<tr>
 <td>rest.source.poll.interval.ms</td><td>How often to poll the source URL.</td><td>long</td><td>60000</td><td></td><td>low</td></tr>
 <tr>
 <td>rest.source.base.url</td><td>Base URL for REST source connector.</td><td>string</td><td></td><td></td><td>high</td></tr>
