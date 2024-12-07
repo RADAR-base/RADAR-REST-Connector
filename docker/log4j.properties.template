@@ -1,0 +1,32 @@
+# This template file was taken from the Confluent Platform distribution and modified to add Sentry support in Docker images.
+# See: https://docs.confluent.io/platform/current/installation/docker/development.html#log-to-external-volumes
+
+log4j.rootLogger={{ env["CONNECT_LOG4J_ROOT_LOGLEVEL"] | default('INFO') }}, stdout{% if env['SENTRY_DSN'] %}, sentryAppender{% endif %}
+
+
+log4j.appender.stdout=org.apache.log4j.ConsoleAppender
+log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
+log4j.appender.stdout.layout.ConversionPattern ={{ env["CONNECT_LOG4J_APPENDER_STDOUT_LAYOUT_CONVERSIONPATTERN"] | default('[%d] %p %m (%c)%n') }}
+
+# Appender for Sentry monitoring
+{% if env['SENTRY_DSN'] %}
+log4j.appender.sentryAppender=io.sentry.log4j.SentryAppender
+log4j.appender.sentryAppender.threshold={{ env['SENTRY_LOG_LEVEL'] | default('ERROR') }}
+{% endif %}
+
+{% set default_loggers = {
+'org.reflections': 'ERROR',
+'org.apache.zookeeper': 'ERROR',
+'org.I0Itec.zkclient': 'ERROR'
+} -%}
+
+{% if env['CONNECT_LOG4J_LOGGERS'] %}
+# loggers from CONNECT_LOG4J_LOGGERS env variable
+{% set loggers = parse_log4j_loggers(env['CONNECT_LOG4J_LOGGERS']) %}
+{% else %}
+# default log levels
+{% set loggers = default_loggers %}
+{% endif %}
+{% for logger,loglevel in loggers.items() %}
+log4j.logger.{{logger}}={{loglevel}}
+{% endfor %}

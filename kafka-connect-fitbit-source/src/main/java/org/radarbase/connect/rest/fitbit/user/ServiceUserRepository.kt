@@ -61,9 +61,9 @@ import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.stream.Stream
 import kotlin.time.Duration.Companion.days
-import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.toKotlinDuration
 
 @Suppress("unused")
 class ServiceUserRepository : UserRepository {
@@ -92,8 +92,12 @@ class ServiceUserRepository : UserRepository {
             clientSecret = config.fitbitUserRepositoryClientSecret,
         )
 
+        val refreshDuration = config.userCacheRefreshInterval.toKotlinDuration()
         userCache = CachedSet(
-            CacheConfig(refreshDuration = 1.hours, retryDuration = 1.minutes),
+            CacheConfig(
+                refreshDuration = refreshDuration,
+                retryDuration = if (refreshDuration > 1.minutes) 1.minutes else refreshDuration,
+            ),
         ) {
             makeRequest<Users> { url("users?source-type=FitBit") }
                 .users

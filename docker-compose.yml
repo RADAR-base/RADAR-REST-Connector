@@ -180,6 +180,10 @@ services:
       KAFKA_HEAP_OPTS: "-Xms256m -Xmx768m"
       KAFKA_BROKERS: 3
       CONNECT_LOG4J_LOGGERS: "org.reflections=ERROR"
+      # SENTRY_LOG_LEVEL: 'ERROR'
+      # SENTRY_DSN: 'https://000000000000.ingest.de.sentry.io/000000000000'
+      # SENTRY_ATTACHSTACKTRACE: true
+      # SENTRY_STACKTRACE_APP_PACKAGES: io.confluent.connect,org.radarbase.connect.rest
 
   #---------------------------------------------------------------------------#
   # RADAR Oura connector                                                     #
@@ -221,3 +225,7 @@ services:
       KAFKA_HEAP_OPTS: "-Xms256m -Xmx768m"
       KAFKA_BROKERS: 3
       CONNECT_LOG4J_LOGGERS: "org.reflections=ERROR"
+      # SENTRY_LOG_LEVEL: 'ERROR'
+      # SENTRY_DSN: 'https://000000000000.ingest.de.sentry.io/000000000000'
+      # SENTRY_ATTACHSTACKTRACE: true
+      # SENTRY_STACKTRACE_APP_PACKAGES: io.confluent.connect,org.radarbase.connect.rest

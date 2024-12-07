@@ -32,7 +32,7 @@ COPY ./kafka-connect-fitbit-source/src/ /code/kafka-connect-fitbit-source/src
 
 RUN gradle jar
 
-FROM confluentinc/cp-kafka-connect-base:7.5.0
+FROM confluentinc/cp-kafka-connect-base:7.6.0
 
 USER root
 
@@ -41,7 +41,7 @@ RUN yum install -y zulu17-ca-jdk-headless && yum install -y zulu17-ca-jre-headle
 
 USER appuser
 
-MAINTAINER Joris Borgdorff <joris@thehyve.nl>
+MAINTAINER Pim van Nierop <pim@thehyve.nl>
 
 LABEL description="Kafka REST API Source connector"
 
@@ -57,7 +57,13 @@ COPY --from=builder /code/kafka-connect-rest-source/build/libs/*.jar ${CONNECT_P
 COPY --from=builder /code/kafka-connect-fitbit-source/build/libs/*.jar ${CONNECT_PLUGIN_PATH}/kafka-connect-fitbit-source/
 
 # Load topics validator
-COPY  --chown=appuser:appuser ./docker/kafka-wait /usr/bin/kafka-wait
+COPY  --chown=appuser:appuser ./docker/ensure /etc/confluent/docker/ensure
 
 # Load modified launcher
 COPY  --chown=appuser:appuser ./docker/launch /etc/confluent/docker/launch
+
+# Overwrite the log4j configuration to include Sentry monitoring.
+COPY ./docker/log4j.properties.template /etc/confluent/docker/log4j.properties.template
+# Copy Sentry monitoring jars.
+COPY --from=builder /code/kafka-connect-fitbit-source/build/third-party/sentry-* /etc/kafka-connect/jars
+

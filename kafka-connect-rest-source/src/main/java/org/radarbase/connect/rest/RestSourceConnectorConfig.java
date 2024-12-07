@@ -45,10 +45,15 @@ import org.radarbase.connect.rest.util.VersionUtil;
 public class RestSourceConnectorConfig extends AbstractConfig {
   public static final Pattern COLON_PATTERN = Pattern.compile(":");
 
+  public static final String APPLICATION_LOOP_INTERVAL_CONFIG = "application.loop.interval.ms";
+  private static final String APPLICATION_LOOP_INTERVAL_DOC = "How often to perform the main application loop.";
+  private static final String APPLICATION_LOOP_INTERVAL_DISPLAY = "Application loop interval";
+  private static final Long APPLICATION_LOOP_INTERVAL_DEFAULT = 300000L; // 5 minutes
+
   private static final String SOURCE_POLL_INTERVAL_CONFIG = "rest.source.poll.interval.ms";
   private static final String SOURCE_POLL_INTERVAL_DOC = "How often to poll the source URL.";
   private static final String SOURCE_POLL_INTERVAL_DISPLAY = "Polling interval";
-  private static final Long SOURCE_POLL_INTERVAL_DEFAULT = 60000L;
+  private static final Long SOURCE_POLL_INTERVAL_DEFAULT = 60000L; // 1 minute
 
   static final String SOURCE_URL_CONFIG = "rest.source.base.url";
   private static final String SOURCE_URL_DOC = "Base URL for REST source connector.";
@@ -80,6 +85,11 @@ public class RestSourceConnectorConfig extends AbstractConfig {
   private static final String REQUEST_GENERATOR_DOC =
       "Class to be used to generate REST requests";
   private static final String REQUEST_GENERATOR_DISPLAY = "Request generator class";
+
+  public static final String USER_CACHE_REFRESH_INTERVAL_CONFIG = "user.cache.refresh.interval.ms";
+  private static final String USER_CACHE_REFRESH_INTERVAL_DOC = "How often to poll for new user registrations.";
+  private static final String USER_CACHE_REFRESH_INTERVAL_DISPLAY = "Refresh interval";
+  private static final Long USER_CACHE_REFRESH_INTERVAL_DEFAULT = 3600000L; // 1 hour
 
   private final TopicSelector topicSelector;
   private final PayloadToSourceRecordConverter payloadToSourceRecordConverter;
@@ -171,7 +181,36 @@ public class RestSourceConnectorConfig extends AbstractConfig {
             ++orderInGroup,
             Width.SHORT,
             REQUEST_GENERATOR_DISPLAY)
-        ;
+
+        .define(APPLICATION_LOOP_INTERVAL_CONFIG,
+            Type.LONG,
+            APPLICATION_LOOP_INTERVAL_DEFAULT,
+            Importance.LOW,
+            APPLICATION_LOOP_INTERVAL_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            APPLICATION_LOOP_INTERVAL_DISPLAY)
+
+        .define(USER_CACHE_REFRESH_INTERVAL_CONFIG,
+            Type.LONG,
+            USER_CACHE_REFRESH_INTERVAL_DEFAULT,
+            Importance.LOW,
+            USER_CACHE_REFRESH_INTERVAL_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            USER_CACHE_REFRESH_INTERVAL_DISPLAY
+
+        );
+  }
+
+  public Duration getApplicationLoopInterval() {
+    return Duration.ofMillis(this.getLong(APPLICATION_LOOP_INTERVAL_CONFIG));
+  }
+
+  public Duration getUserCacheRefreshInterval() {
+    return Duration.ofMillis(this.getLong(USER_CACHE_REFRESH_INTERVAL_CONFIG));
   }
 
   public Duration getPollInterval() {

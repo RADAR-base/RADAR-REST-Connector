@@ -7,8 +7,9 @@ fi
 
 max_timeout=32
 
-
 IS_TEMP=0
+
+echo "===> Wait for infrastructure ..."
 
 if [ -z "$COMMAND_CONFIG_FILE_PATH" ]; then
     COMMAND_CONFIG_FILE_PATH="$(mktemp)"
