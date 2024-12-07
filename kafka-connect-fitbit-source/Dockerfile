@@ -32,7 +32,7 @@ COPY ./kafka-connect-fitbit-source/src/ /code/kafka-connect-fitbit-source/src
 
 RUN gradle jar
 
-FROM confluentinc/cp-kafka-connect-base:7.5.0
+FROM confluentinc/cp-kafka-connect-base:7.6.0
 
 USER root
 
