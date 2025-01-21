@@ -32,7 +32,7 @@ COPY ./oura-library/src/ /code/oura-library/src
 
 RUN gradle jar
 
-FROM confluentinc/cp-kafka-connect-base:7.5.0
+FROM confluentinc/cp-kafka-connect-base:7.6.0
 
 USER root
 
@@ -56,7 +56,13 @@ COPY --from=builder /code/kafka-connect-oura-source/build/libs/*.jar ${CONNECT_P
 COPY --from=builder /code/oura-library/build/libs/*.jar ${CONNECT_PLUGIN_PATH}/kafka-connect-oura-source/
 
 # Load topics validator
-COPY  --chown=appuser:appuser ./docker/kafka-wait /usr/bin/kafka-wait
+COPY  --chown=appuser:appuser ./docker/ensure /etc/confluent/docker/ensure
 
 # Load modified launcher
 COPY  --chown=appuser:appuser ./docker/launch /etc/confluent/docker/launch
+
+# Overwrite the log4j configuration to include Sentry monitoring.
+COPY ./docker/log4j.properties.template /etc/confluent/docker/log4j.properties.template
+# Copy Sentry monitoring jars.
+COPY --from=builder /code/kafka-connect-oura-source/build/third-party/sentry-* /etc/kafka-connect/jars
+

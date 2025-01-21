@@ -20,6 +20,7 @@ package org.radarbase.connect.rest.fitbit;
 import static org.radarbase.connect.rest.fitbit.FitbitRestSourceConnectorConfig.FITBIT_USERS_CONFIG;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,8 +46,11 @@ public class FitbitSourceConnector extends AbstractRestSourceConnector {
 
   @Override
   public void start(Map<String, String> props) {
+    logger.info("Starting Fitbit source connector");
     super.start(props);
     executor = Executors.newSingleThreadScheduledExecutor();
+
+    Duration applicationLoopInterval = config.getApplicationLoopInterval();
 
     executor.scheduleAtFixedRate(() -> {
       if (repository.hasPendingUpdates()) {
@@ -66,7 +70,7 @@ public class FitbitSourceConnector extends AbstractRestSourceConnector {
       } else {
         logger.info("No pending updates found. Not attempting to refresh users.");
       }
-    }, 0, 5, TimeUnit.MINUTES);
+    }, 0, applicationLoopInterval.toSeconds(), TimeUnit.SECONDS);
   }
 
   @Override
