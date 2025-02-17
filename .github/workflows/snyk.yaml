@@ -3,7 +3,7 @@ name: Snyk test on PR commits
 on:
   pull_request:
     branches:
-      - main
+      - master
       - dev
       - release-*
 
