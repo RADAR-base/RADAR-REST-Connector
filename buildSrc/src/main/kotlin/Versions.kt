@@ -28,4 +28,6 @@ object Versions {
     const val junit = "5.10.2"
     const val wiremock = "3.0.1"
     const val mockito = "5.11.0"
+
+    const val nettyVersion = "4.1.118.Final"
 }

@@ -1,6 +1,12 @@
 description = "Kafka connector for Fitbit API source"
 
 dependencies {
+
+    /* The entries in the block below are added here to force the version of
+    *  transitive dependencies and mitigate reported vulnerabilities */
+    implementation("io.netty:netty-handler-proxy:${Versions.nettyVersion}")
+    implementation("io.netty:netty-handler:${Versions.nettyVersion}")
+
     api(project(":kafka-connect-rest-source"))
     api(project(":oura-library"))
     api("io.confluent:kafka-connect-avro-converter:${Versions.confluent}")
