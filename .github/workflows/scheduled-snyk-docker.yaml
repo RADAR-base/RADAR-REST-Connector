@@ -29,7 +29,14 @@ jobs:
             --policy-path=.snyk
             --exclude-app-vulns
             --org=radar-base
-            --sarif-file-output=fitbit.sarif
+            --sarif-file-output=snyk.sarif
+
+      # Detected vulnerabilities will appear on Github in Security->Code_scanning_alerts tab
+      - name: Upload Fitbit result to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          category: fitbit
+          sarif_file: snyk.sarif
 
       - name: Run Snyk to check for vulnerabilities on Oura image
         uses: snyk/actions/docker@master
@@ -44,15 +51,10 @@ jobs:
               --policy-path=.snyk
               --exclude-app-vulns
               --org=radar-base
-              --sarif-file-output=oura.sarif
-
-      # Detected vulnerabilities will appear on Github in Security->Code_scanning_alerts tab
-      - name: Upload Fitbit result to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: fitbit.sarif
+              --sarif-file-output=snyk.sarif
 
       - name: Upload Oura result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: oura.sarif
+          category: oura
+          sarif_file: snyk.sarif
