@@ -6,8 +6,8 @@ object Versions {
     const val kotlin = "1.9.22"
     const val wrapper = "8.9"
 
-    const val radarCommons = "1.1.2"
-    const val confluent = "7.7.0"
+    const val radarCommons = "1.1.3"
+    const val confluent = "7.8.1"
     const val kafka = "$confluent-ce"
     const val avro = "1.12.0"
 
