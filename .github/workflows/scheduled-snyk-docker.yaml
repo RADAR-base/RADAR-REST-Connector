@@ -17,6 +17,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Run Snyk to check for vulnerabilities on Fitbit image
+        continue-on-error: true # To make sure that SARIF upload gets called
         uses: snyk/actions/docker@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
@@ -39,6 +40,7 @@ jobs:
           sarif_file: snyk.sarif
 
       - name: Run Snyk to check for vulnerabilities on Oura image
+        continue-on-error: true # To make sure that SARIF upload gets called
         uses: snyk/actions/docker@master
         env:
             SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
