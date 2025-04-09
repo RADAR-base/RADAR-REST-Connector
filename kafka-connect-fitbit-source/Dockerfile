@@ -32,7 +32,7 @@ COPY ./kafka-connect-fitbit-source/src/ /code/kafka-connect-fitbit-source/src
 
 RUN gradle jar
 
-FROM confluentinc/cp-kafka-connect-base:7.8.1
+FROM quay.io/strimzi/kafka:0.45.0-kafka-3.9.0
 
 USER appuser
 
@@ -51,14 +51,21 @@ COPY --from=builder /code/kafka-connect-rest-source/build/libs/*.jar ${CONNECT_P
 COPY --from=builder /code/kafka-connect-rest-source/build/libs/*.jar ${CONNECT_PLUGIN_PATH}/kafka-connect-fitbit-source/
 COPY --from=builder /code/kafka-connect-fitbit-source/build/libs/*.jar ${CONNECT_PLUGIN_PATH}/kafka-connect-fitbit-source/
 
-# Load topics validator
-COPY  --chown=appuser:appuser ./docker/ensure /etc/confluent/docker/ensure
+## Load topics validator
+COPY  --chown=1001:1001 ./docker/ensure /opt/kafka/ensure
+RUN chmod +x /opt/kafka/ensure
 
-# Load modified launcher
-COPY  --chown=appuser:appuser ./docker/launch /etc/confluent/docker/launch
+## Load modified launcher
+#COPY  --chown=appuser:appuser ./docker/launch /etc/confluent/docker/launch
+## Load modified connect runner to trigger the validator
+COPY --chown=1001:1001 ./docker/kafka_connect_run.sh /opt/kafka/kafka_connect_run.sh
+RUN chmod +x /opt/kafka/kafka_connect_run.sh
 
 # Overwrite the log4j configuration to include Sentry monitoring.
-COPY ./docker/log4j.properties.template /etc/confluent/docker/log4j.properties.template
+#COPY ./docker/log4j.properties.template /etc/confluent/docker/log4j.properties.template
+COPY ./docker/log4j.properties.template /opt/kafka/custom-config/log4j.properties
 # Copy Sentry monitoring jars.
-COPY --from=builder /code/kafka-connect-fitbit-source/build/third-party/sentry-* /etc/kafka-connect/jars
+#COPY --from=builder /code/kafka-connect-fitbit-source/build/third-party/sentry-* /etc/kafka-connect/jars
+COPY --from=builder /code/kafka-connect-fitbit-source/build/third-party/sentry-* /opt/kafka/libs/
 
+USER 1001
