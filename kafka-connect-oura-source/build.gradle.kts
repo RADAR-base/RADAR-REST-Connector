@@ -33,5 +33,12 @@ dependencies {
     compileOnly(platform("com.fasterxml.jackson:jackson-bom:${Versions.jackson}"))
     compileOnly("com.fasterxml.jackson.core:jackson-databind")
 
+    // Application monitoring
+    // This dependency is not used by the REST connector, but copied into the Docker image (Dockerfile)
+    compileOnly("io.sentry:sentry-log4j:${Versions.sentryLog4j}") {
+        // Exclude log4j with security vulnerability (safe version is provided by docker image).
+        exclude(group = "log4j", module = "log4j")
+    }
+
     testImplementation("org.apache.kafka:connect-api:${Versions.kafka}")
 }

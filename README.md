@@ -1,7 +1,19 @@
 # Kafka Connect REST Source and Fitbit Source
 
-This project contains a Kafka Connect source connector for a general REST API, and one for
-Fitbit in particular. The documentation of the Kafka Connect REST source still needs to be done.
+This project contains a Kafka Connect source connector for a general REST API, for
+specific Fitbit and Oura devices. The documentation of the Kafka Connect REST source still needs to
+be done.
+
+<!-- TOC -->
+
+* [Kafka Connect REST Source and Fitbit Source](#kafka-connect-rest-source-and-fitbit-source)
+  * [Fitbit source connector](#fitbit-source-connector)
+    * [Installation](#installation)
+    * [Usage](#usage)
+  * [Sentry monitoring](#sentry-monitoring)
+  * [Contributing](#contributing)
+
+<!-- TOC -->
 
 ## Fitbit source connector
 
@@ -12,7 +24,9 @@ of Java 17 or later.
 
 ### Usage
 
-Generally, this component is installed with [RADAR-Kubernetes](https://github.com/RADAR-base/RADAR-Kubernetes). It uses Docker image [radarbase/kafka-connect-rest-fitbit-source](https://hub.docker.com/r/radarbase/kafka-connect-rest-fitbit-source).
+Generally, this component is installed
+with [RADAR-Kubernetes](https://github.com/RADAR-base/RADAR-Kubernetes). It uses Docker
+image [radarbase/kafka-connect-rest-fitbit-source](https://hub.docker.com/r/radarbase/kafka-connect-rest-fitbit-source).
 
 First, [register a Fitbit App](https://dev.fitbit.com/apps) with Fitbit. It should be either a
 server app, for multiple users, or a personal app for a single user. With the server app, you need
@@ -22,7 +36,8 @@ For every Fitbit user you want access to, copy `docker/fitbit-user.yml.template`
 `docker/users/`. Get an access token and refresh token for the user using for example the
 [Fitbit OAuth 2.0 tutorial page](https://dev.fitbit.com/apps/oauthinteractivetutorial).
 
-For automatic configuration for multiple users, please take a look at `scripts/REDCAP-FITBIT-AUTH-AUTO/README.md`.
+For automatic configuration for multiple users, please take a look at
+`scripts/REDCAP-FITBIT-AUTH-AUTO/README.md`.
 
 Copy `docker/source-fitbit.properties.template` to `docker/source-fitbit.properties` and enter
 your Fitbit App client ID and client secret. The following tables shows the possible properties.
@@ -94,7 +109,8 @@ your Fitbit App client ID and client secret. The following tables shows the poss
 <td>fitbit.user.firebase.collection.user.name</td><td>Firestore Collection for retrieving User details. Only used when a Firebase based user repository is used.</td><td>string</td><td>users</td><td></td><td>low</td></tr>
 </tbody></table>
 
-If the ManagementPortal is used to authenticate against the user repository, please add an OAuth client to ManagementPortal with the following properties:
+If the ManagementPortal is used to authenticate against the user repository, please add an OAuth
+client to ManagementPortal with the following properties:
 
 ```
 Client ID: fitbit.user.repository.client.id
@@ -106,7 +122,8 @@ Access Token validity: 600
 Refresh Token validity: 0
 ```
 
-Finally set the `fitbit.user.repository.oauth.token.url` to `http://managementportal-app:8080/managementportal/oauth/token`.
+Finally set the `fitbit.user.repository.oauth.token.url` to
+`http://managementportal-app:8080/managementportal/oauth/token`.
 
 Now you can run a full Kafka stack using
 
@@ -163,7 +180,29 @@ sequenceDiagram
   connector ->> connector: Update offset times
 ```
 
+## Sentry monitoring
+
+To enable Sentry monitoring for the generic REST, Fitbit, or Oura source connector service:
+
+1. Set a `SENTRY_DSN` environment variable that points to the desired Sentry DSN.
+2. (Optional) Set the `SENTRY_LOG_LEVEL` environment variable to control the minimum log level of
+   events sent to Sentry.
+   The default log level for Sentry is `WARN`. Possible values are `TRACE`, `DEBUG`, `INFO`, `WARN`,
+   and `ERROR`.
+
+For further configuration of Sentry via environmental variables see [here](https://docs.sentry.io/platforms/java/configuration/#configuration-via-the-runtime-environment). For instance:
+
+```
+SENTRY_LOG_LEVEL: 'ERROR'
+SENTRY_DSN: 'https://000000000000.ingest.de.sentry.io/000000000000'
+SENTRY_ATTACHSTACKTRACE: true
+SENTRY_STACKTRACE_APP_PACKAGES: io.confluent.connect,org.radarbase.connect.rest
+```
+
 ## Contributing
 
-Code should be formatted using the [Google Java Code Style Guide](https://google.github.io/styleguide/javaguide.html).
-If you want to contribute a feature or fix browse our [issues](https://github.com/RADAR-base/RADAR-REST-Connector/issues), and please make a pull request.
+Code should be formatted using
+the [Google Java Code Style Guide](https://google.github.io/styleguide/javaguide.html).
+If you want to contribute a feature or fix browse
+our [issues](https://github.com/RADAR-base/RADAR-REST-Connector/issues), and please make a pull
+request.
