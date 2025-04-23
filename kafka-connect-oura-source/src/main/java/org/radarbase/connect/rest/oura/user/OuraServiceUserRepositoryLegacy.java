@@ -78,6 +78,8 @@
    private static final Duration CONNECTION_TIMEOUT = Duration.ofSeconds(60);
    private static final Duration CONNECTION_READ_TIMEOUT = Duration.ofSeconds(90);
  
+   private static final String CLIENT_AUDIENCE = "res_restAuthorizer"; 
+
    private final OkHttpClient client;
    private final Map<String, OAuth2UserCredentials> cachedCredentials;
    private final AtomicReference<Instant> nextFetch = new AtomicReference<>(MIN_INSTANT);
@@ -90,6 +92,17 @@
  
    public OuraServiceUserRepositoryLegacy() {
      this.client = new OkHttpClient.Builder()
+          .addInterceptor(chain -> {
+            Request original = chain.request();
+            HttpUrl originalUrl = original.url();
+            HttpUrl newUrl = originalUrl.newBuilder()
+                .addQueryParameter("audience", CLIENT_AUDIENCE)  
+                .build();
+            Request newRequest = original.newBuilder()
+                .url(newUrl)
+                .build();
+            return chain.proceed(newRequest);
+        })
          .connectTimeout(CONNECTION_TIMEOUT)
          .readTimeout(CONNECTION_READ_TIMEOUT)
          .build();

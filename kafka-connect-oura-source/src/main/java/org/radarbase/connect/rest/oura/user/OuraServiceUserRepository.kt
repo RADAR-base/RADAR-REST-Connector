@@ -90,6 +90,8 @@ class OuraServiceUserRepository : OuraUserRepository() {
                 tokenUrl = URLBuilder(config.ouraUserRepositoryTokenUrl.toString()).build(),
                 clientId = config.ouraUserRepositoryClientId,
                 clientSecret = config.ouraUserRepositoryClientSecret,
+                scope = "SUBJECT.READ MEASUREMENT.CREATE",
+                audience = "res_restAuthorizer"
             )
 
         userCache =
@@ -111,6 +113,8 @@ class OuraServiceUserRepository : OuraUserRepository() {
         tokenUrl: Url?,
         clientId: String?,
         clientSecret: String?,
+        scope: String?,
+        audience: String?,
     ): HttpClient =
         HttpClient(CIO) {
             if (tokenUrl != null) {
@@ -120,6 +124,8 @@ class OuraServiceUserRepository : OuraUserRepository() {
                             tokenUrl.toString(),
                             clientId,
                             clientSecret,
+                            scope,
+                            audience
                         ).copyWithEnv("MANAGEMENT_PORTAL"),
                         baseUrl.host,
                     )
