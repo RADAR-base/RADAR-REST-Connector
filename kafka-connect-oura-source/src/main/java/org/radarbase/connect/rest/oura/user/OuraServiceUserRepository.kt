@@ -91,7 +91,7 @@ class OuraServiceUserRepository : OuraUserRepository() {
                 clientId = config.ouraUserRepositoryClientId,
                 clientSecret = config.ouraUserRepositoryClientSecret,
                 scope = "SUBJECT.READ MEASUREMENT.CREATE",
-                audience = "res_restAuthorizer"
+                audience = "res_restAuthorizer",
             )
 
         userCache =
@@ -125,7 +125,7 @@ class OuraServiceUserRepository : OuraUserRepository() {
                             clientId,
                             clientSecret,
                             scope,
-                            audience
+                            audience,
                         ).copyWithEnv("MANAGEMENT_PORTAL"),
                         baseUrl.host,
                     )

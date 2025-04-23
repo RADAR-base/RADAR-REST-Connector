@@ -91,7 +91,7 @@ class ServiceUserRepository : UserRepository {
             clientId = config.fitbitUserRepositoryClientId,
             clientSecret = config.fitbitUserRepositoryClientSecret,
             scope = "SUBJECT.READ MEASUREMENT.CREATE",
-            audience = "res_restAuthorizer"
+            audience = "res_restAuthorizer",
         )
 
         val refreshDuration = config.userCacheRefreshInterval.toKotlinDuration()
@@ -126,7 +126,7 @@ class ServiceUserRepository : UserRepository {
                         clientId,
                         clientSecret,
                         scope,
-                        audience
+                        audience,
                     ).copyWithEnv("MANAGEMENT_PORTAL"),
                     baseUrl.host,
                 )
