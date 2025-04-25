@@ -40,7 +40,8 @@
  import java.util.stream.Collectors;
  import java.util.stream.Stream;
  import okhttp3.Credentials;
- import okhttp3.HttpUrl;
+import okhttp3.FormBody;
+import okhttp3.HttpUrl;
  import okhttp3.MediaType;
  import okhttp3.OkHttpClient;
  import okhttp3.Request;
@@ -78,6 +79,9 @@
    private static final Duration CONNECTION_TIMEOUT = Duration.ofSeconds(60);
    private static final Duration CONNECTION_READ_TIMEOUT = Duration.ofSeconds(90);
  
+   private static final String CLIENT_AUDIENCE = "res_restAuthorizer"; 
+   private static final String CLIENT_AUDIENCE_KEY = "audience";
+
    private final OkHttpClient client;
    private final Map<String, OAuth2UserCredentials> cachedCredentials;
    private final AtomicReference<Instant> nextFetch = new AtomicReference<>(MIN_INSTANT);
@@ -90,6 +94,19 @@
  
    public OuraServiceUserRepositoryLegacy() {
      this.client = new OkHttpClient.Builder()
+          .addInterceptor(chain -> {
+            Request req = chain.request();
+            if ("POST".equalsIgnoreCase(req.method()) && req.body() instanceof FormBody) {
+                FormBody oldBody = (FormBody) req.body();
+                FormBody.Builder newBody = new FormBody.Builder();
+                for (int i = 0; i < oldBody.size(); i++) {
+                    newBody.addEncoded(oldBody.encodedName(i), oldBody.encodedValue(i));
+                }
+                newBody.add(CLIENT_AUDIENCE_KEY, CLIENT_AUDIENCE);
+                req = req.newBuilder().post(newBody.build()).build();
+            }
+            return chain.proceed(req);
+          })
          .connectTimeout(CONNECTION_TIMEOUT)
          .readTimeout(CONNECTION_READ_TIMEOUT)
          .build();

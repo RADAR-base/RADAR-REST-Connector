@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM --platform=$BUILDPLATFORM gradle:8.4-jdk17 as builder
+FROM --platform=$BUILDPLATFORM gradle:8.9-jdk17 AS builder
 
 RUN mkdir /code
 WORKDIR /code
@@ -32,16 +32,11 @@ COPY ./kafka-connect-fitbit-source/src/ /code/kafka-connect-fitbit-source/src
 
 RUN gradle jar
 
-FROM confluentinc/cp-kafka-connect-base:7.6.0
-
-USER root
-
-RUN yum remove -y zulu11-ca-jdk-headless && yum remove -y zulu11-ca-jre-headless
-RUN yum install -y zulu17-ca-jdk-headless && yum install -y zulu17-ca-jre-headless
+FROM confluentinc/cp-kafka-connect-base:7.8.1
 
 USER appuser
 
-MAINTAINER Pim van Nierop <pim@thehyve.nl>
+LABEL org.opencontainers.image.authors="pim@thehyve.nl"
 
 LABEL description="Kafka REST API Source connector"
 

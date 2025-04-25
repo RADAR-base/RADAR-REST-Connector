@@ -1,0 +1,62 @@
+name: Snyk scheduled Docker base image scan
+
+on:
+  schedule:
+    - cron: '0 3 * * 1'
+  workflow_dispatch:
+
+env:
+    DOCKER_IMAGE_FITBIT: radarbase/kafka-connect-rest-fitbit-source
+    DOCKER_IMAGE_OURA: radarbase/kafka-connect-rest-oura-source
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Run Snyk to check for vulnerabilities on Fitbit image
+        continue-on-error: true # To make sure that SARIF upload gets called
+        uses: snyk/actions/docker@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: ${{ env.DOCKER_IMAGE_FITBIT }}
+          args: >-
+            --file=kafka-connect-fitbit-source/Dockerfile
+            --fail-on=upgradable
+            --severity-threshold=high
+            --policy-path=.snyk
+            --exclude-app-vulns
+            --org=radar-base
+            --sarif-file-output=snyk.sarif
+
+      # Detected vulnerabilities will appear on Github in Security->Code_scanning_alerts tab
+      - name: Upload Fitbit result to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          category: fitbit
+          sarif_file: snyk.sarif
+
+      - name: Run Snyk to check for vulnerabilities on Oura image
+        continue-on-error: true # To make sure that SARIF upload gets called
+        uses: snyk/actions/docker@master
+        env:
+            SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+            image: ${{ env.DOCKER_IMAGE_OURA }}
+            args: >-
+              --file=kafka-connect-oura-source/Dockerfile
+              --fail-on=upgradable
+              --severity-threshold=high
+              --policy-path=.snyk
+              --exclude-app-vulns
+              --org=radar-base
+              --sarif-file-output=snyk.sarif
+
+      - name: Upload Oura result to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          category: oura
+          sarif_file: snyk.sarif

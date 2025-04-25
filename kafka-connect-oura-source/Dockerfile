@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM --platform=$BUILDPLATFORM gradle:8.4-jdk17 as builder
+FROM --platform=$BUILDPLATFORM gradle:8.9-jdk17 AS builder
 
 RUN mkdir /code
 WORKDIR /code
@@ -32,16 +32,11 @@ COPY ./oura-library/src/ /code/oura-library/src
 
 RUN gradle jar
 
-FROM confluentinc/cp-kafka-connect-base:7.6.0
-
-USER root
-
-RUN yum remove -y zulu11-ca-jdk-headless && yum remove -y zulu11-ca-jre-headless
-RUN yum install -y zulu17-ca-jdk-headless && yum install -y zulu17-ca-jre-headless
+FROM confluentinc/cp-kafka-connect-base:7.8.1
 
 USER appuser
 
-MAINTAINER Pauline Conde <pauline.conde@kcl.ac.uk>
+LABEL org.opencontainers.image.authors="pauline.conde@kcl.ac.uk"
 
 LABEL description="Kafka Oura REST API Source connector"
 
