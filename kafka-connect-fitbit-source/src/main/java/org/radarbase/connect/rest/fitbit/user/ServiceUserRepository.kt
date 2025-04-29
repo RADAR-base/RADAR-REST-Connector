@@ -90,6 +90,8 @@ class ServiceUserRepository : UserRepository {
             tokenUrl = URLBuilder(config.fitbitUserRepositoryTokenUrl.toString()).build(),
             clientId = config.fitbitUserRepositoryClientId,
             clientSecret = config.fitbitUserRepositoryClientSecret,
+            scope = "SUBJECT.READ MEASUREMENT.CREATE",
+            audience = "res_restAuthorizer",
         )
 
         val refreshDuration = config.userCacheRefreshInterval.toKotlinDuration()
@@ -113,6 +115,8 @@ class ServiceUserRepository : UserRepository {
         tokenUrl: Url?,
         clientId: String?,
         clientSecret: String?,
+        scope: String?,
+        audience: String?,
     ): HttpClient = HttpClient(CIO) {
         if (tokenUrl != null) {
             install(Auth) {
@@ -121,6 +125,8 @@ class ServiceUserRepository : UserRepository {
                         tokenUrl.toString(),
                         clientId,
                         clientSecret,
+                        scope,
+                        audience,
                     ).copyWithEnv("MANAGEMENT_PORTAL"),
                     baseUrl.host,
                 )
