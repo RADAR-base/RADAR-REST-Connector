@@ -49,6 +49,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
 import org.radarbase.connect.rest.oura.OuraRestSourceConnectorConfig
 import org.radarbase.kotlin.coroutines.CacheConfig
 import org.radarbase.kotlin.coroutines.CachedSet
@@ -70,10 +71,18 @@ import kotlin.time.Duration.Companion.seconds
 class OuraServiceUserRepository : OuraUserRepository() {
     private lateinit var userCache: CachedSet<OuraUser>
     private lateinit var client: HttpClient
+    private var userRepositoryTokenCache: CachedValue<String>? = null
+    private var basicAuthCredentials: String? = null
     private val credentialCaches = ConcurrentHashMap<String, CachedValue<OAuth2UserCredentials>>()
     private val credentialCacheConfig =
         CacheConfig(refreshDuration = 1.days, retryDuration = 1.minutes)
+    private val userRepositoryCacheConfig =
+        CacheConfig(refreshDuration = 50.minutes, retryDuration = 1.minutes) // Refresh before 1-hour expiry
     private val mapper = ObjectMapper().registerKotlinModule().registerModule(JavaTimeModule())
+
+    private var tokenUrl: String? = null
+    private var clientId: String? = null  
+    private var clientSecret: String? = null
 
     @Throws(IOException::class)
     override fun get(key: String): User =
@@ -84,15 +93,25 @@ class OuraServiceUserRepository : OuraUserRepository() {
     override fun initialize(config: OuraRestSourceConnectorConfig) {
         val containedUsers = config.ouraUsers.toHashSet()
 
-        client =
-            createClient(
-                baseUrl = URLBuilder(config.ouraUserRepositoryUrl.toString()).build(),
-                tokenUrl = URLBuilder(config.ouraUserRepositoryTokenUrl.toString()).build(),
-                clientId = config.ouraUserRepositoryClientId,
-                clientSecret = config.ouraUserRepositoryClientSecret,
-                scope = "SUBJECT.READ MEASUREMENT.CREATE",
-                audience = "res_restAuthorizer",
-            )
+        val baseUrl = URLBuilder(config.ouraUserRepositoryUrl.toString()).build()
+        tokenUrl = config.ouraUserRepositoryTokenUrl?.toString()
+        clientId = config.ouraUserRepositoryClientId
+        clientSecret = config.ouraUserRepositoryClientSecret
+        
+        if (tokenUrl != null && clientId != null && clientSecret != null) {
+            logger.info("Using OAuth2 client credentials authentication with token URL: $tokenUrl")
+            
+            userRepositoryTokenCache = CachedValue(userRepositoryCacheConfig) {
+                requestUserRepositoryToken()
+            }
+        } else if (!clientId.isNullOrBlank() && !clientSecret.isNullOrBlank()) {
+            logger.info("Using basic authentication")
+            basicAuthCredentials = "Basic " + java.util.Base64.getEncoder().encodeToString("$clientId:$clientSecret".toByteArray())
+        } else {
+            logger.warn("No authentication configured - this may cause issues")
+        }
+
+        client = createApiClient(baseUrl)
 
         userCache =
             CachedSet(
@@ -108,56 +127,15 @@ class OuraServiceUserRepository : OuraUserRepository() {
             }
     }
 
-    private fun createClient(
-        baseUrl: Url,
-        tokenUrl: Url?,
-        clientId: String?,
-        clientSecret: String?,
-        scope: String?,
-        audience: String?,
-    ): HttpClient =
+    private fun createApiClient(baseUrl: Url): HttpClient =
         HttpClient(CIO) {
-            if (tokenUrl != null) {
-                install(Auth) {
-                    clientCredentials(
-                        ClientCredentialsConfig(
-                            tokenUrl.toString(),
-                            clientId,
-                            clientSecret,
-                            scope,
-                            audience,
-                        ).copyWithEnv("MANAGEMENT_PORTAL"),
-                        baseUrl.host,
-                    )
-                }
-                install(ContentNegotiation) {
-                    json(
-                        Json {
-                            ignoreUnknownKeys = true
-                        },
-                    )
-                }
-            } else if (clientId != null && clientSecret != null) {
-                install(Auth) {
-                    basic {
-                        credentials {
-                            BasicAuthCredentials(username = clientId, password = clientSecret)
-                        }
-                        realm = "Access to the '/' path"
-                        sendWithoutRequest {
-                            it.url.host == baseUrl.host
-                        }
-                    }
-                }
-            }
-
             defaultRequest {
                 url.takeFrom(baseUrl)
             }
 
             install(ContentNegotiation) {
                 jackson {
-                    registerModule(JavaTimeModule()) // support java.time.* types
+                    registerModule(JavaTimeModule())
                 }
             }
 
@@ -166,6 +144,36 @@ class OuraServiceUserRepository : OuraUserRepository() {
                 requestTimeoutMillis = 90.seconds.inWholeMilliseconds
             }
         }
+        
+    private suspend fun requestUserRepositoryToken(): String {
+        val tmpClient = HttpClient(CIO) {
+            install(ContentNegotiation) {
+                json(Json { ignoreUnknownKeys = true })
+            }
+        }
+        
+        try {
+            val response = tmpClient.request {
+                method = HttpMethod.Post
+                url(tokenUrl!!)
+                contentType(ContentType.Application.FormUrlEncoded)
+                setBody("grant_type=client_credentials&scope=SUBJECT.READ MEASUREMENT.CREATE&audience=res_restAuthorizer")
+                headers.append("Authorization", "Basic " + java.util.Base64.getEncoder().encodeToString("$clientId:$clientSecret".toByteArray()))
+            }
+            
+            if (response.status.isSuccess()) {
+                val tokenData = Json.parseToJsonElement(response.bodyAsText()).jsonObject
+                val accessToken = tokenData["access_token"]?.toString()?.trim('"')
+                    ?: throw IOException("No access token in response")
+                logger.debug("Successfully obtained user repository access token")
+                return "Bearer $accessToken"
+            } else {
+                throw IOException("Failed to get user repository token: ${response.status} - ${response.bodyAsText()}")
+            }
+        } finally {
+            tmpClient.close()
+        }
+    }
 
     override fun stream(): Sequence<OuraUser> =
         runBlocking(Dispatchers.Default) {
@@ -226,11 +234,17 @@ class OuraServiceUserRepository : OuraUserRepository() {
         try {
             makeRequest<OAuth2UserCredentials>(builder)
         } catch (ex: HttpResponseException) {
-            if (ex.statusCode == 407) {
-                credentialCaches -= user.id
-                throw UserNotAuthorizedException(ex.message)
+            when (ex.statusCode) {
+                401 -> {
+                    credentialCaches -= user.id
+                    throw UserNotAuthorizedException("Token refresh failed - user needs re-authorization: ${ex.message}")
+                }
+                407 -> {
+                    credentialCaches -= user.id
+                    throw UserNotAuthorizedException("Proxy authentication required: ${ex.message}")
+                }
+                else -> throw ex
             }
-            throw ex
         }
 
     override fun hasPendingUpdates(): Boolean =
@@ -251,9 +265,18 @@ class OuraServiceUserRepository : OuraUserRepository() {
         crossinline builder: HttpRequestBuilder.() -> Unit,
     ): T =
         withContext(Dispatchers.IO) {
-            val response = client.request(builder)
+            val authorization = getAuthorizationHeader()
+            
+            val response = client.request {
+                builder()
+                if (authorization != null) {
+                    headers.append("Authorization", authorization)
+                }
+            }
+            
             val contentLength = response.contentLength()
             val hasBody = contentLength != null && contentLength > 0
+            
             if (response.status == HttpStatusCode.NotFound) {
                 throw NoSuchElementException("URL " + response.request.url + " does not exist")
             } else if (!response.status.isSuccess() || !hasBody) {
@@ -271,6 +294,21 @@ class OuraServiceUserRepository : OuraUserRepository() {
             }
             mapper.readValue<T>(response.bodyAsText())
         }
+
+    private suspend fun getAuthorizationHeader(): String? {
+        return when {
+            userRepositoryTokenCache != null -> {
+                try {
+                    userRepositoryTokenCache!!.get()
+                } catch (ex: Exception) {
+                    logger.error("Error getting user repository access token", ex)
+                    null
+                }
+            }
+            basicAuthCredentials != null -> basicAuthCredentials
+            else -> null
+        }
+    }
 
     companion object {
         private val logger = LoggerFactory.getLogger(OuraServiceUserRepository::class.java)
