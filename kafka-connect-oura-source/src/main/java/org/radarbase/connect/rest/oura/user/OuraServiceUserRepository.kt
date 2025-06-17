@@ -111,7 +111,7 @@ class OuraServiceUserRepository : OuraUserRepository() {
             logger.warn("No authentication configured - this may cause issues")
         }
 
-        client = createApiClient(baseUrl)
+        client = createClient(baseUrl)
 
         userCache =
             CachedSet(
@@ -127,7 +127,7 @@ class OuraServiceUserRepository : OuraUserRepository() {
             }
     }
 
-    private fun createApiClient(baseUrl: Url): HttpClient =
+    private fun createClient(baseUrl: Url): HttpClient =
         HttpClient(CIO) {
             defaultRequest {
                 url.takeFrom(baseUrl)
