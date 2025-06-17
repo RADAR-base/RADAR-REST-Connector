@@ -29,6 +29,7 @@ import io.ktor.client.plugins.auth.providers.basic
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.client.request.header
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.client.request.url
@@ -49,6 +50,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
 import org.radarbase.connect.rest.RestSourceConnectorConfig
 import org.radarbase.connect.rest.fitbit.FitbitRestSourceConnectorConfig
 import org.radarbase.kotlin.coroutines.CacheConfig
@@ -73,6 +75,13 @@ class ServiceUserRepository : UserRepository {
     private val credentialCacheConfig =
         CacheConfig(refreshDuration = 1.days, retryDuration = 1.minutes)
     private val mapper = ObjectMapper().registerKotlinModule().registerModule(JavaTimeModule())
+    
+    // User repository service token cache for OAuth2 client credentials authentication
+    private var userRepositoryTokenCache: CachedValue<String>? = null
+    private val userRepositoryCacheConfig = CacheConfig(
+        refreshDuration = 50.minutes,
+        retryDuration = 1.minutes,
+    )
 
     @Throws(IOException::class)
     override fun get(key: String): User = runBlocking(Dispatchers.Default) {
@@ -90,9 +99,19 @@ class ServiceUserRepository : UserRepository {
             tokenUrl = URLBuilder(config.fitbitUserRepositoryTokenUrl.toString()).build(),
             clientId = config.fitbitUserRepositoryClientId,
             clientSecret = config.fitbitUserRepositoryClientSecret,
-            scope = "SUBJECT.READ MEASUREMENT.CREATE",
-            audience = "res_restAuthorizer",
         )
+
+        if (config.fitbitUserRepositoryTokenUrl.toString().isNotBlank()) {
+            userRepositoryTokenCache = CachedValue(userRepositoryCacheConfig) {
+                requestUserRepositoryToken(
+                    tokenUrl = URLBuilder(config.fitbitUserRepositoryTokenUrl.toString()).build(),
+                    clientId = config.fitbitUserRepositoryClientId,
+                    clientSecret = config.fitbitUserRepositoryClientSecret,
+                    scope = "SUBJECT.READ MEASUREMENT.CREATE",
+                    audience = "res_restAuthorizer",
+                )
+            }
+        }
 
         val refreshDuration = config.userCacheRefreshInterval.toKotlinDuration()
         userCache = CachedSet(
@@ -115,30 +134,9 @@ class ServiceUserRepository : UserRepository {
         tokenUrl: Url?,
         clientId: String?,
         clientSecret: String?,
-        scope: String?,
-        audience: String?,
     ): HttpClient = HttpClient(CIO) {
-        if (tokenUrl != null) {
-            install(Auth) {
-                clientCredentials(
-                    ClientCredentialsConfig(
-                        tokenUrl.toString(),
-                        clientId,
-                        clientSecret,
-                        scope,
-                        audience,
-                    ).copyWithEnv("MANAGEMENT_PORTAL"),
-                    baseUrl.host,
-                )
-            }
-            install(ContentNegotiation) {
-                json(
-                    Json {
-                        ignoreUnknownKeys = true
-                    },
-                )
-            }
-        } else if (clientId != null && clientSecret != null) {
+        // Only add basic auth if no token URL is provided (fallback authentication)
+        if (tokenUrl == null && clientId != null && clientSecret != null) {
             install(Auth) {
                 basic {
                     credentials {
@@ -165,6 +163,74 @@ class ServiceUserRepository : UserRepository {
         install(HttpTimeout) {
             connectTimeoutMillis = 60.seconds.inWholeMilliseconds
             requestTimeoutMillis = 90.seconds.inWholeMilliseconds
+        }
+    }
+
+    private suspend fun requestUserRepositoryToken(
+        tokenUrl: Url,
+        clientId: String?,
+        clientSecret: String?,
+        scope: String?,
+        audience: String?,
+    ): String {
+        return try {
+            val authClient = HttpClient(CIO) {
+                install(Auth) {
+                    clientCredentials(
+                        ClientCredentialsConfig(
+                            tokenUrl.toString(),
+                            clientId,
+                            clientSecret,
+                            scope,
+                            audience,
+                        ).copyWithEnv("MANAGEMENT_PORTAL"),
+                        tokenUrl.host,
+                    )
+                }
+                install(ContentNegotiation) {
+                    json(
+                        Json {
+                            ignoreUnknownKeys = true
+                        },
+                    )
+                }
+                install(HttpTimeout) {
+                    connectTimeoutMillis = 60.seconds.inWholeMilliseconds
+                    requestTimeoutMillis = 90.seconds.inWholeMilliseconds
+                }
+            }
+
+            val response = authClient.request {
+                url(tokenUrl)
+                method = HttpMethod.Post
+                setBody("grant_type=client_credentials&scope=${scope ?: ""}&audience=${audience ?: ""}")
+                contentType(ContentType.Application.FormUrlEncoded)
+            }
+
+            authClient.close()
+
+            if (!response.status.isSuccess()) {
+                throw HttpResponseException(
+                    "Failed to get user repository token: ${response.status}",
+                    response.status.value,
+                )
+            }
+
+            val tokenResponse = Json.parseToJsonElement(response.bodyAsText()).jsonObject
+            tokenResponse["access_token"]?.toString()?.removeSurrounding("\"")
+                ?: throw IllegalStateException("No access token in response")
+        } catch (e: Exception) {
+            logger.error("Failed to get user repository token", e)
+            throw e
+        }
+    }
+
+    private suspend fun getAuthorizationHeader(): String {
+        return try {
+            userRepositoryTokenCache?.get() ?: throw IllegalStateException("User repository token cache not initialized")
+        } catch (e: Exception) {
+            logger.error("Failed to get authorization header", e)
+            throw e
         }
     }
 
@@ -248,7 +314,12 @@ class ServiceUserRepository : UserRepository {
     private suspend inline fun <reified T> makeRequest(
         crossinline builder: HttpRequestBuilder.() -> Unit,
     ): T = withContext(Dispatchers.IO) {
-        val response = client.request(builder)
+        val response = client.request {
+            builder()
+            userRepositoryTokenCache?.let { tokenCache ->
+                header("Authorization", "Bearer ${getAuthorizationHeader()}")
+            }
+        }
         val contentLength = response.contentLength()
         // if Transfer-Encoding: chunked, then the request has data but contentLength will be null.
         val transferEncoding = response.headers["Transfer-Encoding"]
