@@ -23,9 +23,6 @@ import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.HttpTimeout
-import io.ktor.client.plugins.auth.Auth
-import io.ktor.client.plugins.auth.providers.BasicAuthCredentials
-import io.ktor.client.plugins.auth.providers.basic
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.HttpRequestBuilder
@@ -54,8 +51,6 @@ import org.radarbase.connect.rest.oura.OuraRestSourceConnectorConfig
 import org.radarbase.kotlin.coroutines.CacheConfig
 import org.radarbase.kotlin.coroutines.CachedSet
 import org.radarbase.kotlin.coroutines.CachedValue
-import org.radarbase.ktor.auth.ClientCredentialsConfig
-import org.radarbase.ktor.auth.clientCredentials
 import org.radarbase.oura.user.OuraUser
 import org.radarbase.oura.user.User
 import org.slf4j.LoggerFactory
@@ -75,13 +70,19 @@ class OuraServiceUserRepository : OuraUserRepository() {
     private var basicAuthCredentials: String? = null
     private val credentialCaches = ConcurrentHashMap<String, CachedValue<OAuth2UserCredentials>>()
     private val credentialCacheConfig =
-        CacheConfig(refreshDuration = 1.days, retryDuration = 1.minutes)
+        CacheConfig(
+            refreshDuration = 1.days,
+            retryDuration = 1.minutes,
+        )
     private val userRepositoryCacheConfig =
-        CacheConfig(refreshDuration = 50.minutes, retryDuration = 1.minutes) // Refresh before 1-hour expiry
+        CacheConfig(
+            refreshDuration = 50.minutes,
+            retryDuration = 1.minutes,
+        ) // Refresh before 1-hour expiry
     private val mapper = ObjectMapper().registerKotlinModule().registerModule(JavaTimeModule())
 
     private var tokenUrl: String? = null
-    private var clientId: String? = null  
+    private var clientId: String? = null
     private var clientSecret: String? = null
 
     @Throws(IOException::class)
@@ -97,16 +98,19 @@ class OuraServiceUserRepository : OuraUserRepository() {
         tokenUrl = config.ouraUserRepositoryTokenUrl?.toString()
         clientId = config.ouraUserRepositoryClientId
         clientSecret = config.ouraUserRepositoryClientSecret
-        
+
         if (tokenUrl != null && clientId != null && clientSecret != null) {
-            logger.info("Using OAuth2 client credentials authentication with token URL: $tokenUrl")
-            
+            logger.info(
+                "Using OAuth2 client credentials authentication with token URL: $tokenUrl",
+            )
+
             userRepositoryTokenCache = CachedValue(userRepositoryCacheConfig) {
                 requestUserRepositoryToken()
             }
         } else if (!clientId.isNullOrBlank() && !clientSecret.isNullOrBlank()) {
             logger.info("Using basic authentication")
-            basicAuthCredentials = "Basic " + java.util.Base64.getEncoder().encodeToString("$clientId:$clientSecret".toByteArray())
+            basicAuthCredentials = "Basic " + java.util.Base64.getEncoder()
+                .encodeToString("$clientId:$clientSecret".toByteArray())
         } else {
             logger.warn("No authentication configured - this may cause issues")
         }
@@ -144,23 +148,30 @@ class OuraServiceUserRepository : OuraUserRepository() {
                 requestTimeoutMillis = 90.seconds.inWholeMilliseconds
             }
         }
-        
+
     private suspend fun requestUserRepositoryToken(): String {
         val tmpClient = HttpClient(CIO) {
             install(ContentNegotiation) {
                 json(Json { ignoreUnknownKeys = true })
             }
         }
-        
+
         try {
             val response = tmpClient.request {
                 method = HttpMethod.Post
                 url(tokenUrl!!)
                 contentType(ContentType.Application.FormUrlEncoded)
-                setBody("grant_type=client_credentials&scope=SUBJECT.READ MEASUREMENT.CREATE&audience=res_restAuthorizer")
-                headers.append("Authorization", "Basic " + java.util.Base64.getEncoder().encodeToString("$clientId:$clientSecret".toByteArray()))
+                setBody(
+                    "grant_type=client_credentials&scope=SUBJECT.READ MEASUREMENT.CREATE" +
+                        "&audience=res_restAuthorizer",
+                )
+                headers.append(
+                    "Authorization",
+                    "Basic " + java.util.Base64.getEncoder()
+                        .encodeToString("$clientId:$clientSecret".toByteArray()),
+                )
             }
-            
+
             if (response.status.isSuccess()) {
                 val tokenData = Json.parseToJsonElement(response.bodyAsText()).jsonObject
                 val accessToken = tokenData["access_token"]?.toString()?.trim('"')
@@ -168,7 +179,9 @@ class OuraServiceUserRepository : OuraUserRepository() {
                 logger.debug("Successfully obtained user repository access token")
                 return "Bearer $accessToken"
             } else {
-                throw IOException("Failed to get user repository token: ${response.status} - ${response.bodyAsText()}")
+                throw IOException(
+                    "Failed to get repository token: ${response.status} - ${response.bodyAsText()}",
+                )
             }
         } finally {
             tmpClient.close()
@@ -237,7 +250,9 @@ class OuraServiceUserRepository : OuraUserRepository() {
             when (ex.statusCode) {
                 401 -> {
                     credentialCaches -= user.id
-                    throw UserNotAuthorizedException("Token refresh failed - user needs re-authorization: ${ex.message}")
+                    throw UserNotAuthorizedException(
+                        "Token refresh failed - user needs re-authorization: ${ex.message}",
+                    )
                 }
                 407 -> {
                     credentialCaches -= user.id
@@ -266,17 +281,17 @@ class OuraServiceUserRepository : OuraUserRepository() {
     ): T =
         withContext(Dispatchers.IO) {
             val authorization = getAuthorizationHeader()
-            
+
             val response = client.request {
                 builder()
                 if (authorization != null) {
                     headers.append("Authorization", authorization)
                 }
             }
-            
+
             val contentLength = response.contentLength()
             val hasBody = contentLength != null && contentLength > 0
-            
+
             if (response.status == HttpStatusCode.NotFound) {
                 throw NoSuchElementException("URL " + response.request.url + " does not exist")
             } else if (!response.status.isSuccess() || !hasBody) {

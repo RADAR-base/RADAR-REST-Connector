@@ -75,7 +75,7 @@ class ServiceUserRepository : UserRepository {
     private val credentialCacheConfig =
         CacheConfig(refreshDuration = 1.days, retryDuration = 1.minutes)
     private val mapper = ObjectMapper().registerKotlinModule().registerModule(JavaTimeModule())
-    
+
     // User repository service token cache for OAuth2 client credentials authentication
     private var userRepositoryTokenCache: CachedValue<String>? = null
     private val userRepositoryCacheConfig = CacheConfig(
@@ -203,7 +203,9 @@ class ServiceUserRepository : UserRepository {
             val response = authClient.request {
                 url(tokenUrl)
                 method = HttpMethod.Post
-                setBody("grant_type=client_credentials&scope=${scope ?: ""}&audience=${audience ?: ""}")
+                setBody(
+                    "grant_type=client_credentials&scope=${scope ?: ""}&audience=${audience ?: ""}",
+                )
                 contentType(ContentType.Application.FormUrlEncoded)
             }
 
@@ -227,7 +229,8 @@ class ServiceUserRepository : UserRepository {
 
     private suspend fun getAuthorizationHeader(): String {
         return try {
-            userRepositoryTokenCache?.get() ?: throw IllegalStateException("User repository token cache not initialized")
+            userRepositoryTokenCache?.get()
+                ?: throw IllegalStateException("User repository token cache not initialized")
         } catch (e: Exception) {
             logger.error("Failed to get authorization header", e)
             throw e
