@@ -17,8 +17,6 @@
 
 package org.radarbase.connect.rest.fitbit;
 
-import static org.apache.kafka.common.config.ConfigDef.NO_DEFAULT_VALUE;
-
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -31,11 +29,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import okhttp3.Headers;
-import okhttp3.HttpUrl;
-
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.config.ConfigDef.Importance;
+import static org.apache.kafka.common.config.ConfigDef.NO_DEFAULT_VALUE;
 import org.apache.kafka.common.config.ConfigDef.NonEmptyString;
 import org.apache.kafka.common.config.ConfigDef.Type;
 import org.apache.kafka.common.config.ConfigDef.Validator;
@@ -46,6 +42,9 @@ import org.radarbase.connect.rest.RestSourceConnectorConfig;
 import org.radarbase.connect.rest.config.ValidClass;
 import org.radarbase.connect.rest.fitbit.user.UserRepository;
 import org.radarbase.connect.rest.fitbit.user.YamlUserRepository;
+
+import okhttp3.Headers;
+import okhttp3.HttpUrl;
 
 public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
   public static final String FITBIT_USERS_CONFIG = "fitbit.users";
@@ -249,6 +248,11 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
   private static final String FITBIT_MAX_FORBIDDEN_DOC = "Maximum number of consecutive forbidden responses before backing off.";
   private static final String FITBIT_MAX_FORBIDDEN_DISPLAY = "Max forbidden responses";
   private static final int FITBIT_MAX_FORBIDDEN_DEFAULT = 3;
+
+  private static final String FITBIT_FORBIDDEN_BACKOFF_CONFIG = "fitbit.request.forbidden.backoff.s";
+  private static final String FITBIT_FORBIDDEN_BACKOFF_DOC = "Backoff time in seconds between forbidden requests.";
+  private static final String FITBIT_FORBIDDEN_BACKOFF_DISPLAY = "Forbidden backoff time (s)";
+  private static final int FITBIT_FORBIDDEN_BACKOFF_DEFAULT = 86400; // 24 hours
 
 
   private UserRepository userRepository;
@@ -699,6 +703,18 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
             ++orderInGroup,
             Width.SHORT,
             FITBIT_MAX_FORBIDDEN_DISPLAY)
+        
+        .define(FITBIT_FORBIDDEN_BACKOFF_CONFIG,
+            Type.INT,
+            FITBIT_FORBIDDEN_BACKOFF_DEFAULT,
+            Importance.MEDIUM,
+            FITBIT_FORBIDDEN_BACKOFF_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            FITBIT_FORBIDDEN_BACKOFF_DISPLAY)
+        
+        
         ;
   }
 
@@ -901,5 +917,9 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
 
   public int getMaxForbidden() {
     return getInt(FITBIT_MAX_FORBIDDEN_CONFIG);
+  }
+
+  public int getForbiddenBackoff() {
+    return getInt(FITBIT_FORBIDDEN_BACKOFF_CONFIG);
   }
 }
