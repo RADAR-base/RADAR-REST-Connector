@@ -461,16 +461,6 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
             FITBIT_INTRADAY_HEART_RATE_VARIABILITY_ENABLED_DISPLAY)
 
 
-        .define(FITBIT_INTRADAY_HEART_RATE_VARIABILITY_ENABLED_CONFIG,
-            Type.BOOLEAN,
-            FITBIT_INTRADAY_HEART_RATE_VARIABILITY_ENABLED_DEFAULT,
-            Importance.LOW,
-            FITBIT_INTRADAY_HEART_RATE_VARIABILITY_ENABLED_DOC,
-            group,
-            ++orderInGroup,
-            Width.SHORT,
-            FITBIT_INTRADAY_HEART_RATE_VARIABILITY_ENABLED_DISPLAY)
-
         .define(FITBIT_INTRADAY_SPO2_TOPIC_CONFIG,
             Type.STRING,
             FITBIT_INTRADAY_SPO2_TOPIC_DEFAULT,
@@ -492,17 +482,6 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
             Width.SHORT,
             FITBIT_INTRADAY_SPO2_ENABLED_DISPLAY)
 
-
-        .define(FITBIT_INTRADAY_SPO2_ENABLED_CONFIG,
-            Type.BOOLEAN,
-            FITBIT_INTRADAY_SPO2_ENABLED_DEFAULT,
-            Importance.LOW,
-            FITBIT_INTRADAY_SPO2_ENABLED_DOC,
-            group,
-            ++orderInGroup,
-            Width.SHORT,
-            FITBIT_INTRADAY_SPO2_ENABLED_DISPLAY)
-
         .define(FITBIT_BREATHING_RATE_TOPIC_CONFIG,
             Type.STRING,
             FITBIT_BREATHING_RATE_TOPIC_DEFAULT,
@@ -513,8 +492,6 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
             ++orderInGroup,
             Width.SHORT,
             FITBIT_BREATHING_RATE_TOPIC_DISPLAY)
-
-
 
         .define(FITBIT_BREATHING_RATE_ENABLED_CONFIG,
             Type.BOOLEAN,
@@ -642,7 +619,6 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
             Width.SHORT,
             FITBIT_ACTIVITY_LOG_TOPIC_DISPLAY)
 
-
         .define(FITBIT_ACTIVITY_LOG_ENABLED_CONFIG,
             Type.BOOLEAN,
             FITBIT_ACTIVITY_LOG_ENABLED_DEFAULT,
@@ -713,8 +689,6 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
             ++orderInGroup,
             Width.SHORT,
             FITBIT_FORBIDDEN_BACKOFF_DISPLAY)
-        
-        
         ;
   }
 
