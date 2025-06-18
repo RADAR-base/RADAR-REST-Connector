@@ -17,21 +17,16 @@
 
 package org.radarbase.connect.rest.fitbit.route;
 
+import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 import static java.time.ZoneOffset.UTC;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.MINUTES;
 import static java.time.temporal.ChronoUnit.NANOS;
 import static java.time.temporal.ChronoUnit.SECONDS;
-import static org.radarbase.connect.rest.converter.PayloadToSourceRecordConverter.MIN_INSTANT;
-import static org.radarbase.connect.rest.converter.PayloadToSourceRecordConverter.TIMESTAMP_OFFSET_KEY;
-import static org.radarbase.connect.rest.converter.PayloadToSourceRecordConverter.nearFuture;
-import static org.radarbase.connect.rest.request.PollingRequestRoute.max;
-
-import java.io.IOException;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAmount;
 import java.util.AbstractMap;
 import java.util.Comparator;
@@ -42,11 +37,13 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import okhttp3.Request;
-import okhttp3.Response;
+
 import org.apache.kafka.connect.source.SourceRecord;
 import org.apache.kafka.connect.storage.OffsetStorageReader;
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
+import static org.radarbase.connect.rest.converter.PayloadToSourceRecordConverter.MIN_INSTANT;
+import static org.radarbase.connect.rest.converter.PayloadToSourceRecordConverter.TIMESTAMP_OFFSET_KEY;
+import static org.radarbase.connect.rest.converter.PayloadToSourceRecordConverter.nearFuture;
 import org.radarbase.connect.rest.fitbit.FitbitRestSourceConnectorConfig;
 import org.radarbase.connect.rest.fitbit.request.FitbitRequestGenerator;
 import org.radarbase.connect.rest.fitbit.request.FitbitRestRequest;
@@ -55,9 +52,13 @@ import org.radarbase.connect.rest.fitbit.user.UserNotAuthorizedException;
 import org.radarbase.connect.rest.fitbit.user.UserRepository;
 import org.radarbase.connect.rest.fitbit.util.DateRange;
 import org.radarbase.connect.rest.request.PollingRequestRoute;
+import static org.radarbase.connect.rest.request.PollingRequestRoute.max;
 import org.radarbase.connect.rest.request.RestRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import okhttp3.Request;
+import okhttp3.Response;
 
 /**
  * Route for regular polling.
@@ -116,6 +117,9 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
   private Duration pollIntervalPerUser;
   private final Set<User> tooManyRequestsForUser;
   private Duration tooManyRequestsCooldown;
+  private final Map<String, Integer> forbidden403Counter;
+  private int maxForbiddenResponses;
+  private Duration forbidden403Cooldown;
 
   public FitbitPollingRoute(
       FitbitRequestGenerator generator,
@@ -129,6 +133,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
     this.lastPoll = MIN_INSTANT;
     this.lastPollPerUser = new HashMap<>();
     this.tooManyRequestsForUser = ConcurrentHashMap.newKeySet();
+    this.forbidden403Counter = new ConcurrentHashMap<>();
   }
 
   @Override
@@ -139,15 +144,19 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
     this.pollIntervalPerUser = fitbitConfig.getPollIntervalPerUser();
     this.tooManyRequestsCooldown = fitbitConfig.getTooManyRequestsCooldownInterval()
         .minus(getPollIntervalPerUser());
+    this.maxForbiddenResponses = fitbitConfig.getMaxForbidden();
     this.converter().initialize(fitbitConfig);
+    this.forbidden403Cooldown = Duration.ofSeconds(fitbitConfig.getForbiddenBackoff());
   }
 
   @Override
   public void requestSucceeded(RestRequest request, SourceRecord record) {
-    lastPollPerUser.put(((FitbitRestRequest) request).getUser().getId(), lastPoll);
-    String userKey = ((FitbitRestRequest) request).getUser().getVersionedId();
+    User user = ((FitbitRestRequest) request).getUser();
+    lastPollPerUser.put(user.getId(), lastPoll);
+    String userKey = user.getVersionedId();
     Instant offset = Instant.ofEpochMilli((Long) record.sourceOffset().get(TIMESTAMP_OFFSET_KEY));
     offsets.put(userKey, offset);
+    forbidden403Counter.remove(user.getId());
   }
 
   @Override
@@ -179,6 +188,17 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
       lastPollPerUser.put(user.getId(), backOff);
       logger.info("Too many requests for user {}. Backing off until {}",
           user, backOff.plus(getPollIntervalPerUser()));
+    } else if (response != null && response.code() == 403) {
+      User user = ((FitbitRestRequest) request).getUser();
+      String userId = user.getId();
+      int count = forbidden403Counter.compute(userId, (k, v) -> v == null ? 1 : v + 1);
+      if (count >= maxForbiddenResponses) {
+        Instant backOff = lastPoll.plus(this.forbidden403Cooldown);
+        lastPollPerUser.put(userId, backOff);
+        forbidden403Counter.remove(userId);
+        logger.warn("User {} reached max 403 responses for route {}. Backing off until {}",
+            user, routeName, backOff.plus(getPollIntervalPerUser()));
+      }
     } else if (response != null) {
       logger.warn("Failed to make request {}. Response is: {}", request, response);
     } else {

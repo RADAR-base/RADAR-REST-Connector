@@ -81,17 +81,46 @@ public class FitbitRequestGenerator extends RequestGeneratorRouter {
   private List<RequestRoute> getRoutes(FitbitRestSourceConnectorConfig config) {
     AvroData avroData = new AvroData(20);
     List<RequestRoute> localRoutes = new ArrayList<>(5);
-    localRoutes.add(new FitbitSleepRoute(this, userRepository, avroData));
-    localRoutes.add(new FitbitTimeZoneRoute(this, userRepository, avroData));
-    localRoutes.add(new FitbitActivityLogRoute(this, userRepository, avroData));
-    localRoutes.add(new FitbitRestingHeartRateRoute(this, userRepository, avroData));
+
+    if (config.getFitbitSleepStagesEnabled() || config.getFitbitSleepClassicEnabled()) {
+      localRoutes.add(new FitbitSleepRoute(this, userRepository, avroData));
+    }
+
+    if (config.getFitbitTimeZoneEnabled()) {
+      localRoutes.add(new FitbitTimeZoneRoute(this, userRepository, avroData));
+    }
+
+    if (config.getFitbitActivityLogEnabled()) {
+      localRoutes.add(new FitbitActivityLogRoute(this, userRepository, avroData));
+    }
+
+    if (config.getFitbitRestingHeartRateEnabled()) {
+      localRoutes.add(new FitbitRestingHeartRateRoute(this, userRepository, avroData));
+    }
+
     if (config.hasIntradayAccess()) {
-      localRoutes.add(new FitbitIntradayStepsRoute(this, userRepository, avroData));
-      localRoutes.add(new FitbitIntradayHeartRateRoute(this, userRepository, avroData));
-      localRoutes.add(new FitbitIntradayHeartRateVariabilityRoute(this, userRepository, avroData));
-      localRoutes.add(new FitbitBreathingRateRoute(this, userRepository, avroData));
-      localRoutes.add(new FitbitSkinTemperatureRoute(this, userRepository, avroData));
-      localRoutes.add(new FitbitIntradayCaloriesRoute(this, userRepository, avroData));
+
+      if (config.getFitbitIntradayStepsEnabled()) {
+        localRoutes.add(new FitbitIntradayStepsRoute(this, userRepository, avroData));
+      }
+      if (config.getFitbitIntradayHeartRateEnabled()) {
+        localRoutes.add(new FitbitIntradayHeartRateRoute(this, userRepository, avroData));
+      }
+      if (config.getFitbitIntradayHeartRateVariabilityEnabled()) {
+        localRoutes.add(new FitbitIntradayHeartRateVariabilityRoute(this, userRepository, avroData));
+      }
+      if (config.getFitbitBreathingRateEnabled()) {
+        localRoutes.add(new FitbitBreathingRateRoute(this, userRepository, avroData));
+      }
+      if (config.getFitbitSkinTemperatureEnabled()) {
+        localRoutes.add(new FitbitSkinTemperatureRoute(this, userRepository, avroData));
+      }
+      if (config.getFitbitIntradayCaloriesEnabled()) {
+        localRoutes.add(new FitbitIntradayCaloriesRoute(this, userRepository, avroData));
+      }
+      if (config.getFitbitIntradaySpo2Enabled()) {
+        localRoutes.add(new FitbitIntradaySpo2Route(this, userRepository, avroData));
+      }
     }
     return localRoutes;
   }

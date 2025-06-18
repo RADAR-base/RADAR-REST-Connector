@@ -17,8 +17,6 @@
 
 package org.radarbase.connect.rest.fitbit;
 
-import static org.apache.kafka.common.config.ConfigDef.NO_DEFAULT_VALUE;
-
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -31,11 +29,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import okhttp3.Headers;
-import okhttp3.HttpUrl;
-
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.config.ConfigDef.Importance;
+import static org.apache.kafka.common.config.ConfigDef.NO_DEFAULT_VALUE;
 import org.apache.kafka.common.config.ConfigDef.NonEmptyString;
 import org.apache.kafka.common.config.ConfigDef.Type;
 import org.apache.kafka.common.config.ConfigDef.Validator;
@@ -46,6 +42,9 @@ import org.radarbase.connect.rest.RestSourceConnectorConfig;
 import org.radarbase.connect.rest.config.ValidClass;
 import org.radarbase.connect.rest.fitbit.user.UserRepository;
 import org.radarbase.connect.rest.fitbit.user.YamlUserRepository;
+
+import okhttp3.Headers;
+import okhttp3.HttpUrl;
 
 public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
   public static final String FITBIT_USERS_CONFIG = "fitbit.users";
@@ -96,60 +95,131 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
   private static final String FITBIT_INTRADAY_STEPS_TOPIC_DISPLAY = "Intraday steps topic";
   private static final String FITBIT_INTRADAY_STEPS_TOPIC_DEFAULT = "connect_fitbit_intraday_steps";
 
+  private static final String FITBIT_INTRADAY_STEPS_ENABLED_CONFIG = "fitbit.intraday.steps.enabled";
+  private static final String FITBIT_INTRADAY_STEPS_ENABLED_DOC = "Enable or disable intraday steps";
+  private static final String FITBIT_INTRADAY_STEPS_ENABLED_DISPLAY = "Intraday steps enabled";
+  private static final boolean FITBIT_INTRADAY_STEPS_ENABLED_DEFAULT = true;
+
+
   private static final String FITBIT_INTRADAY_HEART_RATE_TOPIC_CONFIG = "fitbit.intraday.heart.rate.topic";
   private static final String FITBIT_INTRADAY_HEART_RATE_TOPIC_DOC = "Topic for Fitbit intraday heart_rate";
   private static final String FITBIT_INTRADAY_HEART_RATE_TOPIC_DISPLAY = "Intraday heartrate topic";
   private static final String FITBIT_INTRADAY_HEART_RATE_TOPIC_DEFAULT = "connect_fitbit_intraday_heart_rate";
+
+  private static final String FITBIT_INTRADAY_HEART_RATE_ENABLED_CONFIG = "fitbit.intraday.heart.rate.enabled";
+  private static final String FITBIT_INTRADAY_HEART_RATE_ENABLED_DOC = "Enable or disable intraday heart rate";
+  private static final String FITBIT_INTRADAY_HEART_RATE_ENABLED_DISPLAY = "Intraday heart rate enabled";
+  private static final boolean FITBIT_INTRADAY_HEART_RATE_ENABLED_DEFAULT = true;
+  
 
   private static final String FITBIT_INTRADAY_HEART_RATE_VARIABILITY_TOPIC_CONFIG = "fitbit.intraday.heart.rate.variability.topic";
   private static final String FITBIT_INTRADAY_HEART_RATE_VARIABILITY_TOPIC_DOC = "Topic for Fitbit intraday intraday_heart_rate_variability";
   private static final String FITBIT_INTRADAY_HEART_RATE_VARIABILITY_TOPIC_DISPLAY = "Intraday heart rate variability topic";
   private static final String FITBIT_INTRADAY_HEART_RATE_VARIABILITY_TOPIC_DEFAULT = "connect_fitbit_intraday_heart_rate_variability";
 
+  private static final String FITBIT_INTRADAY_HEART_RATE_VARIABILITY_ENABLED_CONFIG = "fitbit.intraday.heart.rate.variability.enabled";
+  private static final String FITBIT_INTRADAY_HEART_RATE_VARIABILITY_ENABLED_DOC = "Enable or disable intraday heart rate variability";
+  private static final String FITBIT_INTRADAY_HEART_RATE_VARIABILITY_ENABLED_DISPLAY = "Intraday heart rate variability enabled";
+  private static final boolean FITBIT_INTRADAY_HEART_RATE_VARIABILITY_ENABLED_DEFAULT = true;
+
+
   private static final String FITBIT_INTRADAY_SPO2_TOPIC_CONFIG = "fitbit.intraday.spo2.topic";
   private static final String FITBIT_INTRADAY_SPO2_TOPIC_DOC = "Topic for Fitbit intraday intraday_spo2";
   private static final String FITBIT_INTRADAY_SPO2_TOPIC_DISPLAY = "Intraday spo2 topic";
   private static final String FITBIT_INTRADAY_SPO2_TOPIC_DEFAULT = "connect_fitbit_intraday_spo2";
+
+  private static final String FITBIT_INTRADAY_SPO2_ENABLED_CONFIG = "fitbit.intraday.spo2.enabled";
+  private static final String FITBIT_INTRADAY_SPO2_ENABLED_DOC = "Enable or disable intraday spo2";
+  private static final String FITBIT_INTRADAY_SPO2_ENABLED_DISPLAY = "Intraday spo2 enabled";
+  private static final boolean FITBIT_INTRADAY_SPO2_ENABLED_DEFAULT = true;
+
 
   private static final String FITBIT_BREATHING_RATE_TOPIC_CONFIG = "fitbit.breathing.rate.topic";
   private static final String FITBIT_BREATHING_RATE_TOPIC_DOC = "Topic for Fitbit breathing rate";
   private static final String FITBIT_BREATHING_RATE_TOPIC_DISPLAY = "Breathing rate topic";
   private static final String FITBIT_BREATHING_RATE_TOPIC_DEFAULT = "connect_fitbit_breathing_rate";
 
+  private static final String FITBIT_BREATHING_RATE_ENABLED_CONFIG = "fitbit.breathing.rate.enabled";
+  private static final String FITBIT_BREATHING_RATE_ENABLED_DOC = "Enable or disable breathing rate";
+  private static final String FITBIT_BREATHING_RATE_ENABLED_DISPLAY = "Breathing rate enabled";
+  private static final boolean FITBIT_BREATHING_RATE_ENABLED_DEFAULT = true;
+
+
   private static final String FITBIT_SKIN_TEMPERATURE_TOPIC_CONFIG = "fitbit.skin.temperature.rate.topic";
   private static final String FITBIT_SKIN_TEMPERATURE_TOPIC_DOC = "Topic for Fitbit skin temperature";
   private static final String FITBIT_SKIN_TEMPERATURE_TOPIC_DISPLAY = "Skin temperature topic";
   private static final String FITBIT_SKIN_TEMPERATURE_TOPIC_DEFAULT = "connect_fitbit_skin_temperature";
+
+  private static final String FITBIT_SKIN_TEMPERATURE_ENABLED_CONFIG = "fitbit.skin.temperature.enabled";
+  private static final String FITBIT_SKIN_TEMPERATURE_ENABLED_DOC = "Enable or disable skin temperature";
+  private static final String FITBIT_SKIN_TEMPERATURE_ENABLED_DISPLAY = "Skin temperature enabled";
+  private static final boolean FITBIT_SKIN_TEMPERATURE_ENABLED_DEFAULT = true;
+
 
   private static final String FITBIT_RESTING_HEART_RATE_TOPIC_CONFIG = "fitbit.resting.heart.rate.topic";
   private static final String FITBIT_RESTING_HEART_RATE_TOPIC_DOC = "Topic for Fitbit resting heart_rate";
   private static final String FITBIT_RESTING_HEART_RATE_TOPIC_DISPLAY = "Resting heartrate topic";
   private static final String FITBIT_RESTING_HEART_RATE_TOPIC_DEFAULT = "connect_fitbit_resting_heart_rate";
 
+  private static final String FITBIT_RESTING_HEART_RATE_ENABLED_CONFIG = "fitbit.resting.heart.rate.enabled";
+  private static final String FITBIT_RESTING_HEART_RATE_ENABLED_DOC = "Enable or disable resting heart rate";
+  private static final String FITBIT_RESTING_HEART_RATE_ENABLED_DISPLAY = "Resting heart rate enabled";
+  private static final boolean FITBIT_RESTING_HEART_RATE_ENABLED_DEFAULT = true;
+
+
   private static final String FITBIT_SLEEP_STAGES_TOPIC_CONFIG = "fitbit.sleep.stages.topic";
   private static final String FITBIT_SLEEP_STAGES_TOPIC_DOC = "Topic for Fitbit sleep stages";
   private static final String FITBIT_SLEEP_STAGES_TOPIC_DEFAULT = "connect_fitbit_sleep_stages";
   private static final String FITBIT_SLEEP_STAGES_TOPIC_DISPLAY = "Sleep stages topic";
+
+  private static final String FITBIT_SLEEP_STAGES_ENABLED_CONFIG = "fitbit.sleep.stages.enabled";
+  private static final String FITBIT_SLEEP_STAGES_ENABLED_DOC = "Enable or disable sleep stages";
+  private static final String FITBIT_SLEEP_STAGES_ENABLED_DISPLAY = "Sleep stages enabled";
+  private static final boolean FITBIT_SLEEP_STAGES_ENABLED_DEFAULT = true;
+
 
   private static final String FITBIT_SLEEP_CLASSIC_TOPIC_CONFIG = "fitbit.sleep.classic.topic";
   private static final String FITBIT_SLEEP_CLASSIC_TOPIC_DOC = "Topic for Fitbit sleep classic data";
   private static final String FITBIT_SLEEP_CLASSIC_TOPIC_DEFAULT = "connect_fitbit_sleep_classic";
   private static final String FITBIT_SLEEP_CLASSIC_TOPIC_DISPLAY = "Classic sleep topic";
 
+  private static final String FITBIT_SLEEP_CLASSIC_ENABLED_CONFIG = "fitbit.sleep.classic.enabled";
+  private static final String FITBIT_SLEEP_CLASSIC_ENABLED_DOC = "Enable or disable sleep classic";
+  private static final String FITBIT_SLEEP_CLASSIC_ENABLED_DISPLAY = "Sleep classic enabled";
+  private static final boolean FITBIT_SLEEP_CLASSIC_ENABLED_DEFAULT = true;
+
+
   private static final String FITBIT_TIME_ZONE_TOPIC_CONFIG = "fitbit.time.zone.topic";
   private static final String FITBIT_TIME_ZONE_TOPIC_DOC = "Topic for Fitbit profile time zone";
   private static final String FITBIT_TIME_ZONE_TOPIC_DEFAULT = "connect_fitbit_time_zone";
   private static final String FITBIT_TIME_ZONE_TOPIC_DISPLAY = "Time zone topic";
+
+  private static final String FITBIT_TIME_ZONE_ENABLED_CONFIG = "fitbit.time.zone.enabled";
+  private static final String FITBIT_TIME_ZONE_ENABLED_DOC = "Enable or disable time zone";
+  private static final String FITBIT_TIME_ZONE_ENABLED_DISPLAY = "Time zone enabled";
+  private static final boolean FITBIT_TIME_ZONE_ENABLED_DEFAULT = true;
+  
 
   private static final String FITBIT_ACTIVITY_LOG_TOPIC_CONFIG = "fitbit.activity.log.topic";
   private static final String FITBIT_ACTIVITY_LOG_TOPIC_DOC = "Topic for Fitbit activity log.";
   private static final String FITBIT_ACTIVITY_LOG_TOPIC_DEFAULT = "connect_fitbit_activity_log";
   private static final String FITBIT_ACTIVITY_LOG_TOPIC_DISPLAY = "Activity log topic";
 
+  private static final String FITBIT_ACTIVITY_LOG_ENABLED_CONFIG = "fitbit.activity.log.enabled";
+  private static final String FITBIT_ACTIVITY_LOG_ENABLED_DOC = "Enable or disable activity log";
+  private static final String FITBIT_ACTIVITY_LOG_ENABLED_DISPLAY = "Activity log enabled";
+  private static final boolean FITBIT_ACTIVITY_LOG_ENABLED_DEFAULT = true;
+
+
   private static final String FITBIT_INTRADAY_CALORIES_TOPIC_CONFIG = "fitbit.intraday.calories.topic";
   private static final String FITBIT_INTRADAY_CALORIES_TOPIC_DOC = "Topic for Fitbit intraday calories";
   private static final String FITBIT_INTRADAY_CALORIES_TOPIC_DISPLAY = "Intraday calories topic";
   private static final String FITBIT_INTRADAY_CALORIES_TOPIC_DEFAULT = "connect_fitbit_intraday_calories";
+
+  private static final String FITBIT_INTRADAY_CALORIES_ENABLED_CONFIG = "fitbit.intraday.calories.enabled";
+  private static final String FITBIT_INTRADAY_CALORIES_ENABLED_DOC = "Enable or disable intraday calories";
+  private static final String FITBIT_INTRADAY_CALORIES_ENABLED_DISPLAY = "Intraday calories enabled";
+  private static final boolean FITBIT_INTRADAY_CALORIES_ENABLED_DEFAULT = true;
 
 
   public static final String FITBIT_USER_REPOSITORY_CLIENT_ID_CONFIG = "fitbit.user.repository.client.id";
@@ -173,6 +243,17 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
   private static final String FITBIT_USER_REPOSITORY_FIRESTORE_USER_COLLECTION_DOC = "Firestore Collection for retrieving User details. Only used when a Firebase based user repository is used.";
   private static final String FITBIT_USER_REPOSITORY_FIRESTORE_USER_COLLECTION_DISPLAY = "Firebase User collection name.";
   private static final String FITBIT_USER_REPOSITORY_FIRESTORE_USER_COLLECTION_DEFAULT = "users";
+
+  private static final String FITBIT_MAX_FORBIDDEN_CONFIG = "fitbit.request.max.forbidden";
+  private static final String FITBIT_MAX_FORBIDDEN_DOC = "Maximum number of consecutive forbidden responses before backing off.";
+  private static final String FITBIT_MAX_FORBIDDEN_DISPLAY = "Max forbidden responses";
+  private static final int FITBIT_MAX_FORBIDDEN_DEFAULT = 3;
+
+  private static final String FITBIT_FORBIDDEN_BACKOFF_CONFIG = "fitbit.request.forbidden.backoff.s";
+  private static final String FITBIT_FORBIDDEN_BACKOFF_DOC = "Backoff time in seconds between forbidden requests.";
+  private static final String FITBIT_FORBIDDEN_BACKOFF_DISPLAY = "Forbidden backoff time (s)";
+  private static final int FITBIT_FORBIDDEN_BACKOFF_DEFAULT = 86400; // 24 hours
+
 
   private UserRepository userRepository;
   private final Headers clientCredentials;
@@ -326,6 +407,16 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
             Width.SHORT,
             FITBIT_INTRADAY_STEPS_TOPIC_DISPLAY)
 
+        .define(FITBIT_INTRADAY_STEPS_ENABLED_CONFIG,
+            Type.BOOLEAN,
+            FITBIT_INTRADAY_STEPS_ENABLED_DEFAULT,
+            Importance.LOW,
+            FITBIT_INTRADAY_STEPS_ENABLED_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            FITBIT_INTRADAY_STEPS_ENABLED_DISPLAY)
+
         .define(FITBIT_INTRADAY_HEART_RATE_TOPIC_CONFIG,
             Type.STRING,
             FITBIT_INTRADAY_HEART_RATE_TOPIC_DEFAULT,
@@ -336,6 +427,17 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
             ++orderInGroup,
             Width.SHORT,
             FITBIT_INTRADAY_HEART_RATE_TOPIC_DISPLAY)
+        
+
+        .define(FITBIT_INTRADAY_HEART_RATE_ENABLED_CONFIG,
+            Type.BOOLEAN,
+            FITBIT_INTRADAY_HEART_RATE_ENABLED_DEFAULT,
+            Importance.LOW,
+            FITBIT_INTRADAY_HEART_RATE_ENABLED_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            FITBIT_INTRADAY_HEART_RATE_ENABLED_DISPLAY)
 
         .define(FITBIT_INTRADAY_HEART_RATE_VARIABILITY_TOPIC_CONFIG,
             Type.STRING,
@@ -348,6 +450,17 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
             Width.SHORT,
             FITBIT_INTRADAY_HEART_RATE_VARIABILITY_TOPIC_DISPLAY)
 
+        .define(FITBIT_INTRADAY_HEART_RATE_VARIABILITY_ENABLED_CONFIG,
+            Type.BOOLEAN,
+            FITBIT_INTRADAY_HEART_RATE_VARIABILITY_ENABLED_DEFAULT,
+            Importance.LOW,
+            FITBIT_INTRADAY_HEART_RATE_VARIABILITY_ENABLED_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            FITBIT_INTRADAY_HEART_RATE_VARIABILITY_ENABLED_DISPLAY)
+
+
         .define(FITBIT_INTRADAY_SPO2_TOPIC_CONFIG,
             Type.STRING,
             FITBIT_INTRADAY_SPO2_TOPIC_DEFAULT,
@@ -358,6 +471,16 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
             ++orderInGroup,
             Width.SHORT,
             FITBIT_INTRADAY_SPO2_TOPIC_DISPLAY)
+
+        .define(FITBIT_INTRADAY_SPO2_ENABLED_CONFIG,
+            Type.BOOLEAN,
+            FITBIT_INTRADAY_SPO2_ENABLED_DEFAULT,
+            Importance.LOW,
+            FITBIT_INTRADAY_SPO2_ENABLED_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            FITBIT_INTRADAY_SPO2_ENABLED_DISPLAY)
 
         .define(FITBIT_BREATHING_RATE_TOPIC_CONFIG,
             Type.STRING,
@@ -370,6 +493,16 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
             Width.SHORT,
             FITBIT_BREATHING_RATE_TOPIC_DISPLAY)
 
+        .define(FITBIT_BREATHING_RATE_ENABLED_CONFIG,
+            Type.BOOLEAN,
+            FITBIT_BREATHING_RATE_ENABLED_DEFAULT,
+            Importance.LOW,
+            FITBIT_BREATHING_RATE_ENABLED_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            FITBIT_BREATHING_RATE_ENABLED_DISPLAY)
+
         .define(FITBIT_SKIN_TEMPERATURE_TOPIC_CONFIG,
             Type.STRING,
             FITBIT_SKIN_TEMPERATURE_TOPIC_DEFAULT,
@@ -380,6 +513,16 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
             ++orderInGroup,
             Width.SHORT,
             FITBIT_SKIN_TEMPERATURE_TOPIC_DISPLAY)
+
+        .define(FITBIT_SKIN_TEMPERATURE_ENABLED_CONFIG,
+            Type.BOOLEAN,
+            FITBIT_SKIN_TEMPERATURE_ENABLED_DEFAULT,
+            Importance.LOW,
+            FITBIT_SKIN_TEMPERATURE_ENABLED_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            FITBIT_SKIN_TEMPERATURE_ENABLED_DISPLAY)
 
         .define(FITBIT_RESTING_HEART_RATE_TOPIC_CONFIG,
             Type.STRING,
@@ -392,6 +535,16 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
             Width.SHORT,
             FITBIT_RESTING_HEART_RATE_TOPIC_DISPLAY)
 
+        .define(FITBIT_RESTING_HEART_RATE_ENABLED_CONFIG,
+            Type.BOOLEAN,
+            FITBIT_RESTING_HEART_RATE_ENABLED_DEFAULT,
+            Importance.LOW,
+            FITBIT_RESTING_HEART_RATE_ENABLED_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            FITBIT_RESTING_HEART_RATE_ENABLED_DISPLAY)
+
         .define(FITBIT_SLEEP_STAGES_TOPIC_CONFIG,
             Type.STRING,
             FITBIT_SLEEP_STAGES_TOPIC_DEFAULT,
@@ -403,6 +556,16 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
             Width.SHORT,
             FITBIT_SLEEP_STAGES_TOPIC_DISPLAY)
 
+        .define(FITBIT_SLEEP_STAGES_ENABLED_CONFIG,
+            Type.BOOLEAN,
+            FITBIT_SLEEP_STAGES_ENABLED_DEFAULT,
+            Importance.LOW,
+            FITBIT_SLEEP_STAGES_ENABLED_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            FITBIT_SLEEP_STAGES_ENABLED_DISPLAY)
+
         .define(FITBIT_SLEEP_CLASSIC_TOPIC_CONFIG,
             Type.STRING,
             FITBIT_SLEEP_CLASSIC_TOPIC_DEFAULT,
@@ -413,6 +576,16 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
             ++orderInGroup,
             Width.SHORT,
             FITBIT_SLEEP_CLASSIC_TOPIC_DISPLAY)
+        
+        .define(FITBIT_SLEEP_CLASSIC_ENABLED_CONFIG,
+            Type.BOOLEAN,
+            FITBIT_SLEEP_CLASSIC_ENABLED_DEFAULT,
+            Importance.LOW,
+            FITBIT_SLEEP_CLASSIC_ENABLED_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            FITBIT_SLEEP_CLASSIC_ENABLED_DISPLAY)
 
         .define(FITBIT_TIME_ZONE_TOPIC_CONFIG,
             Type.STRING,
@@ -425,6 +598,16 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
             Width.SHORT,
             FITBIT_TIME_ZONE_TOPIC_DISPLAY)
 
+        .define(FITBIT_TIME_ZONE_ENABLED_CONFIG,
+            Type.BOOLEAN,
+            FITBIT_TIME_ZONE_ENABLED_DEFAULT,
+            Importance.LOW,
+            FITBIT_TIME_ZONE_ENABLED_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            FITBIT_TIME_ZONE_ENABLED_DISPLAY)
+
         .define(FITBIT_ACTIVITY_LOG_TOPIC_CONFIG,
             Type.STRING,
             FITBIT_ACTIVITY_LOG_TOPIC_DEFAULT,
@@ -436,6 +619,16 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
             Width.SHORT,
             FITBIT_ACTIVITY_LOG_TOPIC_DISPLAY)
 
+        .define(FITBIT_ACTIVITY_LOG_ENABLED_CONFIG,
+            Type.BOOLEAN,
+            FITBIT_ACTIVITY_LOG_ENABLED_DEFAULT,
+            Importance.LOW,
+            FITBIT_ACTIVITY_LOG_ENABLED_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            FITBIT_ACTIVITY_LOG_ENABLED_DISPLAY)
+
         .define(FITBIT_INTRADAY_CALORIES_TOPIC_CONFIG,
             Type.STRING,
             FITBIT_INTRADAY_CALORIES_TOPIC_DEFAULT,
@@ -446,6 +639,16 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
             ++orderInGroup,
             Width.SHORT,
             FITBIT_INTRADAY_CALORIES_TOPIC_DISPLAY)
+
+        .define(FITBIT_INTRADAY_CALORIES_ENABLED_CONFIG,
+            Type.BOOLEAN,
+            FITBIT_INTRADAY_CALORIES_ENABLED_DEFAULT,
+            Importance.LOW,
+            FITBIT_INTRADAY_CALORIES_ENABLED_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            FITBIT_INTRADAY_CALORIES_ENABLED_DISPLAY)
 
         .define(FITBIT_USER_REPOSITORY_FIRESTORE_FITBIT_COLLECTION_CONFIG,
             Type.STRING,
@@ -466,6 +669,26 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
             ++orderInGroup,
             Width.SHORT,
             FITBIT_USER_REPOSITORY_FIRESTORE_USER_COLLECTION_DISPLAY)
+
+        .define(FITBIT_MAX_FORBIDDEN_CONFIG,
+            Type.INT,
+            FITBIT_MAX_FORBIDDEN_DEFAULT,
+            Importance.MEDIUM,
+            FITBIT_MAX_FORBIDDEN_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            FITBIT_MAX_FORBIDDEN_DISPLAY)
+        
+        .define(FITBIT_FORBIDDEN_BACKOFF_CONFIG,
+            Type.INT,
+            FITBIT_FORBIDDEN_BACKOFF_DEFAULT,
+            Importance.MEDIUM,
+            FITBIT_FORBIDDEN_BACKOFF_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            FITBIT_FORBIDDEN_BACKOFF_DISPLAY)
         ;
   }
 
@@ -511,40 +734,84 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
     return getString(FITBIT_INTRADAY_STEPS_TOPIC_CONFIG);
   }
 
+  public Boolean getFitbitIntradayStepsEnabled() {
+    return getBoolean(FITBIT_INTRADAY_STEPS_ENABLED_CONFIG);
+  }
+
   public String getFitbitSleepStagesTopic() {
     return getString(FITBIT_SLEEP_STAGES_TOPIC_CONFIG);
+  }
+
+  public Boolean getFitbitSleepStagesEnabled() {
+    return getBoolean(FITBIT_SLEEP_STAGES_ENABLED_CONFIG);
   }
 
   public String getFitbitTimeZoneTopic() {
     return getString(FITBIT_TIME_ZONE_TOPIC_CONFIG);
   }
 
+  public Boolean getFitbitTimeZoneEnabled() {
+    return getBoolean(FITBIT_TIME_ZONE_ENABLED_CONFIG);
+  }
+
+  public Boolean getFitbitActivityLogEnabled() {
+    return getBoolean(FITBIT_ACTIVITY_LOG_ENABLED_CONFIG);
+  }
+
   public String getFitbitIntradayHeartRateTopic() {
     return getString(FITBIT_INTRADAY_HEART_RATE_TOPIC_CONFIG);
+  }
+
+  public Boolean getFitbitIntradayHeartRateEnabled() {
+    return getBoolean(FITBIT_INTRADAY_HEART_RATE_ENABLED_CONFIG);
   }
 
   public String getFitbitIntradayHeartRateVariabilityTopic() {
     return getString(FITBIT_INTRADAY_HEART_RATE_VARIABILITY_TOPIC_CONFIG);
   }
 
+  public Boolean getFitbitIntradayHeartRateVariabilityEnabled() {
+    return getBoolean(FITBIT_INTRADAY_HEART_RATE_VARIABILITY_ENABLED_CONFIG);
+  }
+
   public String getFitbitIntradaySpo2Topic() {
     return getString(FITBIT_INTRADAY_SPO2_TOPIC_CONFIG);
+  }
+
+  public Boolean getFitbitIntradaySpo2Enabled() {
+    return getBoolean(FITBIT_INTRADAY_SPO2_ENABLED_CONFIG);
   }
 
   public String getFitbitBreathingRateTopic() {
     return getString(FITBIT_BREATHING_RATE_TOPIC_CONFIG);
   }
 
+  public Boolean getFitbitBreathingRateEnabled() {
+    return getBoolean(FITBIT_BREATHING_RATE_ENABLED_CONFIG);
+  }
+
   public String getFitbitSkinTemperatureTopic() {
     return getString(FITBIT_SKIN_TEMPERATURE_TOPIC_CONFIG);
+  }
+
+  public Boolean getFitbitSkinTemperatureEnabled() {
+    return getBoolean(FITBIT_SKIN_TEMPERATURE_ENABLED_CONFIG);
   }
 
   public String getFitbitRestingHeartRateTopic() {
     return getString(FITBIT_RESTING_HEART_RATE_TOPIC_CONFIG);
   }
 
+  public Boolean getFitbitRestingHeartRateEnabled() {
+    return getBoolean(FITBIT_RESTING_HEART_RATE_ENABLED_CONFIG);
+  }
+
   public String getFitbitSleepClassicTopic() {
     return getString(FITBIT_SLEEP_CLASSIC_TOPIC_CONFIG);
+  }
+
+  public Boolean getFitbitSleepClassicEnabled() {
+    return getBoolean(FITBIT_SLEEP_CLASSIC_ENABLED_CONFIG);
   }
 
   public Path getFitbitUserCredentialsPath() {
@@ -589,6 +856,10 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
     return getString(FITBIT_INTRADAY_CALORIES_TOPIC_CONFIG);
   }
 
+  public Boolean getFitbitIntradayCaloriesEnabled() {
+    return getBoolean(FITBIT_INTRADAY_CALORIES_ENABLED_CONFIG);
+  }
+
   public String getFitbitUserRepositoryFirestoreFitbitCollection() {
     return getString(FITBIT_USER_REPOSITORY_FIRESTORE_FITBIT_COLLECTION_CONFIG);
   }
@@ -616,5 +887,13 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
         throw new ConfigException("Fitbit user repository token URL is invalid.");
       }
     }
+  }
+
+  public int getMaxForbidden() {
+    return getInt(FITBIT_MAX_FORBIDDEN_CONFIG);
+  }
+
+  public int getForbiddenBackoff() {
+    return getInt(FITBIT_FORBIDDEN_BACKOFF_CONFIG);
   }
 }
