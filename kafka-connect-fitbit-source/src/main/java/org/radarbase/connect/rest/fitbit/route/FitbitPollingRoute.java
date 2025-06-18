@@ -116,6 +116,8 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
   private Duration pollIntervalPerUser;
   private final Set<User> tooManyRequestsForUser;
   private Duration tooManyRequestsCooldown;
+  private final Map<String, Integer> forbidden403Counter;
+  private int maxForbiddenResponses;
 
   public FitbitPollingRoute(
       FitbitRequestGenerator generator,
@@ -129,6 +131,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
     this.lastPoll = MIN_INSTANT;
     this.lastPollPerUser = new HashMap<>();
     this.tooManyRequestsForUser = ConcurrentHashMap.newKeySet();
+    this.forbidden403Counter = new ConcurrentHashMap<>();
   }
 
   @Override
@@ -139,15 +142,18 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
     this.pollIntervalPerUser = fitbitConfig.getPollIntervalPerUser();
     this.tooManyRequestsCooldown = fitbitConfig.getTooManyRequestsCooldownInterval()
         .minus(getPollIntervalPerUser());
+    this.maxForbiddenResponses = fitbitConfig.getMaxForbidden();
     this.converter().initialize(fitbitConfig);
   }
 
   @Override
   public void requestSucceeded(RestRequest request, SourceRecord record) {
-    lastPollPerUser.put(((FitbitRestRequest) request).getUser().getId(), lastPoll);
-    String userKey = ((FitbitRestRequest) request).getUser().getVersionedId();
+    User user = ((FitbitRestRequest) request).getUser();
+    lastPollPerUser.put(user.getId(), lastPoll);
+    String userKey = user.getVersionedId();
     Instant offset = Instant.ofEpochMilli((Long) record.sourceOffset().get(TIMESTAMP_OFFSET_KEY));
     offsets.put(userKey, offset);
+    forbidden403Counter.remove(user.getId());
   }
 
   @Override
@@ -179,6 +185,17 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
       lastPollPerUser.put(user.getId(), backOff);
       logger.info("Too many requests for user {}. Backing off until {}",
           user, backOff.plus(getPollIntervalPerUser()));
+    } else if (response != null && response.code() == 403) {
+      User user = ((FitbitRestRequest) request).getUser();
+      String userId = user.getId();
+      int count = forbidden403Counter.compute(userId, (k, v) -> v == null ? 1 : v + 1);
+      if (count >= maxForbiddenResponses) {
+        Instant backOff = lastPoll.plus(ONE_DAY);
+        lastPollPerUser.put(userId, backOff);
+        forbidden403Counter.remove(userId);
+        logger.warn("User {} reached max 403 responses for route {}. Backing off until {}",
+            user, routeName, backOff.plus(getPollIntervalPerUser()));
+      }
     } else if (response != null) {
       logger.warn("Failed to make request {}. Response is: {}", request, response);
     } else {
