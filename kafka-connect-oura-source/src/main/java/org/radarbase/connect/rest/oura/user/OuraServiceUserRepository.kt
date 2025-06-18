@@ -235,7 +235,7 @@ class OuraServiceUserRepository : OuraUserRepository() {
 
     override fun hasPendingUpdates(): Boolean =
         runBlocking(Dispatchers.Default) {
-            userCache.isStale()
+            userCache.isStale(1.hours)
         }
 
     @Throws(IOException::class)
