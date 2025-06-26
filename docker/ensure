@@ -1,28 +1,34 @@
 #!/bin/bash
 
+# Get the schema registry URL from the config.
+ss_url=$(grep -E '^key.converter.schema.registry.url=' /tmp/strimzi-connect.properties | cut -d'=' -f2)
+
+# If the schema registry URL is not set, exit...
+if [ -z "$ss_url" ]; then
+    echo "Schema registry URL is not set in strimzi-connect.properties."
+    echo "We will not check for schema registry availability."
+    exit 0
+fi
+
 echo "===> Checking if Schema Registry is available ..."
 
-if [ -z "$CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL" ]; then
-    echo "CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL is not defined"
-else
-    tries=10
-    timeout=1
-    while true; do
-        if wget --spider -q "${CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL}/subjects" 2>/dev/null; then
-            echo "Schema registry available."
-            break
-        fi
-        tries=$((tries - 1))
-        if [ $tries -eq 0 ]; then
-            echo "FAILED TO REACH SCHEMA REGISTRY."
-            exit 6
-        fi
-        echo "Failed to reach schema registry. Retrying in ${timeout} seconds."
-        sleep ${timeout}
-        if [ ${timeout} -lt ${max_timeout} ]; then
-            timeout=$((timeout * 2))
-        fi
-    done
+tries=10
+timeout=1
+while true; do
+    if wget --spider -q "${ss_url}/subjects" 2>/dev/null; then
+        echo "Schema registry available."
+        break
+    fi
+    tries=$((tries - 1))
+    if [ $tries -eq 0 ]; then
+        echo "FAILED TO REACH SCHEMA REGISTRY."
+        exit 6
+    fi
+    echo "Failed to reach schema registry. Retrying in ${timeout} seconds."
+    sleep ${timeout}
+    if [ ${timeout} -lt ${max_timeout} ]; then
+        timeout=$((timeout * 2))
+    fi
+done
 
-    echo "Schema registry is available."
-fi
+echo "Schema registry is available."
