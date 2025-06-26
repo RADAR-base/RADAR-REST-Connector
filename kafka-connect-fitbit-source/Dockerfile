@@ -40,7 +40,7 @@ LABEL org.opencontainers.image.authors="pim@thehyve.nl"
 
 LABEL description="Kafka REST API Source connector"
 
-ENV CONNECT_PLUGIN_PATH="/usr/share/java/kafka-connect/plugins"
+ENV CONNECT_PLUGIN_PATH=/opt/kafka/plugins
 
 # To isolate the classpath from the plugin path as recommended
 COPY --from=builder /code/kafka-connect-rest-source/build/third-party/*.jar ${CONNECT_PLUGIN_PATH}/kafka-connect-rest-source/
