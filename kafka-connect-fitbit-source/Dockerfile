@@ -40,8 +40,7 @@ LABEL org.opencontainers.image.authors="pim@thehyve.nl"
 
 LABEL description="Kafka REST API Source connector"
 
-ENV CONNECT_PLUGIN_PATH="/usr/share/java/kafka-connect/plugins" \
-  WAIT_FOR_KAFKA="1"
+ENV CONNECT_PLUGIN_PATH="/usr/share/java/kafka-connect/plugins"
 
 # To isolate the classpath from the plugin path as recommended
 COPY --from=builder /code/kafka-connect-rest-source/build/third-party/*.jar ${CONNECT_PLUGIN_PATH}/kafka-connect-rest-source/
@@ -52,10 +51,8 @@ COPY --from=builder /code/kafka-connect-rest-source/build/libs/*.jar ${CONNECT_P
 COPY --from=builder /code/kafka-connect-fitbit-source/build/libs/*.jar ${CONNECT_PLUGIN_PATH}/kafka-connect-fitbit-source/
 
 # Overwrite the log4j configuration to include Sentry monitoring.
-#COPY ./docker/log4j.properties.template /etc/confluent/docker/log4j.properties.template
 COPY ./docker/log4j.properties.template /opt/kafka/custom-config/log4j.properties
 # Copy Sentry monitoring jars.
-#COPY --from=builder /code/kafka-connect-fitbit-source/build/third-party/sentry-* /etc/kafka-connect/jars
 COPY --from=builder /code/kafka-connect-fitbit-source/build/third-party/sentry-* /opt/kafka/libs/
 
 USER 1001
