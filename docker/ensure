@@ -12,10 +12,11 @@ fi
 
 echo "===> Checking if Schema Registry is available ..."
 
+max_timeout=32
 tries=10
 timeout=1
 while true; do
-    if wget --spider -q "${ss_url}/subjects" 2>/dev/null; then
+    if curl --head --silent --fail "${ss_url}/subjects" > /dev/null; then
         echo "Schema registry available."
         break
     fi
