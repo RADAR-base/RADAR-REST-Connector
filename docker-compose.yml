@@ -145,7 +145,7 @@ services:
   radar-fitbit-connector:
     build:
       context: .
-      dockerfile: ./kafka-connect-fitbit-source/Dockerfile
+      dockerfile: ./kafka-connect-fitbit-source/Dockerfile-legacy
     image: radarbase/radar-connect-fitbit-source
     restart: on-failure
     volumes:
