@@ -32,7 +32,7 @@ COPY ./kafka-connect-fitbit-source/src/ /code/kafka-connect-fitbit-source/src
 
 RUN gradle jar
 
-FROM quay.io/strimzi/kafka:0.45.0-kafka-3.9.0
+FROM quay.io/strimzi/kafka:0.46.0-kafka-3.9.0
 
 USER appuser
 
