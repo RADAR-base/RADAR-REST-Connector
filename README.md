@@ -92,17 +92,45 @@ your Fitbit App client ID and client secret. The following tables shows the poss
 <tr>
 <td>fitbit.intraday.steps.topic</td><td>Topic for Fitbit intraday steps</td><td>string</td><td>connect_fitbit_intraday_steps</td><td>non-empty string without control characters</td><td>low</td></tr>
 <tr>
+<td>fitbit.intraday.steps.enabled</td><td>Config to enable or disable intraday steps</td><td>boolean</td><td>true</td><td></td><td>low</td></tr>
+<tr>
 <td>fitbit.intraday.heart.rate.topic</td><td>Topic for Fitbit intraday heart_rate</td><td>string</td><td>connect_fitbit_intraday_heart_rate</td><td>non-empty string without control characters</td><td>low</td></tr>
+<tr>
+<td>fitbit.intraday.heart.rate.enabled</td><td>Config to enable or disable intraday heart rate</td><td>boolean</td><td>true</td><td></td><td>low</td></tr>
+<tr>
+<td>fitbit.intraday.heart.rate.variability.enabled</td><td>Config to enable or disable intraday heart rate variability</td><td>boolean</td><td>true</td><td></td><td>low</td></tr>
+<tr>
+<td>fitbit.resting.heart.rate.enabled</td><td>Config to enable or disable resting heart rate</td><td>boolean</td><td>true</td><td></td><td>low</td></tr>
 <tr>
 <td>fitbit.sleep.stages.topic</td><td>Topic for Fitbit sleep stages</td><td>string</td><td>connect_fitbit_sleep_stages</td><td>non-empty string without control characters</td><td>low</td></tr>
 <tr>
+<td>fitbit.sleep.stages.enabled</td><td>Config to enable or disable sleep stages</td><td>boolean</td><td>true</td><td></td><td>low</td></tr>
+<tr>
 <td>fitbit.sleep.classic.topic</td><td>Topic for Fitbit sleep classic data</td><td>string</td><td>connect_fitbit_sleep_classic</td><td>non-empty string without control characters</td><td>low</td></tr>
+<tr>
+<td>fitbit.sleep.classic.enabled</td><td>Config to enable or disable sleep classic</td><td>boolean</td><td>true</td><td></td><td>low</td></tr>
 <tr>
 <td>fitbit.time.zone.topic</td><td>Topic for Fitbit profile time zone</td><td>string</td><td>connect_fitbit_time_zone</td><td>non-empty string without control characters</td><td>low</td></tr>
 <tr>
+<td>fitbit.time.zone.enabled</td><td>Config to enable or disable time zone</td><td>boolean</td><td>true</td><td></td><td>low</td></tr>
+<tr>
 <td>fitbit.activity.log.topic</td><td>Topic for Fitbit activity log.</td><td>string</td><td>connect_fitbit_activity_log</td><td>non-empty string without control characters</td><td>low</td></tr>
 <tr>
+<td>fitbit.activity.log.enabled</td><td>Config to enable or disable the activity log</td><td>boolean</td><td>true</td><td></td><td>low</td></tr>
+<tr>
 <td>fitbit.intraday.calories.topic</td><td>Topic for Fitbit intraday calories</td><td>string</td><td>connect_fitbit_intraday_calories</td><td>non-empty string without control characters</td><td>low</td></tr>
+<tr>
+<td>fitbit.intraday.calories.enabled</td><td>Config to enable or disable intraday calories</td><td>boolean</td><td>true</td><td></td><td>low</td></tr>
+<tr>
+<td>fitbit.intraday.spo2.enabled</td><td>Config to enable or disable intraday spo2</td><td>boolean</td><td>true</td><td></td><td>low</td></tr>
+<tr>
+<td>fitbit.breathing.rate.enabled</td><td>Config to enable or disable breathing rate</td><td>boolean</td><td>true</td><td></td><td>low</td></tr>
+<tr>
+<td>fitbit.skin.temperature.enabled</td><td>Config to enable or disable skin temperature</td><td>boolean</td><td>true</td><td></td><td>low</td></tr>
+<tr>
+<td>fitbit.request.max.forbidden</td><td>Maximum number of consecutive forbidden responses before backing off</td><td>int</td><td>3</td><td></td><td>medium</td></tr>
+<tr>
+<td>fitbit.request.forbidden.backoff.s</td><td>Backoff time in seconds between forbidden requests</td><td>int</td><td>86400</td><td></td><td>medium</td></tr>
 <tr>
 <td>fitbit.user.firebase.collection.fitbit.name</td><td>Firestore Collection for retrieving Fitbit Auth details. Only used when a Firebase based user repository is used.</td><td>string</td><td>fitbit</td><td></td><td>low</td></tr>
 <tr>
