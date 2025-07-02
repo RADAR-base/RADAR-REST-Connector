@@ -149,7 +149,7 @@ services:
     image: radarbase/radar-connect-fitbit-source
     restart: on-failure
     volumes:
-      - ./docker/source-fitbit.properties:/etc/kafka-connect/source-fitbit.properties
+      - ./docker/legacy/source-fitbit.properties:/etc/kafka-connect/source-fitbit.properties
       - ./docker/users:/var/lib/kafka-connect-fitbit-source/users
       - fitbit-logs:/var/lib/kafka-connect-fitbit-source/logs
     depends_on:

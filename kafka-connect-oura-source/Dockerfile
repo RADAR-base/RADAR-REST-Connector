@@ -51,13 +51,11 @@ COPY --from=builder /code/kafka-connect-oura-source/build/libs/*.jar ${CONNECT_P
 COPY --from=builder /code/oura-library/build/libs/*.jar ${CONNECT_PLUGIN_PATH}/kafka-connect-oura-source/
 
 # Load topics validator
-COPY  --chown=appuser:appuser ./docker/ensure /etc/confluent/docker/ensure
+COPY  --chown=appuser:appuser ./docker/legacy/ensure /etc/confluent/docker/ensure
 
 # Load modified launcher
-COPY  --chown=appuser:appuser ./docker/launch /etc/confluent/docker/launch
+COPY  --chown=appuser:appuser ./docker/legacy/launch /etc/confluent/docker/launch
 
-# Overwrite the log4j configuration to include Sentry monitoring.
-COPY ./docker/log4j.properties.template /etc/confluent/docker/log4j.properties.template
-# Copy Sentry monitoring jars.
+# Copy Sentry monitoring jars. Sentry monitoring needs to be included in helm chart log4j ConfigMap.
 COPY --from=builder /code/kafka-connect-oura-source/build/third-party/sentry-* /etc/kafka-connect/jars
 

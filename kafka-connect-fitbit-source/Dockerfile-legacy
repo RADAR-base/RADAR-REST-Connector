@@ -58,6 +58,6 @@ COPY  --chown=appuser:appuser ./docker/legacy/ensure /etc/confluent/docker/ensur
 COPY  --chown=appuser:appuser ./docker/legacy/launch /etc/confluent/docker/launch
 
 # Overwrite the log4j configuration to include Sentry monitoring.
-COPY ./docker/log4j.properties.template /etc/confluent/docker/log4j.properties.template
+COPY ./docker/legacy/log4j.properties.template /etc/confluent/docker/log4j.properties.template
 # Copy Sentry monitoring jars.
 COPY --from=builder /code/kafka-connect-fitbit-source/build/third-party/sentry-* /etc/kafka-connect/jars
