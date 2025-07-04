@@ -50,9 +50,6 @@ COPY --from=builder /code/kafka-connect-rest-source/build/libs/*.jar ${CONNECT_P
 COPY --from=builder /code/kafka-connect-rest-source/build/libs/*.jar ${CONNECT_PLUGIN_PATH}/kafka-connect-fitbit-source/
 COPY --from=builder /code/kafka-connect-fitbit-source/build/libs/*.jar ${CONNECT_PLUGIN_PATH}/kafka-connect-fitbit-source/
 
-# Overwrite the log4j configuration to include Sentry monitoring.
-# TODO uncomment after new log4j2 properties file is added.
-# COPY ./docker/log4j2.properties /opt/kafka/custom-config/log4j.properties
 # Copy Sentry monitoring jars.
 COPY --from=builder /code/kafka-connect-fitbit-source/build/third-party/sentry-* /opt/kafka/libs/
 

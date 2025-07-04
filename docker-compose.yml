@@ -191,11 +191,11 @@ services:
   radar-oura-connector:
     build:
       context: .
-      dockerfile: ./kafka-connect-oura-source/Dockerfile
+      dockerfile: ./kafka-connect-oura-source/Dockerfile-legacy
     image: radarbase/radar-connect-oura-source
     restart: on-failure
     volumes:
-      - ./docker/source-oura.properties:/etc/kafka-connect/source-oura.properties
+      - ./docker/legacy/source-oura.properties:/etc/kafka-connect/source-oura.properties
       - ./docker/users:/var/lib/kafka-connect-oura-source/users
     depends_on:
       - zookeeper-1
