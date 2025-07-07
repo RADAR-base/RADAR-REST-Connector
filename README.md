@@ -215,7 +215,7 @@ To enable Sentry monitoring for the generic REST, Fitbit, or Oura source connect
 1. Set a `SENTRY_DSN` environment variable that points to the desired Sentry DSN.
 2. (Optional) Set the `SENTRY_LOG_LEVEL` environment variable to control the minimum log level of
    events sent to Sentry.
-   The default log level for Sentry is `WARN`. Possible values are `TRACE`, `DEBUG`, `INFO`, `WARN`,
+   The default log level for Sentry is `ERROR`. Possible values are `TRACE`, `DEBUG`, `INFO`, `WARN`,
    and `ERROR`.
 
 For further configuration of Sentry via environmental variables see [here](https://docs.sentry.io/platforms/java/configuration/#configuration-via-the-runtime-environment). For instance:
