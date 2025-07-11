@@ -11,4 +11,12 @@ dependencies {
     testImplementation("com.github.tomakehurst:wiremock:${Versions.wiremock}")
 
     testImplementation("org.apache.kafka:connect-api:${Versions.kafka}")
+
+    // Application monitoring
+    // These dependencies are not used by the REST connector, but copied into the Docker image (Dockerfile)
+    runtimeOnly("io.sentry:sentry-log4j:${Versions.sentryLog4j}") {
+        // Exclude log4j with security vulnerability (safe version is provided by docker image).
+        exclude(group = "log4j", module = "log4j")
+    }
+    runtimeOnly("io.sentry:sentry-opentelemetry-agent:${Versions.sentryOpenTelemetryAgent}")
 }
