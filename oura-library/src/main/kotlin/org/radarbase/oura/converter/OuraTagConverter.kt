@@ -46,9 +46,9 @@ class OuraTagConverter(
         return OuraTag.newBuilder().apply {
             time = startTime.toEpochMilli() / 1000.0
             timeReceived = System.currentTimeMillis() / 1000.0
-            id = data.get("id").textValue()
-            day = data.get("day").textValue()
-            text = data.get("text").textValue()
+            id = data.get("id")?.textValue()
+            day = data.get("day")?.textValue()
+            text = data.get("text")?.textValue()
             tag = tagString
         }.build()
     }
