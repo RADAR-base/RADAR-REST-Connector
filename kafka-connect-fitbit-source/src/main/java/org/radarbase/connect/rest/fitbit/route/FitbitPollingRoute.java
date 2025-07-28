@@ -23,6 +23,7 @@ import java.time.Instant;
 import static java.time.ZoneOffset.UTC;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.MINUTES;
 import static java.time.temporal.ChronoUnit.NANOS;
@@ -120,6 +121,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
   private final Map<String, Integer> forbidden403Counter;
   private int maxForbiddenResponses;
   private Duration forbidden403Cooldown;
+  private String cooldownStrategy;
 
   public FitbitPollingRoute(
       FitbitRequestGenerator generator,
@@ -147,6 +149,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
     this.maxForbiddenResponses = fitbitConfig.getMaxForbidden();
     this.converter().initialize(fitbitConfig);
     this.forbidden403Cooldown = Duration.ofSeconds(fitbitConfig.getForbiddenBackoff());
+    this.cooldownStrategy = fitbitConfig.getCooldownStrategy();
   }
 
   @Override
@@ -175,19 +178,19 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
     if (response != null && response.code() == 429) {
       User user = ((FitbitRestRequest) request).getUser();
       tooManyRequestsForUser.add(user);
-      String cooldownString = response.header("Retry-After");
-      Duration cooldown = getTooManyRequestsCooldown();
-      if (cooldownString != null) {
-        try {
-          cooldown = Duration.ofSeconds(Long.parseLong(cooldownString));
-        } catch (NumberFormatException ex) {
-          cooldown = getTooManyRequestsCooldown();
-        }
+      
+      Instant backOff;
+      if ("TOP_OF_HOUR".equalsIgnoreCase(cooldownStrategy)) {
+        backOff = calculateTopOfHourBackoff();
+        logger.info("Too many requests for user {}. Using TOP_OF_HOUR strategy, backing off until: {}",
+            user, backOff);
+      } else {
+        backOff = calculateRollingWindowBackoff(response);
+        logger.info("Too many requests for user {}. Using ROLLING_WINDOW strategy, backing off until: {}",
+            user, backOff.plus(getPollIntervalPerUser()));
       }
-      Instant backOff = lastPoll.plus(cooldown);
+      
       lastPollPerUser.put(user.getId(), backOff);
-      logger.info("Too many requests for user {}. Backing off until {}",
-          user, backOff.plus(getPollIntervalPerUser()));
     } else if (response != null && response.code() == 403) {
       User user = ((FitbitRestRequest) request).getUser();
       String userId = user.getId();
@@ -204,6 +207,46 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
     } else {
       logger.warn("Failed to make request {}", request);
     }
+  }
+
+  /**
+   * Calculate backoff using top-of-hour strategy.
+   * Waits until the top of the next hour to align with Fitbit's rate limit reset.
+   */
+  private Instant calculateTopOfHourBackoff() {
+    Instant now = Instant.now();
+    Instant topOfNextHour = calculateTopOfNextHour(now).plus(ONE_SECOND);
+    return topOfNextHour;
+  }
+
+  /**
+   * Calculate backoff using rolling window strategy.
+   * Uses configured cooldown duration from when the error occurred.
+   */
+  private Instant calculateRollingWindowBackoff(Response response) {
+    String cooldownString = response.header("Retry-After");
+    Duration cooldown = getTooManyRequestsCooldown();
+    
+    if (cooldownString != null) {
+      try {
+        cooldown = Duration.ofSeconds(Long.parseLong(cooldownString));
+      } catch (NumberFormatException ex) {
+        cooldown = getTooManyRequestsCooldown();
+      }
+    }
+    
+    return lastPoll.plus(cooldown);
+  }
+
+  /**
+   * Calculate the top of the next hour from the given instant.
+   */
+  private Instant calculateTopOfNextHour(Instant instant) {
+    ZonedDateTime zonedDateTime = instant.atZone(UTC);
+    ZonedDateTime topOfNextHour = zonedDateTime
+        .plusHours(1)
+        .truncatedTo(ChronoUnit.HOURS);
+    return topOfNextHour.toInstant();
   }
 
   /**
