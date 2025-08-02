@@ -129,7 +129,7 @@ constructor(
             ouraOffsetManager.updateOffsets(
                 request.route,
                 request.user,
-                Instant.ofEpochSecond(offset).plus(ONE_DAY),
+                Instant.ofEpochSecond(offset).plus(OFFSET_BUFFER),
             )
             val nextRequestTime = Instant.now().plus(SUCCESS_BACK_OFF_TIME)
             userNextRequest[request.user.versionedId] =
@@ -241,6 +241,7 @@ constructor(
         private val TIME_AFTER_REQUEST = Duration.ofDays(30)
         private val USER_BACK_OFF_TIME = Duration.ofHours(12L)
         private val SUCCESS_BACK_OFF_TIME = Duration.ofMinutes(1L)
+        private val OFFSET_BUFFER = Duration.ofHours(12)
         private val USER_MAX_REQUESTS = 20
         val JSON_FACTORY = JsonFactory()
         val JSON_READER = ObjectMapper(JSON_FACTORY).registerModule(JavaTimeModule()).reader()
