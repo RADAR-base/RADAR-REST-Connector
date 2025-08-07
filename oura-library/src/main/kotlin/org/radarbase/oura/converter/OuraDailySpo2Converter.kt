@@ -44,6 +44,7 @@ class OuraDailySpo2Converter(
             id = data.get("id").textValue()
             spo2AveragePercentage = data.get("spo2_percentage")?.get("average")?.floatValue()
             day = data.get("day").textValue()
+            breathingDisturbanceIndex = data.get("breathing_disturbance_index")?.intValue()
         }.build()
     }
 
