@@ -100,7 +100,7 @@ constructor(
             val endTime = (startOffset + HISTORICAL_QUERY_RANGE).coerceAtMost(endDate)
             route.generateRequests(user, startOffset, endTime)
         } else {
-            // Recent data: use normal chunking with max request limit  
+            // Recent data: use normal chunking with max request limit
             route.generateRequests(user, startOffset, endDate, USER_MAX_REQUESTS)
         }
     }
@@ -151,7 +151,8 @@ constructor(
                     request.user,
                     request.endDate,
                 )
-                userNextRequest[request.user.versionedId] = Instant.now().plus(SUCCESS_BACK_OFF_TIME)
+                userNextRequest[request.user.versionedId] =
+                    Instant.now().plus(SUCCESS_BACK_OFF_TIME)
             } else {
                 userNextRequest[request.user.versionedId] = Instant.now().plus(BACK_OFF_TIME)
             }

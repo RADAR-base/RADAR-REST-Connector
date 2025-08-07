@@ -49,8 +49,9 @@ class OuraRingConfigurationConverter(
             color = data.get("color")?.textValue()?.classifyColor() ?: OuraRingColor.UNKNOWN
             design = data.get("design")?.textValue()?.classifyDesign() ?: OuraRingDesign.UNKNOWN
             firmwareVersion = data.get("firmware_version")?.textValue()
-            hardwareType = data.get("hardware_type")?.textValue()?.classifyHardware() ?: OuraRingHardwareType.UNKNOWN
-            setUpAt = setupTime?.toEpochMilli()?.let { it / 1000.0 } 
+            hardwareType = data.get("hardware_type")?.textValue()?.classifyHardware()
+                ?: OuraRingHardwareType.UNKNOWN
+            setUpAt = setupTime?.toEpochMilli()?.let { it / 1000.0 }
             size = data.get("size")?.intValue()
         }.build()
     }
