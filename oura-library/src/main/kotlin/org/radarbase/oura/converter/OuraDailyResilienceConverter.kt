@@ -7,6 +7,9 @@ import org.radarcns.connector.oura.OuraResilienceLevel
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.time.OffsetDateTime
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 class OuraDailyResilienceConverter(
     private val topic: String = "connect_oura_daily_resilience",
@@ -19,8 +22,11 @@ class OuraDailyResilienceConverter(
             ?: return emptySequence()
         return array.asSequence()
             .mapCatching {
-                val startTime = OffsetDateTime.parse(it["timestamp"].textValue())
-                val startInstant = startTime.toInstant()
+                val localDate = LocalDate.parse(
+                    it["day"].textValue(),
+                    DateTimeFormatter.ISO_LOCAL_DATE,
+                )
+                val startInstant = localDate.atStartOfDay(ZoneId.systemDefault()).toInstant()
                 TopicData(
                     key = user.observationKey,
                     topic = topic,
@@ -40,9 +46,11 @@ class OuraDailyResilienceConverter(
             id = data.get("id")?.textValue()
             day = data.get("day")?.textValue()
             contributorSleepRecovery = data.get("contributors")?.get("sleep_recovery")?.floatValue()
-            contributorDaytimeRecovery = data.get("contributors")?.get("daytime_recovery")?.floatValue()
+            contributorDaytimeRecovery = data.get("contributors")
+                ?.get("daytime_recovery")?.floatValue()
             contributorStress = data.get("contributors")?.get("stress")?.floatValue()
-            level = data.get("level")?.textValue()?.classifyResilienceLevel() ?: OuraResilienceLevel.UNKNOWN
+            level = data.get("level")?.textValue()?.classifyResilienceLevel()
+                ?: OuraResilienceLevel.UNKNOWN
         }.build()
     }
 

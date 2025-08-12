@@ -7,6 +7,9 @@ import org.radarcns.connector.oura.OuraDaySummaryType
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.time.OffsetDateTime
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 class OuraDailyStressConverter(
     private val topic: String = "connect_oura_daily_stress",
@@ -19,8 +22,11 @@ class OuraDailyStressConverter(
             ?: return emptySequence()
         return array.asSequence()
             .mapCatching {
-                val startTime = OffsetDateTime.parse(it["timestamp"].textValue())
-                val startInstant = startTime.toInstant()
+                val localDate = LocalDate.parse(
+                    it["day"].textValue(),
+                    DateTimeFormatter.ISO_LOCAL_DATE,
+                )
+                val startInstant = localDate.atStartOfDay(ZoneId.systemDefault()).toInstant()
                 TopicData(
                     key = user.observationKey,
                     topic = topic,
