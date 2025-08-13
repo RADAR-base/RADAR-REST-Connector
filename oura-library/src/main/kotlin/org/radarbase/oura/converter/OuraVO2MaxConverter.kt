@@ -39,9 +39,6 @@ class OuraVO2MaxConverter(
             id = data.get("id")?.textValue()
             day = data.get("day")?.textValue()
             vo2Max = data.get("vo2_max")?.floatValue()
-            timestamp = data.get("timestamp")?.textValue()?.let {
-                OffsetDateTime.parse(it).toInstant().toEpochMilli() / 1000.0
-            }
         }.build()
     }
 
