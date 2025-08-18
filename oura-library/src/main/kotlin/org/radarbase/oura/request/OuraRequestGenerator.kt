@@ -80,12 +80,11 @@ constructor(
                         "Skip {} for {}: user in backoff until {}",
                         route,
                         user.versionedId,
-                        userNextRequest[user.versionedId]
+                        userNextRequest[user.versionedId],
                     )
                     emptySequence()
                 }
             }
-            
     }
 
     override fun requests(
@@ -131,11 +130,14 @@ constructor(
             // and we've reached or surpassed it (startOffset >= endDate),
             // permanently disable future requests for this user+route.
             val userEnd = user.endDate
-            if (userEnd != null && endDate == userEnd && Duration.between(userEnd, Instant.now()) > Duration.ofDays(30)) {
+            if (userEnd != null && endDate == userEnd &&
+                Duration.between(userEnd, Instant.now()) > Duration.ofDays(30)
+            ) {
                 val key = routeKey(route, user)
                 routeNextRequest[key] = Instant.MAX
                 logger.info(
-                    "Disable future requests for {}: user={}, endDate={} (>30d ago), startOffset={}",
+                    "Disable future requests for {}: user={}, " +
+                        "endDate={} (>30d ago), startOffset={}",
                     route,
                     user.versionedId,
                     userEnd,
@@ -143,7 +145,8 @@ constructor(
                 )
             }
             logger.info(
-                "Skip {} for {}: interval empty (startOffset={} >= endDate={}), persistedOffset={}, userStartDate={}",
+                "Skip {} for {}: interval empty (startOffset={} >= endDate={}), " +
+                    "persistedOffset={}, userStartDate={}",
                 route,
                 user.versionedId,
                 startOffset,
@@ -200,7 +203,9 @@ constructor(
             val nextRequestTime = Instant.now().plus(SUCCESS_BACK_OFF_TIME)
             val key = routeKey(request.route, request.user)
             routeNextRequest[key] =
-                routeNextRequest[key]?.let { if (it > nextRequestTime) it else nextRequestTime } ?: nextRequestTime
+                routeNextRequest[key]?.let {
+                    if (it > nextRequestTime) it else nextRequestTime
+                } ?: nextRequestTime
         } else {
             if (request.startDate.plus(TIME_AFTER_REQUEST).isBefore(Instant.now())) {
                 logger.info("No records found, updating offsets to end date..")
@@ -258,7 +263,8 @@ constructor(
             400 -> {
                 logger.warn("Client exception..")
                 nextRequestTime = Instant.now() + BACK_OFF_TIME
-                routeNextRequest[routeKey(request.route, request.user)] = Instant.now().plus(BACK_OFF_TIME)
+                routeNextRequest[routeKey(request.route, request.user)] =
+                    Instant.now().plus(BACK_OFF_TIME)
                 OuraClientException(
                     "Client unsupported or unauthorized..",
                     IOException("Invalid client"),
@@ -267,7 +273,8 @@ constructor(
             }
             422 -> {
                 logger.warn("Request Failed: {}, {}", request, response)
-                routeNextRequest[routeKey(request.route, request.user)] = Instant.now().plus(BACK_OFF_TIME)
+                routeNextRequest[routeKey(request.route, request.user)] =
+                    Instant.now().plus(BACK_OFF_TIME)
                 OuraValidationError(
                     response.body!!.string(),
                     IOException("Validation error"),
@@ -276,7 +283,8 @@ constructor(
             }
             404 -> {
                 logger.warn("Not found..")
-                routeNextRequest[routeKey(request.route, request.user)] = Instant.now().plus(BACK_OFF_TIME)
+                routeNextRequest[routeKey(request.route, request.user)] =
+                    Instant.now().plus(BACK_OFF_TIME)
                 OuraNotFoundError(
                     response.body!!.string(),
                     IOException("Data not found"),
@@ -285,7 +293,8 @@ constructor(
             }
             else -> {
                 logger.warn("Request Failed: {}, {}", request, response)
-                routeNextRequest[routeKey(request.route, request.user)] = Instant.now().plus(BACK_OFF_TIME)
+                routeNextRequest[routeKey(request.route, request.user)] =
+                    Instant.now().plus(BACK_OFF_TIME)
                 OuraGenericError(response.body!!.string(), IOException("Unknown error"), "500")
             }
         }
@@ -304,7 +313,7 @@ constructor(
         return routeNextRequest[key]?.let { Instant.now() > it } ?: true
     }
 
-    private fun routeKey(route: Route, user: User): String = "${user.versionedId}#${route}"
+    private fun routeKey(route: Route, user: User): String = user.versionedId + "#" + route
 
     companion object {
         private val logger = LoggerFactory.getLogger(OuraRequestGenerator::class.java)

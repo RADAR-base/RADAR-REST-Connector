@@ -1,15 +1,11 @@
 package org.radarbase.oura.route
 
 import org.radarbase.oura.converter.OuraHeartRateConverter
+import org.radarbase.oura.request.RestRequest
 import org.radarbase.oura.user.User
 import org.radarbase.oura.user.UserRepository
-import org.radarcns.connector.oura.OuraHeartRate
-import org.radarcns.connector.oura.OuraHeartRateSource
-import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.time.Instant
-import java.time.LocalDateTime
-import org.radarbase.oura.request.RestRequest
 
 class OuraHeartRateRoute(
     private val userRepository: UserRepository,
