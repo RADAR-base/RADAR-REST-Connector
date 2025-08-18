@@ -25,6 +25,7 @@ constructor(
     public val routes: List<Route> = OuraRouteFactory.getRoutes(userRepository),
 ) : RequestGenerator {
     private val userNextRequest: MutableMap<String, Instant> = mutableMapOf()
+    private val routeNextRequest: MutableMap<String, Instant> = mutableMapOf()
 
     public var nextRequestTime: Instant = Instant.MIN
 
@@ -38,9 +39,18 @@ constructor(
         return if (user.ready()) {
             routes.asSequence()
                 .flatMap { route ->
-                    return@flatMap generateRequests(route, user)
+                    if (routeReady(user, route)) {
+                        return@flatMap generateRequests(route, user)
+                    } else {
+                        logger.info(
+                            "Skip {} for {}: route in backoff until {}",
+                            route,
+                            user.versionedId,
+                            routeNextRequest[routeKey(route, user)],
+                        )
+                        return@flatMap emptySequence()
+                    }
                 }
-                .takeWhile { !shouldBackoff }
         } else {
             emptySequence()
         }
@@ -54,12 +64,28 @@ constructor(
             .stream()
             .flatMap { user ->
                 if (user.ready()) {
-                    generateRequests(route, user)
+                    if (routeReady(user, route)) {
+                        generateRequests(route, user)
+                    } else {
+                        logger.info(
+                            "Skip {} for {}: route in backoff until {}",
+                            route,
+                            user.versionedId,
+                            routeNextRequest[routeKey(route, user)],
+                        )
+                        emptySequence()
+                    }
                 } else {
+                    logger.info(
+                        "Skip {} for {}: user in backoff until {}",
+                        route,
+                        user.versionedId,
+                        userNextRequest[user.versionedId]
+                    )
                     emptySequence()
                 }
             }
-            .takeWhile { !shouldBackoff }
+            
     }
 
     override fun requests(
@@ -68,7 +94,17 @@ constructor(
         max: Int,
     ): Sequence<RestRequest> {
         return if (user.ready()) {
-            return generateRequests(route, user).takeWhile { !shouldBackoff }
+            return if (routeReady(user, route)) {
+                generateRequests(route, user)
+            } else {
+                logger.info(
+                    "Skip {} for {}: route in backoff until {}",
+                    route,
+                    user.versionedId,
+                    routeNextRequest[routeKey(route, user)],
+                )
+                emptySequence()
+            }
         } else {
             emptySequence()
         }
@@ -90,8 +126,31 @@ constructor(
                 offsetTime.coerceAtLeast(startDate)
             }
         val endDate = user.endDate?.coerceAtMost(Instant.now()) ?: Instant.now()
-        if (Duration.between(startOffset, endDate) <= ONE_DAY) {
-            logger.info("Interval between dates is too short. Not requesting..")
+        if (!startOffset.isBefore(endDate)) {
+            // If the user's configured endDate is in the past (>30d ago),
+            // and we've reached or surpassed it (startOffset >= endDate),
+            // permanently disable future requests for this user+route.
+            val userEnd = user.endDate
+            if (userEnd != null && endDate == userEnd && Duration.between(userEnd, Instant.now()) > Duration.ofDays(30)) {
+                val key = routeKey(route, user)
+                routeNextRequest[key] = Instant.MAX
+                logger.info(
+                    "Disable future requests for {}: user={}, endDate={} (>30d ago), startOffset={}",
+                    route,
+                    user.versionedId,
+                    userEnd,
+                    startOffset,
+                )
+            }
+            logger.info(
+                "Skip {} for {}: interval empty (startOffset={} >= endDate={}), persistedOffset={}, userStartDate={}",
+                route,
+                user.versionedId,
+                startOffset,
+                endDate,
+                offset?.offset,
+                startDate,
+            )
             return emptySequence()
         }
         val timeSinceStart = Duration.between(startOffset, Instant.now())
@@ -139,10 +198,9 @@ constructor(
                 Instant.ofEpochSecond(offset).plus(OFFSET_BUFFER),
             )
             val nextRequestTime = Instant.now().plus(SUCCESS_BACK_OFF_TIME)
-            userNextRequest[request.user.versionedId] =
-                userNextRequest[request.user.versionedId]?.let {
-                    if (it > nextRequestTime) it else nextRequestTime
-                } ?: nextRequestTime
+            val key = routeKey(request.route, request.user)
+            routeNextRequest[key] =
+                routeNextRequest[key]?.let { if (it > nextRequestTime) it else nextRequestTime } ?: nextRequestTime
         } else {
             if (request.startDate.plus(TIME_AFTER_REQUEST).isBefore(Instant.now())) {
                 logger.info("No records found, updating offsets to end date..")
@@ -151,10 +209,11 @@ constructor(
                     request.user,
                     request.endDate,
                 )
-                userNextRequest[request.user.versionedId] =
-                    Instant.now().plus(SUCCESS_BACK_OFF_TIME)
+                val key = routeKey(request.route, request.user)
+                routeNextRequest[key] = Instant.now().plus(SUCCESS_BACK_OFF_TIME)
             } else {
-                userNextRequest[request.user.versionedId] = Instant.now().plus(BACK_OFF_TIME)
+                val key = routeKey(request.route, request.user)
+                routeNextRequest[key] = Instant.now().plus(BACK_OFF_TIME)
             }
         }
         return records
@@ -174,11 +233,8 @@ constructor(
                 logger.warn(
                     "User ${request.user} has expired." + "Please renew the subscription...",
                 )
-                userNextRequest[request.user.versionedId] =
-                    Instant.now()
-                        .plus(
-                            USER_BACK_OFF_TIME,
-                        )
+                routeNextRequest[routeKey(request.route, request.user)] =
+                    Instant.now().plus(USER_BACK_OFF_TIME)
                 OuraAccessForbiddenError(
                     "Oura subscription has expired or API data not available..",
                     IOException("Unauthorized"),
@@ -191,11 +247,8 @@ constructor(
                         " expired, malformed, or revoked. " +
                         response.body?.string(),
                 )
-                userNextRequest[request.user.versionedId] =
-                    Instant.now()
-                        .plus(
-                            USER_BACK_OFF_TIME,
-                        )
+                routeNextRequest[routeKey(request.route, request.user)] =
+                    Instant.now().plus(USER_BACK_OFF_TIME)
                 OuraUnauthorizedAccessError(
                     "Access token expired or revoked..",
                     IOException("Unauthorized"),
@@ -205,6 +258,7 @@ constructor(
             400 -> {
                 logger.warn("Client exception..")
                 nextRequestTime = Instant.now() + BACK_OFF_TIME
+                routeNextRequest[routeKey(request.route, request.user)] = Instant.now().plus(BACK_OFF_TIME)
                 OuraClientException(
                     "Client unsupported or unauthorized..",
                     IOException("Invalid client"),
@@ -213,6 +267,7 @@ constructor(
             }
             422 -> {
                 logger.warn("Request Failed: {}, {}", request, response)
+                routeNextRequest[routeKey(request.route, request.user)] = Instant.now().plus(BACK_OFF_TIME)
                 OuraValidationError(
                     response.body!!.string(),
                     IOException("Validation error"),
@@ -221,6 +276,7 @@ constructor(
             }
             404 -> {
                 logger.warn("Not found..")
+                routeNextRequest[routeKey(request.route, request.user)] = Instant.now().plus(BACK_OFF_TIME)
                 OuraNotFoundError(
                     response.body!!.string(),
                     IOException("Data not found"),
@@ -229,6 +285,7 @@ constructor(
             }
             else -> {
                 logger.warn("Request Failed: {}, {}", request, response)
+                routeNextRequest[routeKey(request.route, request.user)] = Instant.now().plus(BACK_OFF_TIME)
                 OuraGenericError(response.body!!.string(), IOException("Unknown error"), "500")
             }
         }
@@ -241,6 +298,13 @@ constructor(
             true
         }
     }
+
+    private fun routeReady(user: User, route: Route): Boolean {
+        val key = routeKey(route, user)
+        return routeNextRequest[key]?.let { Instant.now() > it } ?: true
+    }
+
+    private fun routeKey(route: Route, user: User): String = "${user.versionedId}#${route}"
 
     companion object {
         private val logger = LoggerFactory.getLogger(OuraRequestGenerator::class.java)
