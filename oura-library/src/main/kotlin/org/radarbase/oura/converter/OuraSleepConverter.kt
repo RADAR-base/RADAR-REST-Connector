@@ -80,6 +80,7 @@ class OuraSleepConverter(
             timeInBed = data.get("time_in_bed")?.intValue()
             totalSleepDuration = data.get("total_sleep_duration")?.intValue()
             type = data.get("type")?.textValue()?.classifyType()
+                ?: OuraSleepType.UNKNOWN
         }.build()
     }
 
