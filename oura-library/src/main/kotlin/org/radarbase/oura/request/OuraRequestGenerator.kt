@@ -196,7 +196,7 @@ constructor(
         if (offset != null) {
             logger.info("Writing ${records.size} records to offsets...")
             val maxOffsetTime = Instant.ofEpochSecond(offset)
-             // For older data, offset is end date
+            // For older data, offset is end date
             val dataAge = Duration.between(maxOffsetTime, Instant.now())
             val nextOffset = if (dataAge <= Duration.ofDays(7)) {
                 maxOffsetTime.plus(OFFSET_BUFFER)

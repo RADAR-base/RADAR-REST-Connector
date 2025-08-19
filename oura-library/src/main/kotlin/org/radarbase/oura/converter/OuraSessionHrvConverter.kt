@@ -38,24 +38,27 @@ class OuraSessionHrvConverter(
         val timeReceivedEpoch = System.currentTimeMillis() / 1000.0
         val id = this.get("id").textValue()
         val interval = this.get(sampleKey)?.get("interval")?.intValue()
-            ?: throw IOException("Unable to get sample interval.")
-        val items = this.get(sampleKey)?.get("items") ?: throw IOException("Unable to get items.")
-        return items.asSequence()
-            .mapIndexedCatching { index, value ->
-                val offset = index * interval
-                val time = startTimeEpoch + offset
-                TopicData(
-                    key = user.observationKey,
-                    topic = topic,
-                    offset = time.toLong(),
-                    value = toHrv(
-                        time,
-                        timeReceivedEpoch,
-                        id,
-                        value.floatValue(),
-                    ),
-                )
-            }
+        val items = this.get(sampleKey)?.get("items")
+        return if (items == null || interval == null) {
+            emptySequence()
+        } else {
+            items.asSequence()
+                .mapIndexedCatching { index, value ->
+                    val offset = index * interval
+                    val time = startTimeEpoch + offset
+                    TopicData(
+                        key = user.observationKey,
+                        topic = topic,
+                        offset = time.toLong(),
+                        value = toHrv(
+                            time,
+                            timeReceivedEpoch,
+                            id,
+                            value.floatValue(),
+                        ),
+                    )
+                }
+        }
     }
 
     private fun toHrv(
