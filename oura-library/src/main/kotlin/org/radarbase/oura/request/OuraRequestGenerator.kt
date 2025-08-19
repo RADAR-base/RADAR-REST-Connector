@@ -195,10 +195,18 @@ constructor(
         val offset = records.maxByOrNull { it -> it.offset }?.offset
         if (offset != null) {
             logger.info("Writing ${records.size} records to offsets...")
+            val maxOffsetTime = Instant.ofEpochSecond(offset)
+             // For older data, offset is end date
+            val dataAge = Duration.between(maxOffsetTime, Instant.now())
+            val nextOffset = if (dataAge <= Duration.ofDays(7)) {
+                maxOffsetTime.plus(OFFSET_BUFFER)
+            } else {
+                maxOf(maxOffsetTime.plus(OFFSET_BUFFER), request.endDate)
+            }
             ouraOffsetManager.updateOffsets(
                 request.route,
                 request.user,
-                Instant.ofEpochSecond(offset).plus(OFFSET_BUFFER),
+                nextOffset,
             )
             val nextRequestTime = Instant.now().plus(SUCCESS_BACK_OFF_TIME)
             val key = routeKey(request.route, request.user)
