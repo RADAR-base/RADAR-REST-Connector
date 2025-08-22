@@ -44,7 +44,9 @@ class OuraSessionConverter(
             timeReceived = System.currentTimeMillis() / 1000.0
             id = data.get("id")?.textValue()
             type = data.get("type")?.textValue()?.classifyType()
+                ?: OuraMomentType.UNKNOWN
             mood = data.get("mood")?.textValue()?.classifyMood()
+                ?: OuraMomentMood.UNKNOWN
         }.build()
     }
 

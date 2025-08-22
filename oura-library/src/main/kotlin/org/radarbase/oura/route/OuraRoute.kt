@@ -73,8 +73,8 @@ abstract class OuraRoute(
                 val request = createRequest(
                     user,
                     "$OURA_API_BASE_URL/${subPath()}",
-                    "?start_date=${start.toLocalDate()}" +
-                        "&end_date=${end.toLocalDate()}",
+                    "?start_date=${startRange.toLocalDate()}" +
+                        "&end_date=${endRange.toLocalDate()}",
                 )
                 RestRequest(request, user, this, startRange, endRange)
             }
