@@ -24,7 +24,6 @@ constructor(
     private val ouraOffsetManager: OuraOffsetManager,
     public val routes: List<Route> = OuraRouteFactory.getRoutes(userRepository),
 ) : RequestGenerator {
-    private val userNextRequest: MutableMap<String, Instant> = mutableMapOf()
     private val routeNextRequest: MutableMap<String, Instant> = mutableMapOf()
 
     public var nextRequestTime: Instant = Instant.MIN
@@ -36,24 +35,20 @@ constructor(
         user: User,
         max: Int,
     ): Sequence<RestRequest> {
-        return if (user.ready()) {
-            routes.asSequence()
-                .flatMap { route ->
-                    if (routeReady(user, route)) {
-                        return@flatMap generateRequests(route, user)
-                    } else {
-                        logger.info(
-                            "Skip {} for {}: route in backoff until {}",
-                            route,
-                            user.versionedId,
-                            routeNextRequest[routeKey(route, user)],
-                        )
-                        return@flatMap emptySequence()
-                    }
+        return routes.asSequence()
+            .flatMap { route ->
+                if (routeReady(user, route)) {
+                    return@flatMap generateRequests(route, user)
+                } else {
+                    logger.info(
+                        "Skip {} for {}: route in backoff until {}",
+                        route,
+                        user.versionedId,
+                        routeNextRequest[routeKey(route, user)],
+                    )
+                    return@flatMap emptySequence()
                 }
-        } else {
-            emptySequence()
-        }
+            }
     }
 
     override fun requests(
@@ -63,24 +58,14 @@ constructor(
         return userRepository
             .stream()
             .flatMap { user ->
-                if (user.ready()) {
-                    if (routeReady(user, route)) {
-                        generateRequests(route, user)
-                    } else {
-                        logger.info(
-                            "Skip {} for {}: route in backoff until {}",
-                            route,
-                            user.versionedId,
-                            routeNextRequest[routeKey(route, user)],
-                        )
-                        emptySequence()
-                    }
+                if (routeReady(user, route)) {
+                    generateRequests(route, user)
                 } else {
                     logger.info(
-                        "Skip {} for {}: user in backoff until {}",
+                        "Skip {} for {}: route in backoff until {}",
                         route,
                         user.versionedId,
-                        userNextRequest[user.versionedId],
+                        routeNextRequest[routeKey(route, user)],
                     )
                     emptySequence()
                 }
@@ -92,19 +77,15 @@ constructor(
         user: User,
         max: Int,
     ): Sequence<RestRequest> {
-        return if (user.ready()) {
-            return if (routeReady(user, route)) {
-                generateRequests(route, user)
-            } else {
-                logger.info(
-                    "Skip {} for {}: route in backoff until {}",
-                    route,
-                    user.versionedId,
-                    routeNextRequest[routeKey(route, user)],
-                )
-                emptySequence()
-            }
+        return if (routeReady(user, route)) {
+            generateRequests(route, user)
         } else {
+            logger.info(
+                "Skip {} for {}: route in backoff until {}",
+                route,
+                user.versionedId,
+                routeNextRequest[routeKey(route, user)],
+            )
             emptySequence()
         }
     }
@@ -305,14 +286,6 @@ constructor(
                     Instant.now().plus(BACK_OFF_TIME)
                 OuraGenericError(response.body!!.string(), IOException("Unknown error"), "500")
             }
-        }
-    }
-
-    private fun User.ready(): Boolean {
-        return if (versionedId in userNextRequest) {
-            Instant.now() > userNextRequest[versionedId]
-        } else {
-            true
         }
     }
 
