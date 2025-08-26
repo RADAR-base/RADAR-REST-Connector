@@ -44,6 +44,8 @@ import org.radarbase.oura.request.OuraResult.Success;
 import org.radarbase.oura.request.OuraResult.Error;
 import org.radarbase.oura.request.OuraErrorBase;
 import org.radarbase.oura.request.RestRequest;
+import org.radarbase.oura.route.OuraRouteFlags;
+import org.radarbase.oura.route.OuraRouteFactory;
 import org.radarbase.oura.route.Route;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,9 +72,24 @@ public class OuraSourceTask extends SourceTask {
     this.baseClient = new OkHttpClient();
 
     this.userRepository = ouraConfig.getUserRepository();
+    OuraRouteFlags flags = new OuraRouteFlags(
+        ouraConfig.getOuraDailyActivityEnabled(),
+        ouraConfig.getOuraDailyReadinessEnabled(),
+        ouraConfig.getOuraDailySleepEnabled(),
+        ouraConfig.getOuraDailyOxygenSaturationEnabled(),
+        ouraConfig.getOuraHeartRateEnabled(),
+        ouraConfig.getOuraPersonalInfoEnabled(),
+        ouraConfig.getOuraSessionEnabled(),
+        ouraConfig.getOuraSleepEnabled(),
+        ouraConfig.getOuraTagEnabled(),
+        ouraConfig.getOuraWorkoutEnabled(),
+        ouraConfig.getOuraRingConfigurationEnabled(),
+        ouraConfig.getOuraRestModePeriodEnabled(),
+        ouraConfig.getOuraSleepTimeRecommendationEnabled()
+    );
     this.offsetManager = new KafkaOffsetManager(offsetStorageReader);
-    this.ouraRequestGenerator = new OuraRequestGenerator(this.userRepository, this.offsetManager);
-    this.routes = this.ouraRequestGenerator.getRoutes();
+    this.routes = OuraRouteFactory.getRoutes(this.userRepository, flags);
+    this.ouraRequestGenerator = new OuraRequestGenerator(this.userRepository, this.offsetManager, this.routes);
     this.offsetManager.initialize(getPartitions());
   }
 
