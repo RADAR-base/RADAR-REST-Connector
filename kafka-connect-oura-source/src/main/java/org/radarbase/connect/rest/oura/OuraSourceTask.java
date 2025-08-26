@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.time.Duration;
 
 import org.apache.kafka.connect.data.SchemaAndValue;
 import org.apache.kafka.connect.errors.ConnectException;
@@ -89,7 +90,7 @@ public class OuraSourceTask extends SourceTask {
     );
     this.offsetManager = new KafkaOffsetManager(offsetStorageReader);
     this.routes = OuraRouteFactory.getRoutes(this.userRepository, flags);
-    this.ouraRequestGenerator = new OuraRequestGenerator(this.userRepository, this.offsetManager, this.routes);
+    this.ouraRequestGenerator = new OuraRequestGenerator(this.userRepository, Duration.ofDays(15), this.offsetManager, this.routes);
     this.offsetManager.initialize(getPartitions());
   }
 
