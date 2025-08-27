@@ -254,6 +254,15 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
   private static final String FITBIT_FORBIDDEN_BACKOFF_DISPLAY = "Forbidden backoff time (s)";
   private static final int FITBIT_FORBIDDEN_BACKOFF_DEFAULT = 86400; // 24 hours
 
+  public static final String FITBIT_TOO_MANY_REQUESTS_COOLDOWN_CONFIG = "fitbit.too.many.requests.cooldown.s";
+  private static final String FITBIT_TOO_MANY_REQUESTS_COOLDOWN_DOC = "Cooldown time in seconds after receiving too many requests (429) response.";
+  private static final String FITBIT_TOO_MANY_REQUESTS_COOLDOWN_DISPLAY = "Too many requests cooldown (s)";
+  private static final int FITBIT_TOO_MANY_REQUESTS_COOLDOWN_DEFAULT = 3600; // 1 hour
+
+  public static final String FITBIT_COOLDOWN_STRATEGY_CONFIG = "fitbit.cooldown.strategy";
+  private static final String FITBIT_COOLDOWN_STRATEGY_DOC = "Strategy for handling too many requests cooldown. Options: ROLLING_WINDOW, TOP_OF_HOUR";
+  private static final String FITBIT_COOLDOWN_STRATEGY_DISPLAY = "Cooldown strategy";
+  private static final String FITBIT_COOLDOWN_STRATEGY_DEFAULT = "ROLLING_WINDOW";
 
   private UserRepository userRepository;
   private final Headers clientCredentials;
@@ -689,6 +698,26 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
             ++orderInGroup,
             Width.SHORT,
             FITBIT_FORBIDDEN_BACKOFF_DISPLAY)
+
+        .define(FITBIT_TOO_MANY_REQUESTS_COOLDOWN_CONFIG,
+            Type.INT,
+            FITBIT_TOO_MANY_REQUESTS_COOLDOWN_DEFAULT,
+            Importance.MEDIUM,
+            FITBIT_TOO_MANY_REQUESTS_COOLDOWN_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            FITBIT_TOO_MANY_REQUESTS_COOLDOWN_DISPLAY)
+
+        .define(FITBIT_COOLDOWN_STRATEGY_CONFIG,
+            Type.STRING,
+            FITBIT_COOLDOWN_STRATEGY_DEFAULT,
+            Importance.MEDIUM,
+            FITBIT_COOLDOWN_STRATEGY_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            FITBIT_COOLDOWN_STRATEGY_DISPLAY)
         ;
   }
 
@@ -849,7 +878,7 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
   }
 
   public Duration getTooManyRequestsCooldownInterval() {
-    return Duration.ofHours(1);
+    return Duration.ofSeconds(getInt(FITBIT_TOO_MANY_REQUESTS_COOLDOWN_CONFIG));
   }
 
   public String getFitbitIntradayCaloriesTopic() {
@@ -895,5 +924,13 @@ public class FitbitRestSourceConnectorConfig extends RestSourceConnectorConfig {
 
   public int getForbiddenBackoff() {
     return getInt(FITBIT_FORBIDDEN_BACKOFF_CONFIG);
+  }
+
+  public String getCooldownStrategy() {
+    String value = getString(FITBIT_COOLDOWN_STRATEGY_CONFIG);
+    if (!value.equalsIgnoreCase("ROLLING_WINDOW") && !value.equalsIgnoreCase("TOP_OF_HOUR")) {
+      throw new ConfigException(FITBIT_COOLDOWN_STRATEGY_CONFIG, value, "Invalid cooldown strategy. Must be either ROLLING_WINDOW or TOP_OF_HOUR.");
+    }
+    return value;
   }
 }
