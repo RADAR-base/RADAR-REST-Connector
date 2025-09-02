@@ -49,7 +49,9 @@ class OuraSleepTimeRecommendationConverter(
             optimalBedtimeEndOffset = data.get("optimal_bedtime")?.get("end_offset")?.intValue()
             optimalBedtimeTimezoneOffset = data.get("optimal_bedtime")?.get("day_tz")?.intValue()
             recommendation = data.get("recommendation").textValue()?.classifyRecommendation()
+                ?: OuraSleepRecommendation.UNKNOWN
             status = data.get("status").textValue()?.classifyStatus()
+                ?: OuraSleepStatus.UNKNOWN
         }.build()
     }
 

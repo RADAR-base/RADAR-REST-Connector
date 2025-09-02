@@ -39,25 +39,27 @@ class OuraSessionHeartRateConverter(
         val timeReceivedEpoch = System.currentTimeMillis() / 1000.0
         val id = this.get("id").textValue()
         val interval = this.get(sampleKey)?.get("interval")?.intValue()
-            ?: throw IOException("Unable to get sample interval.")
         val items = this.get(sampleKey)?.get("items")
-            ?: throw IOException("Unable to get sample items.")
-        return items.asSequence()
-            .mapIndexedCatching { index, value ->
-                val offset = interval * index
-                val time = startTimeEpoch + offset
-                TopicData(
-                    key = user.observationKey,
-                    topic = topic,
-                    offset = time.toLong(),
-                    value = toHeartRate(
-                        time,
-                        timeReceivedEpoch,
-                        id,
-                        value.intValue(),
-                    ),
-                )
-            }
+        return if (items == null || interval == null) {
+            emptySequence()
+        } else {
+            items.asSequence()
+                .mapIndexedCatching { index, value ->
+                    val offset = interval * index
+                    val time = startTimeEpoch + offset
+                    TopicData(
+                        key = user.observationKey,
+                        topic = topic,
+                        offset = time.toLong(),
+                        value = toHeartRate(
+                            time,
+                            timeReceivedEpoch,
+                            id,
+                            value.intValue(),
+                        ),
+                    )
+                }
+        }
     }
 
     private fun toHeartRate(

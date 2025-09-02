@@ -38,6 +38,7 @@ class OuraHeartRateConverter(
             time = startTime.toEpochMilli() / 1000.0
             timeReceived = System.currentTimeMillis() / 1000.0
             source = data.get("source")?.textValue()?.classify()
+                ?: OuraHeartRateSource.UNKNOWN
             bpm = data.get("bpm")?.intValue()
         }.build()
     }

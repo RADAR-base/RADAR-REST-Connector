@@ -48,8 +48,10 @@ class OuraWorkoutConverter(
             day = data.get("day")?.textValue()
             distance = data.get("distance")?.floatValue()
             intensity = data.get("intensity")?.textValue()?.classifyIntensity()
+                ?: OuraWorkoutIntensity.UNKNOWN
             label = data.get("label")?.textValue()
             source = data.get("source")?.textValue()?.classifySource()
+                ?: OuraWorkoutSource.UNKNOWN
         }.build()
     }
 
