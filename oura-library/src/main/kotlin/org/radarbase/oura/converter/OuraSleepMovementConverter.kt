@@ -34,8 +34,8 @@ class OuraSleepMovementConverter(
         val startTimeEpoch = startTime.toInstant().toEpochMilli() / 1000.0
         val timeReceivedEpoch = System.currentTimeMillis() / 1000.0
         val id = this.get("id").textValue()
-        val items = this.get("movement_30_sec").textValue().toCharArray()
-        return if (items.isEmpty()) {
+        val items = this.get("movement_30_sec")?.textValue()?.toCharArray()
+        return if (items == null || items.isEmpty()) {
             emptySequence()
         } else {
             items.asSequence()
