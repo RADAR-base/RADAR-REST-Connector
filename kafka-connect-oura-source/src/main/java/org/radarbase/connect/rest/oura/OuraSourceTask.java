@@ -22,6 +22,7 @@ import static java.time.temporal.ChronoUnit.MILLIS;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -67,6 +68,7 @@ public class OuraSourceTask extends SourceTask {
   private KafkaOffsetManager offsetManager;
   String TIMESTAMP_OFFSET_KEY = "timestamp";
   long TIMEOUT = 60000L;
+  private int routeStartIndex = 0;
 
   public void initialize(OuraRestSourceConnectorConfig config, OffsetStorageReader offsetStorageReader) {
     OuraRestSourceConnectorConfig ouraConfig = (OuraRestSourceConnectorConfig) config;
@@ -113,8 +115,20 @@ public class OuraSourceTask extends SourceTask {
   }
 
   public Stream<RestRequest> requests() {
-    Stream<Route> routes = this.routes.stream();
-    return routes.flatMap((Route r) -> StreamsKt.asStream(ouraRequestGenerator.requests(r, 100)));
+    if (this.routes == null || this.routes.isEmpty()) {
+      return Stream.empty();
+    }
+
+    // Rotate routes
+    int routeStart = routeStartIndex % this.routes.size();
+    List<Route> rotatedRoutes = new ArrayList<>(this.routes.size());
+    rotatedRoutes.addAll(this.routes.subList(routeStart, this.routes.size()));
+    rotatedRoutes.addAll(this.routes.subList(0, routeStart));
+    routeStartIndex = (routeStartIndex + 1) % this.routes.size();
+
+    // Generate requests per rotated route across all users (user iteration handled by generator)
+    return rotatedRoutes.stream()
+        .flatMap((Route r) -> StreamsKt.asStream(ouraRequestGenerator.requests(r, 100)));
   }
 
   public Stream<SourceRecord> handleRequest(RestRequest req) throws IOException {
