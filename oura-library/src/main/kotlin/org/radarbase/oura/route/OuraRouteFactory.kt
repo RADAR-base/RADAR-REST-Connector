@@ -23,7 +23,7 @@ object OuraRouteFactory {
             OuraDailyCardiovascularAgeRoute(userRepository),
             OuraDailyResilienceRoute(userRepository),
             OuraEnhancedTagRoute(userRepository),
-            OuraVO2MaxRoute(userRepository)
+            OuraVO2MaxRoute(userRepository),
         )
     }
 }

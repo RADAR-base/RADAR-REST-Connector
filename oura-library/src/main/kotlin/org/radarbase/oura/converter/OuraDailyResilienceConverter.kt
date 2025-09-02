@@ -6,11 +6,9 @@ import org.radarcns.connector.oura.OuraDailyResilience
 import org.radarcns.connector.oura.OuraResilienceLevel
 import org.slf4j.LoggerFactory
 import java.time.Instant
-import java.time.OffsetDateTime
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-
 class OuraDailyResilienceConverter(
     private val topic: String = "connect_oura_daily_resilience",
 ) : OuraDataConverter {
