@@ -2,15 +2,16 @@ package org.radarbase.oura.converter
 
 import com.fasterxml.jackson.databind.JsonNode
 import org.radarbase.oura.user.User
-import org.radarcns.connector.oura.OuraDailySpo2
+import org.radarcns.connector.oura.OuraDailyStress
+import org.radarcns.connector.oura.OuraDaySummaryType
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-class OuraDailySpo2Converter(
-    private val topic: String = "connect_oura_daily_spo2",
+class OuraDailyStressConverter(
+    private val topic: String = "connect_oura_daily_stress",
 ) : OuraDataConverter {
     override fun processRecords(
         root: JsonNode,
@@ -29,26 +30,37 @@ class OuraDailySpo2Converter(
                     key = user.observationKey,
                     topic = topic,
                     offset = startInstant.toEpoch(),
-                    value = it.toDailySpo2(startInstant),
+                    value = it.toDailyStress(startInstant),
                 )
             }
     }
 
-    private fun JsonNode.toDailySpo2(
+    private fun JsonNode.toDailyStress(
         startTime: Instant,
-    ): OuraDailySpo2 {
+    ): OuraDailyStress {
         val data = this
-        return OuraDailySpo2.newBuilder().apply {
+        return OuraDailyStress.newBuilder().apply {
             time = startTime.toEpochMilli() / 1000.0
             timeReceived = System.currentTimeMillis() / 1000.0
-            id = data.get("id").textValue()
-            spo2AveragePercentage = data.get("spo2_percentage")?.get("average")?.floatValue()
-            day = data.get("day").textValue()
-            breathingDisturbanceIndex = data.get("breathing_disturbance_index")?.intValue()
+            id = data.get("id")?.textValue()
+            day = data.get("day")?.textValue()
+            stressHigh = data.get("stress_high")?.intValue()
+            recoveryHigh = data.get("recovery_high")?.intValue()
+            daySummary = data.get("day_summary")?.textValue()?.classifyDaySummaryType()
+                ?: OuraDaySummaryType.UNKNOWN
         }.build()
     }
 
+    private fun String.classifyDaySummaryType(): OuraDaySummaryType {
+        return when (this.lowercase()) {
+            "normal" -> OuraDaySummaryType.NORMAL
+            "stressful" -> OuraDaySummaryType.STRESSFUL
+            "restored" -> OuraDaySummaryType.RESTORED
+            else -> OuraDaySummaryType.UNKNOWN
+        }
+    }
+
     companion object {
-        val logger = LoggerFactory.getLogger(OuraDailySpo2Converter::class.java)
+        val logger = LoggerFactory.getLogger(OuraDailyStressConverter::class.java)
     }
 }
