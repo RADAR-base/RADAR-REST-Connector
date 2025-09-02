@@ -41,7 +41,6 @@ class OuraDailyCardiovascularAgeConverter(
         return OuraDailyCardiovascularAge.newBuilder().apply {
             time = startTime.toEpochMilli() / 1000.0
             timeReceived = System.currentTimeMillis() / 1000.0
-            id = data.get("id")?.textValue()
             day = data.get("day")?.textValue()
             vascularAge = data.get("vascular_age")?.intValue()
         }.build()

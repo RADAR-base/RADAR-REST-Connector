@@ -48,6 +48,7 @@ class OuraDailyStressConverter(
             stressHigh = data.get("stress_high")?.intValue()
             recoveryHigh = data.get("recovery_high")?.intValue()
             daySummary = data.get("day_summary")?.textValue()?.classifyDaySummaryType()
+                ?: OuraDaySummaryType.UNKNOWN
         }.build()
     }
 

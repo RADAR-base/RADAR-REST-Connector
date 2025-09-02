@@ -6,7 +6,7 @@ object Versions {
     const val kotlin = "1.9.22"
     const val wrapper = "8.9"
 
-    const val radarCommons = "1.2.2"
+    const val radarCommons = "1.2.3"
     const val confluent = "7.8.1"
     const val kafka = "$confluent-ce"
     const val avro = "1.12.0"
@@ -24,7 +24,7 @@ object Versions {
     const val okhttp = "4.12.0"
 
     const val firebaseAdmin = "9.4.0"
-    const val radarSchemas = "0.8.12"
+    const val radarSchemas = "0.8.12-SNAPSHOT"
     const val ktor = "2.3.10"
 
     const val junit = "5.10.2"
