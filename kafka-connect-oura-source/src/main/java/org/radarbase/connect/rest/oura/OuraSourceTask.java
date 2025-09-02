@@ -22,12 +22,14 @@ import static java.time.temporal.ChronoUnit.MILLIS;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.time.Duration;
 
 import org.apache.kafka.connect.data.SchemaAndValue;
 import org.apache.kafka.connect.errors.ConnectException;
@@ -44,6 +46,8 @@ import org.radarbase.oura.request.OuraResult.Success;
 import org.radarbase.oura.request.OuraResult.Error;
 import org.radarbase.oura.request.OuraErrorBase;
 import org.radarbase.oura.request.RestRequest;
+import org.radarbase.oura.route.OuraRouteFlags;
+import org.radarbase.oura.route.OuraRouteFactory;
 import org.radarbase.oura.route.Route;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,15 +68,31 @@ public class OuraSourceTask extends SourceTask {
   private KafkaOffsetManager offsetManager;
   String TIMESTAMP_OFFSET_KEY = "timestamp";
   long TIMEOUT = 60000L;
+  private int routeStartIndex = 0;
 
   public void initialize(OuraRestSourceConnectorConfig config, OffsetStorageReader offsetStorageReader) {
     OuraRestSourceConnectorConfig ouraConfig = (OuraRestSourceConnectorConfig) config;
     this.baseClient = new OkHttpClient();
 
     this.userRepository = ouraConfig.getUserRepository();
+    OuraRouteFlags flags = new OuraRouteFlags(
+        ouraConfig.getOuraDailyActivityEnabled(),
+        ouraConfig.getOuraDailyReadinessEnabled(),
+        ouraConfig.getOuraDailySleepEnabled(),
+        ouraConfig.getOuraDailyOxygenSaturationEnabled(),
+        ouraConfig.getOuraHeartRateEnabled(),
+        ouraConfig.getOuraPersonalInfoEnabled(),
+        ouraConfig.getOuraSessionEnabled(),
+        ouraConfig.getOuraSleepEnabled(),
+        ouraConfig.getOuraTagEnabled(),
+        ouraConfig.getOuraWorkoutEnabled(),
+        ouraConfig.getOuraRingConfigurationEnabled(),
+        ouraConfig.getOuraRestModePeriodEnabled(),
+        ouraConfig.getOuraSleepTimeRecommendationEnabled()
+    );
     this.offsetManager = new KafkaOffsetManager(offsetStorageReader);
-    this.ouraRequestGenerator = new OuraRequestGenerator(this.userRepository, this.offsetManager);
-    this.routes = this.ouraRequestGenerator.getRoutes();
+    this.routes = OuraRouteFactory.getRoutes(this.userRepository, flags);
+    this.ouraRequestGenerator = new OuraRequestGenerator(this.userRepository, Duration.ofDays(15), this.offsetManager, this.routes);
     this.offsetManager.initialize(getPartitions());
   }
 
@@ -95,8 +115,20 @@ public class OuraSourceTask extends SourceTask {
   }
 
   public Stream<RestRequest> requests() {
-    Stream<Route> routes = this.routes.stream();
-    return routes.flatMap((Route r) -> StreamsKt.asStream(ouraRequestGenerator.requests(r, 100)));
+    if (this.routes == null || this.routes.isEmpty()) {
+      return Stream.empty();
+    }
+
+    // Rotate routes
+    int routeStart = routeStartIndex % this.routes.size();
+    List<Route> rotatedRoutes = new ArrayList<>(this.routes.size());
+    rotatedRoutes.addAll(this.routes.subList(routeStart, this.routes.size()));
+    rotatedRoutes.addAll(this.routes.subList(0, routeStart));
+    routeStartIndex = (routeStartIndex + 1) % this.routes.size();
+
+    // Generate requests per rotated route across all users (user iteration handled by generator)
+    return rotatedRoutes.stream()
+        .flatMap((Route r) -> StreamsKt.asStream(ouraRequestGenerator.requests(r, 100)));
   }
 
   public Stream<SourceRecord> handleRequest(RestRequest req) throws IOException {
