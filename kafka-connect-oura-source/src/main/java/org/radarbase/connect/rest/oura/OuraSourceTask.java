@@ -155,7 +155,7 @@ public class OuraSourceTask extends SourceTask {
       while (sourceRecords.isEmpty() && requestIterator.hasNext()) {
         RestRequest request = requestIterator.next();
 
-        logger.info("Requesting {}", request.getRequest().url());
+        logger.info("Requesting for user {}, url: {}", request.getUser().getUserId(), request.getRequest().url());
         requestsGenerated++;
 
         try {

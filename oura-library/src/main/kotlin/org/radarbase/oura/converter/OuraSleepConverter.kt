@@ -37,21 +37,21 @@ class OuraSleepConverter(
         return OuraSleep.newBuilder().apply {
             time = startTime.toEpochMilli() / 1000.0
             timeReceived = System.currentTimeMillis() / 1000.0
-            id = data.get("id").textValue()
-            averageBreath = data.get("average_breath").floatValue()
-            averageHeartRate = data.get("average_heart_rate").floatValue()
-            averageHrv = data.get("average_hrv").intValue()
-            awakeTime = data.get("awake_time").intValue()
-            bedtimeEnd = data.get("bedtime_end").textValue()
-            bedtimeStart = data.get("bedtime_start").textValue()
-            day = data.get("day").textValue()
-            deepSleepDuration = data.get("deep_sleep_duration").intValue()
-            efficiency = data.get("efficiency").intValue()
-            latency = data.get("latency").intValue()
-            lightSleepDuration = data.get("light_sleep_duration").intValue()
-            lowBatteryAlert = data.get("low_battery_alert").booleanValue()
-            lowestHeartRate = data.get("lowest_heart_rate").intValue()
-            period = data.get("period").intValue()
+            id = data.get("id")?.textValue()
+            averageBreath = data.get("average_breath")?.floatValue()
+            averageHeartRate = data.get("average_heart_rate")?.floatValue()
+            averageHrv = data.get("average_hrv")?.intValue()
+            awakeTime = data.get("awake_time")?.intValue()
+            bedtimeEnd = data.get("bedtime_end")?.textValue()
+            bedtimeStart = data.get("bedtime_start")?.textValue()
+            day = data.get("day")?.textValue()
+            deepSleepDuration = data.get("deep_sleep_duration")?.intValue()
+            efficiency = data.get("efficiency")?.intValue()
+            latency = data.get("latency")?.intValue()
+            lightSleepDuration = data.get("light_sleep_duration")?.intValue()
+            lowBatteryAlert = data.get("low_battery_alert")?.booleanValue()
+            lowestHeartRate = data.get("lowest_heart_rate")?.intValue()
+            period = data.get("period")?.intValue()
             readinessContributorActivityBalance =
                 data.get("readiness")?.get("contributors")?.get("activity_balance")?.intValue()
             readinessContributorBodyTemperature =
@@ -73,13 +73,14 @@ class OuraSleepConverter(
                 data.get("readiness")?.get("temperature_deviation")?.intValue()
             readinessTemperatureTrendDeviation =
                 data.get("readiness")?.get("temperature_trend_deviation")?.intValue()
-            readinessScoreDelta = data.get("readiness_score_delta").intValue()
-            remSleepDuration = data.get("rem_sleep_duration").intValue()
-            restlessPeriods = data.get("restless_periods").intValue()
-            sleepScoreDelta = data.get("sleep_score_delta").intValue()
-            timeInBed = data.get("time_in_bed").intValue()
-            totalSleepDuration = data.get("total_sleep_duration").intValue()
-            type = data.get("type").textValue()?.classifyType()
+            readinessScoreDelta = data.get("readiness_score_delta")?.intValue()
+            remSleepDuration = data.get("rem_sleep_duration")?.intValue()
+            restlessPeriods = data.get("restless_periods")?.intValue()
+            sleepScoreDelta = data.get("sleep_score_delta")?.intValue()
+            timeInBed = data.get("time_in_bed")?.intValue()
+            totalSleepDuration = data.get("total_sleep_duration")?.intValue()
+            type = data.get("type")?.textValue()?.classifyType()
+                ?: OuraSleepType.UNKNOWN
         }.build()
     }
 

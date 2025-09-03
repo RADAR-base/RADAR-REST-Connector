@@ -38,21 +38,21 @@ class OuraRingConfigurationConverter(
             }
     }
 
-    private fun JsonNode.toRingConfiguration(setupTime: Instant?): OuraRingConfiguration {
+    private fun JsonNode.toRingConfiguration(
+        setupTime: Instant?,
+    ): OuraRingConfiguration {
         val data = this
         return OuraRingConfiguration.newBuilder().apply {
             time = System.currentTimeMillis() / 1000.0
             timeReceived = System.currentTimeMillis() / 1000.0
-            id = data.get("id").textValue()
-            color = data.get("color").textValue()?.classifyColor()
-            design = data.get("design").textValue()?.classifyDesign()
-            firmwareVersion = data.get("firmware_version").textValue()
-            hardwareType = data.get("hardware_type").textValue()?.classifyHardware()
-            setUpAt =
-                setupTime?.toEpochMilli()?.let {
-                    it / 1000.0
-                }
-            size = data.get("size").intValue()
+            id = data.get("id")?.textValue()
+            color = data.get("color")?.textValue()?.classifyColor() ?: OuraRingColor.UNKNOWN
+            design = data.get("design")?.textValue()?.classifyDesign() ?: OuraRingDesign.UNKNOWN
+            firmwareVersion = data.get("firmware_version")?.textValue()
+            hardwareType = data.get("hardware_type")?.textValue()?.classifyHardware()
+                ?: OuraRingHardwareType.UNKNOWN
+            setUpAt = setupTime?.toEpochMilli()?.let { it / 1000.0 }
+            size = data.get("size")?.intValue()
         }.build()
     }
 

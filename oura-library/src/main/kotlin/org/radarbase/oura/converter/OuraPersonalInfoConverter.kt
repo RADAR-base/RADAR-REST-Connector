@@ -29,12 +29,12 @@ class OuraPersonalInfoConverter(
         return OuraPersonalInfo.newBuilder().apply {
             time = System.currentTimeMillis() / 1000.0
             timeReceived = System.currentTimeMillis() / 1000.0
-            id = data.get("id").textValue()
-            age = data.get("age").intValue()
-            weight = data.get("weight").floatValue()
-            height = data.get("height").floatValue()
-            biologicalSex = data.get("biological_sex").textValue()
-            email = data.get("email").textValue()
+            id = data.get("id")?.textValue()
+            age = data.get("age")?.intValue()
+            weight = data.get("weight")?.floatValue()
+            height = data.get("height")?.floatValue()
+            biologicalSex = data.get("biological_sex")?.textValue()
+            email = data.get("email")?.textValue()
         }.build()
     }
 

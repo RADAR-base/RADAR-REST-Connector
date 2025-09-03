@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.confluent.connect.avro.AvroData;
 
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import org.radarbase.connect.rest.RestSourceConnectorConfig;
 import org.radarbase.connect.rest.fitbit.FitbitRestSourceConnectorConfig;
@@ -50,36 +51,41 @@ public class FitbitRestingHeartRateAvroConverter extends FitbitAvroConverter {
   @Override
   protected Stream<TopicData> processRecords(
       FitbitRestRequest request, JsonNode root, double timeReceived) {
-    JsonNode resting = root.get("activities-heart");
-    if (resting == null || !resting.isObject()) {
+    JsonNode activitiesHeart = root.get("activities-heart");
+    if (activitiesHeart == null || !activitiesHeart.isArray() || activitiesHeart.size() == 0) {
       logger.info("No resting heart rate available from {} on the specified date", request.getRequest().url());
       return Stream.empty();
     }
 
-    JsonNode dateTimeNode = resting.get("dateTime");
-    if (dateTimeNode == null) {
-      logger.warn("Failed to get resting heart rate from {}, {} : the 'dateTime' node is missing.", request.getRequest().url(), root);
-      return Stream.empty();
-    }
-    String date = dateTimeNode.asText();
+    return StreamSupport.stream(activitiesHeart.spliterator(), false)
+        .filter(entry -> entry != null && entry.isObject())
+        .map(entry -> {
+          JsonNode dateTimeNode = entry.get("dateTime");
+          if (dateTimeNode == null) {
+            logger.warn("Failed to get resting heart rate from {}, {} : the 'dateTime' node is missing.", request.getRequest().url(), root);
+            return null;
+          }
+          String date = dateTimeNode.asText();
 
-    JsonNode value = resting.get("value");
-    if (value == null || !value.isObject()) {
-      logger.warn("Failed to get resting heart rate from {}, {} : the 'value' node is missing.", request.getRequest().url(), root);
-      return Stream.empty();
-    }
+          JsonNode value = entry.get("value");
+          if (value == null || !value.isObject()) {
+            logger.warn("Failed to get resting heart rate from {}, {} : the 'value' node is missing.", request.getRequest().url(), root);
+            return null;
+          }
 
-    JsonNode restingHeartRateNode = value.get("restingHeartRate");
-    if (restingHeartRateNode == null) {
-      logger.warn("Failed to get resting heart rate from {}, {} : the 'restingHeartRate' node is missing.", request.getRequest().url(), root);
-      return Stream.empty();
-    }
-    int restingHeartRate = restingHeartRateNode.asInt();
+          JsonNode restingHeartRateNode = value.get("restingHeartRate");
+          if (restingHeartRateNode == null) {
+            logger.warn("Failed to get resting heart rate from {}, {} : the 'restingHeartRate' node is missing.", request.getRequest().url(), root);
+            return null;
+          }
+          int restingHeartRate = restingHeartRateNode.asInt();
 
-    FitbitRestingHeartRate fitbitRestingHeartRate
-        = new FitbitRestingHeartRate(date, timeReceived, restingHeartRate);
+          FitbitRestingHeartRate fitbitRestingHeartRate
+              = new FitbitRestingHeartRate(date, timeReceived, restingHeartRate);
 
-    return Stream.of(new TopicData(request.getDateRange().start().toInstant(),
-        restingHeartRateTopic, fitbitRestingHeartRate));
+          return new TopicData(request.getDateRange().start().toInstant(),
+              restingHeartRateTopic, fitbitRestingHeartRate);
+        })
+        .filter(java.util.Objects::nonNull);
   }
 }

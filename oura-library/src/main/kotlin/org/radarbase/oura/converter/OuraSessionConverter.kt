@@ -37,12 +37,16 @@ class OuraSessionConverter(
         val data = this
         return OuraSession.newBuilder().apply {
             time = startTime.toEpochMilli() / 1000.0
-            endTime = OffsetDateTime.parse(data.get("end_datetime").textValue())
-                .toInstant().toEpochMilli() / 1000.0
+            endTime = data.get("end_datetime")?.let {
+                val endTime = OffsetDateTime.parse(it.textValue())
+                endTime.toInstant().toEpochMilli() / 1000.0
+            } ?: (startTime.toEpochMilli() / 1000.0)
             timeReceived = System.currentTimeMillis() / 1000.0
-            id = data.get("id").textValue()
-            type = data.get("type").textValue()?.classifyType()
-            mood = data.get("mood").textValue()?.classifyMood()
+            id = data.get("id")?.textValue()
+            type = data.get("type")?.textValue()?.classifyType()
+                ?: OuraMomentType.UNKNOWN
+            mood = data.get("mood")?.textValue()?.classifyMood()
+                ?: OuraMomentMood.UNKNOWN
         }.build()
     }
 

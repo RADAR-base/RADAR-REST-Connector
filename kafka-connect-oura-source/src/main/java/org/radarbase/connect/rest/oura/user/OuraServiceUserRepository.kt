@@ -251,25 +251,53 @@ class OuraServiceUserRepository : OuraUserRepository() {
         crossinline builder: HttpRequestBuilder.() -> Unit,
     ): T =
         withContext(Dispatchers.IO) {
+            val requestBuilder = HttpRequestBuilder()
+            builder(requestBuilder)
+            logger.info("Making HTTP request: ${requestBuilder.method} ${requestBuilder.url}")
+
             val response = client.request(builder)
+            logger.info("Response status: ${response.status}")
             val contentLength = response.contentLength()
-            val hasBody = contentLength != null && contentLength > 0
-            if (response.status == HttpStatusCode.NotFound) {
-                throw NoSuchElementException("URL " + response.request.url + " does not exist")
-            } else if (!response.status.isSuccess() || !hasBody) {
-                val message =
-                    buildString {
-                        append("Failed to make request (HTTP status code ")
-                        append(response.status)
-                        append(')')
-                        if (hasBody) {
-                            append(": ")
-                            append(response.bodyAsText())
-                        }
-                    }
-                throw HttpResponseException(message, response.status.value)
+            val transferEncoding = response.headers["Transfer-Encoding"]
+            val hasBody = (contentLength != null && contentLength > 0) ||
+                (transferEncoding != null && transferEncoding.contains("chunked"))
+            val responseBody = try {
+                response.bodyAsText()
+            } catch (e: Exception) {
+                "Error reading body: ${e.message}"
             }
-            mapper.readValue<T>(response.bodyAsText())
+
+            if (response.status == HttpStatusCode.NotFound) {
+                logger.error("HTTP 404 Not Found: ${response.request.url}")
+                throw NoSuchElementException("URL " + response.request.url + " does not exist")
+            } else if (!response.status.isSuccess()) {
+                val message = "HTTP ${response.status.value} error: $responseBody"
+                logger.error(message)
+                throw HttpResponseException(message, response.status.value)
+            } else if (!hasBody) {
+                logger.warn(
+                    "HTTP ${response.status.value} OK but no body content. Returning empty result.",
+                )
+                // Handle successful responses with empty body
+                @Suppress("UNCHECKED_CAST")
+                return@withContext when (T::class) {
+                    String::class -> "" as T
+                    List::class -> emptyList<Any>() as T
+                    else -> mapper.readValue<T>("{}")
+                }
+            }
+
+            try {
+                val result = mapper.readValue<T>(responseBody)
+                logger.info("Successfully parsed response as ${T::class.simpleName}")
+                result
+            } catch (e: Exception) {
+                logger.error(
+                    "Failed to parse response body as ${T::class.simpleName}: ${e.message}",
+                )
+                logger.error("Response body that failed to parse: $responseBody")
+                throw e
+            }
         }
 
     companion object {
