@@ -1,6 +1,6 @@
 @Suppress("ConstPropertyName", "MemberVisibilityCanBePrivate")
 object Versions {
-    const val project = "0.6.3"
+    const val project = "0.6.4"
 
     const val java = 17
     const val kotlin = "1.9.22"
