@@ -21,7 +21,7 @@ object Versions {
 
     const val okhttp = "4.12.0"
 
-    const val firebaseAdmin = "9.4.0"
+    const val firebaseAdmin = "9.6.0"
     const val radarSchemas = "0.8.14"
     const val ktor = "2.3.10"
 
@@ -29,5 +29,5 @@ object Versions {
     const val wiremock = "3.0.1"
     const val mockito = "5.11.0"
 
-    const val nettyVersion = "4.1.118.Final"
+    const val nettyVersion = "4.1.125.Final"
 }
