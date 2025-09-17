@@ -4,7 +4,7 @@ import org.radarbase.oura.user.UserRepository
 
 object OuraRouteFactory {
 
-    fun getRoutes(userRepository: UserRepository): List<Route> {
+    fun getRoutes(userRepository: UserRepository): List<OuraRoute> {
         return listOf(
             OuraDailyActivityRoute(userRepository),
             OuraDailyReadinessRoute(userRepository),
