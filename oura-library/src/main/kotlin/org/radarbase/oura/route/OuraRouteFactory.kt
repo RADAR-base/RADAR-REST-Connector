@@ -6,48 +6,53 @@ object OuraRouteFactory {
 
     @JvmStatic
     fun getRoutes(userRepository: UserRepository): List<Route> =
-        getRoutes(userRepository, OuraRouteFlags())
+        getRoutes(userRepository, OuraConfig())
 
     @JvmStatic
-    fun getRoutes(userRepository: UserRepository, flags: OuraRouteFlags): List<Route> {
+    fun getRoutes(userRepository: UserRepository, config: OuraConfig): List<Route> {
         val routes = mutableListOf<Route>()
-        if (flags.dailyActivityEnabled) {
+
+        // Helper to add based on enum presence
+        fun isEnabled(type: OuraRouteType): Boolean =
+            type in config.enabledRoutes
+
+        if (isEnabled(OuraRouteType.DAILY_ACTIVITY)) {
             routes.add(OuraDailyActivityRoute(userRepository))
         }
-        if (flags.dailyReadinessEnabled) {
+        if (isEnabled(OuraRouteType.DAILY_READINESS)) {
             routes.add(OuraDailyReadinessRoute(userRepository))
         }
-        if (flags.dailySleepEnabled) {
+        if (isEnabled(OuraRouteType.DAILY_SLEEP)) {
             routes.add(OuraDailySleepRoute(userRepository))
         }
-        if (flags.dailyOxygenSaturationEnabled) {
+        if (isEnabled(OuraRouteType.DAILY_OXYGEN_SATURATION)) {
             routes.add(OuraDailyOxygenSaturationRoute(userRepository))
         }
-        if (flags.heartRateEnabled) {
+        if (isEnabled(OuraRouteType.HEART_RATE)) {
             routes.add(OuraHeartRateRoute(userRepository))
         }
-        if (flags.personalInfoEnabled) {
+        if (isEnabled(OuraRouteType.PERSONAL_INFO)) {
             routes.add(OuraPersonalInfoRoute(userRepository))
         }
-        if (flags.sessionEnabled) {
+        if (isEnabled(OuraRouteType.SESSION)) {
             routes.add(OuraSessionRoute(userRepository))
         }
-        if (flags.sleepEnabled) {
+        if (isEnabled(OuraRouteType.SLEEP)) {
             routes.add(OuraSleepRoute(userRepository))
         }
-        if (flags.tagEnabled) {
+        if (isEnabled(OuraRouteType.TAG)) {
             routes.add(OuraTagRoute(userRepository))
         }
-        if (flags.workoutEnabled) {
+        if (isEnabled(OuraRouteType.WORKOUT)) {
             routes.add(OuraWorkoutRoute(userRepository))
         }
-        if (flags.ringConfigurationEnabled) {
+        if (isEnabled(OuraRouteType.RING_CONFIGURATION)) {
             routes.add(OuraRingConfigurationRoute(userRepository))
         }
-        if (flags.restModePeriodEnabled) {
+        if (isEnabled(OuraRouteType.REST_MODE_PERIOD)) {
             routes.add(OuraRestModePeriodRoute(userRepository))
         }
-        if (flags.sleepTimeRecommendationEnabled) {
+        if (isEnabled(OuraRouteType.SLEEP_TIME_RECOMMENDATION)) {
             routes.add(OuraSleepTimeRecommendationRoute(userRepository))
         }
         return routes

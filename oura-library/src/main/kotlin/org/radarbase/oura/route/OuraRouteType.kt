@@ -1,0 +1,17 @@
+package org.radarbase.oura.route
+
+enum class OuraRouteType {
+    DAILY_ACTIVITY,
+    DAILY_READINESS,
+    DAILY_SLEEP,
+    DAILY_OXYGEN_SATURATION,
+    HEART_RATE,
+    PERSONAL_INFO,
+    SESSION,
+    SLEEP,
+    TAG,
+    WORKOUT,
+    RING_CONFIGURATION,
+    REST_MODE_PERIOD,
+    SLEEP_TIME_RECOMMENDATION,
+}

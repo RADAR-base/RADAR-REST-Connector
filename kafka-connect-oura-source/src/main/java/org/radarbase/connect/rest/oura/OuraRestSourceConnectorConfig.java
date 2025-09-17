@@ -45,6 +45,9 @@ import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.connect.errors.ConnectException;
 import org.radarbase.connect.rest.oura.user.OuraUserRepository;
 import org.radarbase.connect.rest.oura.user.OuraServiceUserRepository;
+import org.radarbase.oura.route.OuraConfig;
+import org.radarbase.oura.route.OuraRouteType;
+import java.util.EnumSet;
 
 public class OuraRestSourceConnectorConfig extends AbstractConfig {
   public static final Pattern COLON_PATTERN = Pattern.compile(":");
@@ -526,5 +529,26 @@ public class OuraRestSourceConnectorConfig extends AbstractConfig {
   public boolean getOuraRingConfigurationEnabled() { return getBoolean(OURA_RING_CONFIGURATION_ENABLED_CONFIG); }
   public boolean getOuraRestModePeriodEnabled() { return getBoolean(OURA_REST_MODE_PERIOD_ENABLED_CONFIG); }
   public boolean getOuraSleepTimeRecommendationEnabled() { return getBoolean(OURA_SLEEP_TIME_RECOMMENDATION_ENABLED_CONFIG); }
+
+  /**
+   * Convert this connector configuration into an Oura library configuration.
+   */
+  public OuraConfig toOuraConfig() {
+    EnumSet<OuraRouteType> enabled = EnumSet.noneOf(OuraRouteType.class);
+    if (getOuraDailyActivityEnabled()) enabled.add(OuraRouteType.DAILY_ACTIVITY);
+    if (getOuraDailyReadinessEnabled()) enabled.add(OuraRouteType.DAILY_READINESS);
+    if (getOuraDailySleepEnabled()) enabled.add(OuraRouteType.DAILY_SLEEP);
+    if (getOuraDailyOxygenSaturationEnabled()) enabled.add(OuraRouteType.DAILY_OXYGEN_SATURATION);
+    if (getOuraHeartRateEnabled()) enabled.add(OuraRouteType.HEART_RATE);
+    if (getOuraPersonalInfoEnabled()) enabled.add(OuraRouteType.PERSONAL_INFO);
+    if (getOuraSessionEnabled()) enabled.add(OuraRouteType.SESSION);
+    if (getOuraSleepEnabled()) enabled.add(OuraRouteType.SLEEP);
+    if (getOuraTagEnabled()) enabled.add(OuraRouteType.TAG);
+    if (getOuraWorkoutEnabled()) enabled.add(OuraRouteType.WORKOUT);
+    if (getOuraRingConfigurationEnabled()) enabled.add(OuraRouteType.RING_CONFIGURATION);
+    if (getOuraRestModePeriodEnabled()) enabled.add(OuraRouteType.REST_MODE_PERIOD);
+    if (getOuraSleepTimeRecommendationEnabled()) enabled.add(OuraRouteType.SLEEP_TIME_RECOMMENDATION);
+    return new OuraConfig(enabled);
+  }
 
 }
