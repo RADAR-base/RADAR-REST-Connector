@@ -126,9 +126,8 @@ public class OuraSourceTask extends SourceTask {
   }
 
   private List<Route> getRotatedRoutes() {
-    int routeStart = routeStartIndex % this.routes.size();
     List<Route> rotatedRoutes = new ArrayList<>(this.routes);
-    Collections.rotate(rotatedRoutes, routeStart);
+    Collections.rotate(rotatedRoutes, routeStartIndex % this.routes.size());
     routeStartIndex = (routeStartIndex + 1) % this.routes.size();
     return rotatedRoutes;
   }
