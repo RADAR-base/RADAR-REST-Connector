@@ -91,8 +91,8 @@ public class OuraSourceTask extends SourceTask {
         ouraConfig.getOuraSleepTimeRecommendationEnabled()
     );
     this.offsetManager = new KafkaOffsetManager(offsetStorageReader);
-    this.routes = OuraRouteFactory.getRoutes(this.userRepository, flags);
-    this.ouraRequestGenerator = new OuraRequestGenerator(this.userRepository, Duration.ofDays(15), this.offsetManager, this.routes);
+    this.ouraRequestGenerator = new OuraRequestGenerator(this.userRepository, this.offsetManager, flags);
+    this.routes = this.ouraRequestGenerator.getRoutes();
     this.offsetManager.initialize(getPartitions());
   }
 
