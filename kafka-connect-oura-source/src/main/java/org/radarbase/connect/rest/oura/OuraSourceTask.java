@@ -46,7 +46,6 @@ import org.radarbase.oura.request.OuraResult.Success;
 import org.radarbase.oura.request.OuraResult.Error;
 import org.radarbase.oura.request.OuraErrorBase;
 import org.radarbase.oura.request.RestRequest;
-import org.radarbase.oura.route.OuraRouteFlags;
 import org.radarbase.oura.route.OuraRouteFactory;
 import org.radarbase.oura.route.Route;
 import org.radarbase.oura.route.OuraConfig;
