@@ -48,7 +48,19 @@ import org.radarbase.oura.request.OuraErrorBase;
 import org.radarbase.oura.request.RestRequest;
 import org.radarbase.oura.route.OuraRouteFactory;
 import org.radarbase.oura.route.Route;
-import org.radarbase.oura.route.OuraConfig;
+import org.radarbase.oura.route.OuraDailyActivityRoute;
+import org.radarbase.oura.route.OuraDailyReadinessRoute;
+import org.radarbase.oura.route.OuraDailySleepRoute;
+import org.radarbase.oura.route.OuraDailyOxygenSaturationRoute;
+import org.radarbase.oura.route.OuraHeartRateRoute;
+import org.radarbase.oura.route.OuraPersonalInfoRoute;
+import org.radarbase.oura.route.OuraSessionRoute;
+import org.radarbase.oura.route.OuraSleepRoute;
+import org.radarbase.oura.route.OuraTagRoute;
+import org.radarbase.oura.route.OuraWorkoutRoute;
+import org.radarbase.oura.route.OuraRingConfigurationRoute;
+import org.radarbase.oura.route.OuraRestModePeriodRoute;
+import org.radarbase.oura.route.OuraSleepTimeRecommendationRoute;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.radarbase.oura.user.User;
@@ -76,9 +88,54 @@ public class OuraSourceTask extends SourceTask {
 
     this.userRepository = ouraConfig.getUserRepository();
     this.offsetManager = new KafkaOffsetManager(offsetStorageReader);
-    this.ouraRequestGenerator = new OuraRequestGenerator(this.userRepository, this.offsetManager, ouraConfig.toOuraConfig());
-    this.routes = this.ouraRequestGenerator.getRoutes();
+    this.routes = this.getRoutes(ouraConfig);
+    this.ouraRequestGenerator = new OuraRequestGenerator(this.userRepository, this.offsetManager, this.routes);
     this.offsetManager.initialize(getPartitions());
+  }
+
+  private List<Route> getRoutes(OuraRestSourceConnectorConfig config) {
+    List<Route> routes = new ArrayList<>();
+
+    if (config.getOuraDailyActivityEnabled()) {
+      routes.add(new OuraDailyActivityRoute(userRepository));
+    }
+    if (config.getOuraDailyReadinessEnabled()) {
+      routes.add(new OuraDailyReadinessRoute(userRepository));
+    }
+    if (config.getOuraDailySleepEnabled()) {
+      routes.add(new OuraDailySleepRoute(userRepository));
+    }
+    if (config.getOuraDailyOxygenSaturationEnabled()) {
+      routes.add(new OuraDailyOxygenSaturationRoute(userRepository));
+    }
+    if (config.getOuraHeartRateEnabled()) {
+      routes.add(new OuraHeartRateRoute(userRepository));
+    }
+    if (config.getOuraPersonalInfoEnabled()) {
+      routes.add(new OuraPersonalInfoRoute(userRepository));
+    }
+    if (config.getOuraSessionEnabled()) {
+      routes.add(new OuraSessionRoute(userRepository));
+    }
+    if (config.getOuraSleepEnabled()) {
+      routes.add(new OuraSleepRoute(userRepository));
+    }
+    if (config.getOuraTagEnabled()) {
+      routes.add(new OuraTagRoute(userRepository));
+    }
+    if (config.getOuraWorkoutEnabled()) {
+      routes.add(new OuraWorkoutRoute(userRepository));
+    }
+    if (config.getOuraRingConfigurationEnabled()) {
+      routes.add(new OuraRingConfigurationRoute(userRepository));
+    }
+    if (config.getOuraRestModePeriodEnabled()) {
+      routes.add(new OuraRestModePeriodRoute(userRepository));
+    }
+    if (config.getOuraSleepTimeRecommendationEnabled()) {
+      routes.add(new OuraSleepTimeRecommendationRoute(userRepository));
+    }
+    return routes;
   }
 
     public List<Map<String, Object>> getPartitions() {

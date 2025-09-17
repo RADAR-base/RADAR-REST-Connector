@@ -6,7 +6,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import okhttp3.Response
 import okhttp3.ResponseBody
 import org.radarbase.oura.converter.TopicData
-import org.radarbase.oura.route.OuraConfig
 import org.radarbase.oura.route.OuraRouteFactory
 import org.radarbase.oura.route.Route
 import org.radarbase.oura.user.User
@@ -22,8 +21,7 @@ class OuraRequestGenerator
 constructor(
     private val userRepository: UserRepository,
     private val ouraOffsetManager: OuraOffsetManager,
-    private val config: OuraConfig,
-    public val routes: List<Route> = OuraRouteFactory.getRoutes(userRepository, config),
+    public val routes: List<Route> = OuraRouteFactory.getRoutes(userRepository),
     private val defaultQueryRange: Duration = Duration.ofDays(15),
 ) : RequestGenerator {
     private val routeNextRequest: MutableMap<String, Instant> = mutableMapOf()
