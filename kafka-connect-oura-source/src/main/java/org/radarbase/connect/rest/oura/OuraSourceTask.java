@@ -118,17 +118,19 @@ public class OuraSourceTask extends SourceTask {
     if (this.routes == null || this.routes.isEmpty()) {
       return Stream.empty();
     }
-
-    // Rotate routes
-    int routeStart = routeStartIndex % this.routes.size();
-    List<Route> rotatedRoutes = new ArrayList<>(this.routes.size());
-    rotatedRoutes.addAll(this.routes.subList(routeStart, this.routes.size()));
-    rotatedRoutes.addAll(this.routes.subList(0, routeStart));
-    routeStartIndex = (routeStartIndex + 1) % this.routes.size();
-
-    // Generate requests per rotated route across all users (user iteration handled by generator)
+  
+    // Rotate routes so that all routes are requested in a round-robin manner
+    List<Route> rotatedRoutes = getRotatedRoutes();
     return rotatedRoutes.stream()
         .flatMap((Route r) -> StreamsKt.asStream(ouraRequestGenerator.requests(r, 100)));
+  }
+
+  private List<Route> getRotatedRoutes() {
+    int routeStart = routeStartIndex % this.routes.size();
+    List<Route> rotatedRoutes = new ArrayList<>(this.routes);
+    Collections.rotate(rotatedRoutes, routeStart);
+    routeStartIndex = (routeStartIndex + 1) % this.routes.size();
+    return rotatedRoutes;
   }
 
   public Stream<SourceRecord> handleRequest(RestRequest req) throws IOException {
