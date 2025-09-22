@@ -20,9 +20,9 @@ class OuraRequestGenerator
 @JvmOverloads
 constructor(
     private val userRepository: UserRepository,
-    private val defaultQueryRange: Duration = Duration.ofDays(15),
     private val ouraOffsetManager: OuraOffsetManager,
     public val routes: List<Route> = OuraRouteFactory.getRoutes(userRepository),
+    private val defaultQueryRange: Duration = Duration.ofDays(15),
 ) : RequestGenerator {
     private val routeNextRequest: MutableMap<String, Instant> = mutableMapOf()
 
