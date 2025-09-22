@@ -61,6 +61,11 @@ import org.radarbase.oura.route.OuraWorkoutRoute;
 import org.radarbase.oura.route.OuraRingConfigurationRoute;
 import org.radarbase.oura.route.OuraRestModePeriodRoute;
 import org.radarbase.oura.route.OuraSleepTimeRecommendationRoute;
+import org.radarbase.oura.route.OuraDailyStressRoute;
+import org.radarbase.oura.route.OuraVO2MaxRoute;
+import org.radarbase.oura.route.OuraDailyResilienceRoute;
+import org.radarbase.oura.route.OuraDailyCardiovascularAgeRoute;
+import org.radarbase.oura.route.OuraEnhancedTagRoute;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.radarbase.oura.user.User;
@@ -134,6 +139,21 @@ public class OuraSourceTask extends SourceTask {
     }
     if (config.getOuraSleepTimeRecommendationEnabled()) {
       routes.add(new OuraSleepTimeRecommendationRoute(userRepository));
+    }
+    if (config.getOuraDailyStressEnabled()) {
+      routes.add(new OuraDailyStressRoute(userRepository));
+    }
+    if (config.getOuraVo2maxEnabled()) {
+      routes.add(new OuraVO2MaxRoute(userRepository));
+    }
+    if (config.getOuraDailyResilienceEnabled()) {
+      routes.add(new OuraDailyResilienceRoute(userRepository));
+    }
+    if (config.getOuraDailyCardiovascularAgeEnabled()) {
+      routes.add(new OuraDailyCardiovascularAgeRoute(userRepository));
+    }
+    if (config.getOuraEnhancedTagEnabled()) {
+      routes.add(new OuraEnhancedTagRoute(userRepository));
     }
     return routes;
   }
