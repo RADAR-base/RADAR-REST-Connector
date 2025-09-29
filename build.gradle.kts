@@ -22,6 +22,16 @@ radarRootProject {
 subprojects {
     apply(plugin = "org.radarbase.radar-kotlin")
 
+    configurations.all {
+        resolutionStrategy {
+            /* The entries in the block below are added here to force the version of
+             * transitive dependencies and mitigate reported vulnerabilities */
+            force(
+                "org.apache.commons:commons-lang3:3.18.0",
+            )
+        }
+    }
+
     radarKotlin {
         javaVersion.set(Versions.java)
         kotlinVersion.set(Versions.kotlin)

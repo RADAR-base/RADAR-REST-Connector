@@ -61,7 +61,6 @@ import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.stream.Stream
 import kotlin.time.Duration.Companion.days
-import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toKotlinDuration
@@ -235,7 +234,7 @@ class ServiceUserRepository : UserRepository {
         }
 
     override fun hasPendingUpdates(): Boolean = runBlocking(Dispatchers.Default) {
-        userCache.isStale(1.hours)
+        userCache.isStale()
     }
 
     @Throws(IOException::class)
