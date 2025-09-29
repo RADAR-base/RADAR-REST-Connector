@@ -6,57 +6,70 @@ on:
   workflow_dispatch:
 
 env:
-    DOCKER_IMAGE_FITBIT: radarbase/kafka-connect-rest-fitbit-source
-    DOCKER_IMAGE_OURA: radarbase/kafka-connect-rest-oura-source
+  REGISTRY: ghcr.io
+  REPOSITORY: ${{ github.repository }}
+  IMAGES: >-
+    [{
+    'name': 'kafka-connect-fitbit-source',
+    'build_file': 'kafka-connect-fitbit-source/Dockerfile',
+    'authors': 'Pim van Nierop <pim@thehyve.nl>, Pauline Conde <pauline.conde@kcl.ac.uk>',
+    'description': 'RADAR-base Fitbit connector application'
+    },{
+    'name': 'kafka-connect-oura-source',
+    'build_file': 'kafka-connect-oura-source/Dockerfile',
+    'authors': 'Pim van Nierop <pim@thehyve.nl>, Pauline Conde <pauline.conde@kcl.ac.uk>',
+    'description': 'RADAR-base Oura connector application'
+    }]
 
 jobs:
-  security:
+  prepare-matrix:
+    name: Prepare Matrix Output
+    permissions: {}
     runs-on: ubuntu-latest
+    outputs:
+      images: ${{ steps.step1.outputs.matrix }}
+    steps:
+      - name: Create Matrix Variable
+        id: step1
+        run: echo "matrix=${{ env.IMAGES }}" >> $GITHUB_OUTPUT
+
+  security:
+    needs: prepare-matrix
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        image: ${{ fromJson(needs.prepare-matrix.outputs.images ) }}
+    permissions:
+      contents: read
+      packages: write
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v5
 
-      - name: Run Snyk to check for vulnerabilities on Fitbit image
+      - name: Lowercase image name
+        run: |
+          echo "DOCKER_IMAGE=${REGISTRY}/${REPOSITORY,,}/${{ matrix.image.name }}" >>${GITHUB_ENV}
+
+      - name: Run Snyk to check for vulnerabilities
         continue-on-error: true # To make sure that SARIF upload gets called
         uses: snyk/actions/docker@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          image: ${{ env.DOCKER_IMAGE_FITBIT }}
+          image: ${{ env.DOCKER_IMAGE }}
           args: >-
-            --file=kafka-connect-fitbit-source/Dockerfile
+            --file=${{ matrix.image.build_file }}
             --fail-on=upgradable
             --severity-threshold=high
             --policy-path=.snyk
             --exclude-app-vulns
             --org=radar-base
-            --sarif-file-output=snyk.sarif
+            --sarif-file-output=${{ matrix.image.name }}.sarif
 
       # Detected vulnerabilities will appear on Github in Security->Code_scanning_alerts tab
-      - name: Upload Fitbit result to GitHub Code Scanning
+      - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v3
         with:
-          category: fitbit
           sarif_file: snyk.sarif
+          category: ${{ matrix.image.name }}
 
-      - name: Run Snyk to check for vulnerabilities on Oura image
-        continue-on-error: true # To make sure that SARIF upload gets called
-        uses: snyk/actions/docker@master
-        env:
-            SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-            image: ${{ env.DOCKER_IMAGE_OURA }}
-            args: >-
-              --file=kafka-connect-oura-source/Dockerfile
-              --fail-on=upgradable
-              --severity-threshold=high
-              --policy-path=.snyk
-              --exclude-app-vulns
-              --org=radar-base
-              --sarif-file-output=snyk.sarif
-
-      - name: Upload Oura result to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          category: oura
-          sarif_file: snyk.sarif
