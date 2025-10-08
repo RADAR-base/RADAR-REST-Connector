@@ -19,6 +19,11 @@ object OuraRouteFactory {
             OuraRingConfigurationRoute(userRepository),
             OuraRestModePeriodRoute(userRepository),
             OuraSleepTimeRecommendationRoute(userRepository),
+            OuraDailyStressRoute(userRepository),
+            OuraDailyCardiovascularAgeRoute(userRepository),
+            OuraDailyResilienceRoute(userRepository),
+            OuraEnhancedTagRoute(userRepository),
+            OuraVO2MaxRoute(userRepository),
         )
     }
 }

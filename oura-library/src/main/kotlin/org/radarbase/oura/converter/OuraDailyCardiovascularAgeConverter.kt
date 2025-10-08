@@ -2,15 +2,15 @@ package org.radarbase.oura.converter
 
 import com.fasterxml.jackson.databind.JsonNode
 import org.radarbase.oura.user.User
-import org.radarcns.connector.oura.OuraDailySpo2
+import org.radarcns.connector.oura.OuraDailyCardiovascularAge
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-class OuraDailySpo2Converter(
-    private val topic: String = "connect_oura_daily_spo2",
+class OuraDailyCardiovascularAgeConverter(
+    private val topic: String = "connect_oura_daily_cardiovascular_age",
 ) : OuraDataConverter {
     override fun processRecords(
         root: JsonNode,
@@ -29,26 +29,24 @@ class OuraDailySpo2Converter(
                     key = user.observationKey,
                     topic = topic,
                     offset = startInstant.toEpoch(),
-                    value = it.toDailySpo2(startInstant),
+                    value = it.toDailyCardiovascularAge(startInstant),
                 )
             }
     }
 
-    private fun JsonNode.toDailySpo2(
+    private fun JsonNode.toDailyCardiovascularAge(
         startTime: Instant,
-    ): OuraDailySpo2 {
+    ): OuraDailyCardiovascularAge {
         val data = this
-        return OuraDailySpo2.newBuilder().apply {
+        return OuraDailyCardiovascularAge.newBuilder().apply {
             time = startTime.toEpochMilli() / 1000.0
             timeReceived = System.currentTimeMillis() / 1000.0
-            id = data.get("id").textValue()
-            spo2AveragePercentage = data.get("spo2_percentage")?.get("average")?.floatValue()
-            day = data.get("day").textValue()
-            breathingDisturbanceIndex = data.get("breathing_disturbance_index")?.intValue()
+            day = data.get("day")?.textValue()
+            vascularAge = data.get("vascular_age")?.intValue()
         }.build()
     }
 
     companion object {
-        val logger = LoggerFactory.getLogger(OuraDailySpo2Converter::class.java)
+        val logger = LoggerFactory.getLogger(OuraDailyCardiovascularAgeConverter::class.java)
     }
 }
