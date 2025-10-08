@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM --platform=$BUILDPLATFORM gradle:8.13-jdk17 AS builder
+FROM --platform=$BUILDPLATFORM gradle:8.9-jdk17 AS builder
 
 RUN mkdir /code
 WORKDIR /code
@@ -32,14 +32,16 @@ COPY ./oura-library/src/ /code/oura-library/src
 
 RUN gradle jar
 
-FROM quay.io/strimzi/kafka:0.46.0-kafka-3.9.0
+FROM confluentinc/cp-kafka-connect-base:7.8.1
 
+USER appuser
 
 LABEL org.opencontainers.image.authors="pauline.conde@kcl.ac.uk"
 
 LABEL description="Kafka Oura REST API Source connector"
 
-ENV CONNECT_PLUGIN_PATH=/opt/kafka/plugins
+ENV CONNECT_PLUGIN_PATH="/usr/share/java/kafka-connect/plugins" \
+  WAIT_FOR_KAFKA="1"
 
 # To isolate the classpath from the plugin path as recommended
 COPY --from=builder /code/kafka-connect-oura-source/build/third-party/*.jar ${CONNECT_PLUGIN_PATH}/kafka-connect-oura-source/
@@ -48,11 +50,12 @@ COPY --from=builder /code/oura-library/build/third-party/*.jar ${CONNECT_PLUGIN_
 COPY --from=builder /code/kafka-connect-oura-source/build/libs/*.jar ${CONNECT_PLUGIN_PATH}/kafka-connect-oura-source/
 COPY --from=builder /code/oura-library/build/libs/*.jar ${CONNECT_PLUGIN_PATH}/kafka-connect-oura-source/
 
-# Copy Sentry monitoring jars.
-COPY --from=builder /code/kafka-connect-oura-source/build/third-party/sentry-* /opt/kafka/libs/
+# Load topics validator
+COPY  --chown=appuser:appuser ./docker/legacy/ensure /etc/confluent/docker/ensure
 
-USER 1001
+# Load modified launcher
+COPY  --chown=appuser:appuser ./docker/legacy/launch /etc/confluent/docker/launch
 
-COPY --chown=1001:1001 ./docker/ensure /opt/kafka/ensure
-COPY --chown=1001:1001 ./docker/kafka_connect_run.sh /opt/kafka/kafka_connect_run.sh
-RUN chmod +x /opt/kafka/ensure /opt/kafka/kafka_connect_run.sh
+# Copy Sentry monitoring jars. Sentry monitoring needs to be included in helm chart log4j ConfigMap.
+COPY --from=builder /code/kafka-connect-oura-source/build/third-party/sentry-* /etc/kafka-connect/jars
+

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM --platform=$BUILDPLATFORM gradle:8.13-jdk17 AS builder
+FROM --platform=$BUILDPLATFORM gradle:8.9-jdk17 AS builder
 
 RUN mkdir /code
 WORKDIR /code
@@ -32,7 +32,7 @@ COPY ./kafka-connect-fitbit-source/src/ /code/kafka-connect-fitbit-source/src
 
 RUN gradle jar
 
-FROM quay.io/strimzi/kafka:0.46.0-kafka-3.9.0
+FROM confluentinc/cp-kafka-connect-base:7.8.1
 
 USER appuser
 
@@ -40,7 +40,8 @@ LABEL org.opencontainers.image.authors="pim@thehyve.nl"
 
 LABEL description="Kafka REST API Source connector"
 
-ENV CONNECT_PLUGIN_PATH=/opt/kafka/plugins
+ENV CONNECT_PLUGIN_PATH="/usr/share/java/kafka-connect/plugins" \
+  WAIT_FOR_KAFKA="1"
 
 # To isolate the classpath from the plugin path as recommended
 COPY --from=builder /code/kafka-connect-rest-source/build/third-party/*.jar ${CONNECT_PLUGIN_PATH}/kafka-connect-rest-source/
@@ -50,11 +51,15 @@ COPY --from=builder /code/kafka-connect-rest-source/build/libs/*.jar ${CONNECT_P
 COPY --from=builder /code/kafka-connect-rest-source/build/libs/*.jar ${CONNECT_PLUGIN_PATH}/kafka-connect-fitbit-source/
 COPY --from=builder /code/kafka-connect-fitbit-source/build/libs/*.jar ${CONNECT_PLUGIN_PATH}/kafka-connect-fitbit-source/
 
+# Load topics validator
+COPY  --chown=appuser:appuser ./docker/legacy/ensure /etc/confluent/docker/ensure
+
+# Load modified launcher
+COPY  --chown=appuser:appuser ./docker/legacy/launch /etc/confluent/docker/launch
+
+# Overwrite the log4j configuration to include Sentry monitoring.
+COPY ./docker/legacy/log4j.properties.template /etc/confluent/docker/log4j.properties.template
 # Copy Sentry monitoring jars.
-COPY --from=builder /code/kafka-connect-fitbit-source/build/third-party/sentry-* /opt/kafka/libs/
+COPY --from=builder /code/kafka-connect-fitbit-source/build/third-party/sentry-* /etc/kafka-connect/jars
 
-USER 1001
-
-COPY --chown=1001:1001 ./docker/ensure /opt/kafka/ensure
-COPY --chown=1001:1001 ./docker/kafka_connect_run.sh /opt/kafka/kafka_connect_run.sh
-RUN chmod +x /opt/kafka/ensure /opt/kafka/kafka_connect_run.sh
+RUN chmod +x /etc/confluent/docker/ensure

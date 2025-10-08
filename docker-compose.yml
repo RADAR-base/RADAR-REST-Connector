@@ -146,11 +146,11 @@ services:
   radar-fitbit-connector:
     build:
       context: .
-      dockerfile: ./kafka-connect-fitbit-source/Dockerfile
+      dockerfile: ./kafka-connect-fitbit-source/Dockerfile-legacy
     image: radarbase/radar-connect-fitbit-source
     restart: on-failure
     volumes:
-      - ./docker/source-fitbit.properties:/etc/kafka-connect/source-fitbit.properties
+      - ./docker/legacy/source-fitbit.properties:/etc/kafka-connect/source-fitbit.properties
       - ./docker/users:/var/lib/kafka-connect-fitbit-source/users
       - fitbit-logs:/var/lib/kafka-connect-fitbit-source/logs
     depends_on:
@@ -192,11 +192,11 @@ services:
   radar-oura-connector:
     build:
       context: .
-      dockerfile: ./kafka-connect-oura-source/Dockerfile
+      dockerfile: ./kafka-connect-oura-source/Dockerfile-legacy
     image: radarbase/radar-connect-oura-source
     restart: on-failure
     volumes:
-      - ./docker/source-oura.properties:/etc/kafka-connect/source-oura.properties
+      - ./docker/legacy/source-oura.properties:/etc/kafka-connect/source-oura.properties
       - ./docker/users:/var/lib/kafka-connect-oura-source/users
       - oura-logs:/var/lib/kafka-connect-oura-source/logs
     depends_on:
