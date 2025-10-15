@@ -64,7 +64,7 @@ jobs:
             --policy-path=.snyk
             --exclude-app-vulns
             --org=radar-base
-            --sarif-file-output=${{ matrix.image.name }}.sarif
+            --sarif-file-output=snyk.sarif
 
       # Detected vulnerabilities will appear on Github in Security->Code_scanning_alerts tab
       - name: Upload result to GitHub Code Scanning
