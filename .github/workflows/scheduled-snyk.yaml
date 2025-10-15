@@ -36,7 +36,9 @@ jobs:
   security:
     needs: prepare-matrix
     runs-on: ubuntu-latest
-    permissions: {}
+    permissions:
+      contents: read
+      security-events: write
     strategy:
       matrix:
         module: ${{ fromJson(needs.prepare-matrix.outputs.modules ) }}
