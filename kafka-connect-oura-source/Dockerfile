@@ -34,7 +34,6 @@ RUN gradle jar
 
 FROM confluentinc/cp-kafka-connect-base:7.8.1
 
-USER appuser
 
 LABEL org.opencontainers.image.authors="pauline.conde@kcl.ac.uk"
 
