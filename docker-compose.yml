@@ -3,6 +3,7 @@ version: "2.4"
 
 volumes:
   fitbit-logs: {}
+  oura-logs: {}
 
 services:
   #---------------------------------------------------------------------------#
@@ -197,6 +198,7 @@ services:
     volumes:
       - ./docker/source-oura.properties:/etc/kafka-connect/source-oura.properties
       - ./docker/users:/var/lib/kafka-connect-oura-source/users
+      - oura-logs:/var/lib/kafka-connect-oura-source/logs
     depends_on:
       - zookeeper-1
       - zookeeper-2

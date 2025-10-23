@@ -102,6 +102,79 @@ public class OuraRestSourceConnectorConfig extends AbstractConfig {
   private static final String OURA_USER_REPOSITORY_TOKEN_URL_DOC = "OAuth 2.0 token url for retrieving client credentials.";
   private static final String OURA_USER_REPOSITORY_TOKEN_URL_DISPLAY = "OAuth 2.0 token URL.";
 
+// Route enabled configs strings
+  private static final String OURA_DAILY_ACTIVITY_ENABLED_CONFIG = "oura.daily.activity.enabled";
+  private static final String OURA_DAILY_ACTIVITY_ENABLED_DOC = "Enable or disable Oura daily activity";
+  private static final String OURA_DAILY_ACTIVITY_ENABLED_DISPLAY = "Oura daily activity enabled";
+
+  private static final String OURA_DAILY_READINESS_ENABLED_CONFIG = "oura.daily.readiness.enabled";
+  private static final String OURA_DAILY_READINESS_ENABLED_DOC = "Enable or disable Oura daily readiness";
+  private static final String OURA_DAILY_READINESS_ENABLED_DISPLAY = "Oura daily readiness enabled";
+
+  private static final String OURA_DAILY_SLEEP_ENABLED_CONFIG = "oura.daily.sleep.enabled";
+  private static final String OURA_DAILY_SLEEP_ENABLED_DOC = "Enable or disable Oura daily sleep";
+  private static final String OURA_DAILY_SLEEP_ENABLED_DISPLAY = "Oura daily sleep enabled";
+
+  private static final String OURA_DAILY_OXYGEN_SATURATION_ENABLED_CONFIG = "oura.daily.oxygen.saturation.enabled";
+  private static final String OURA_DAILY_OXYGEN_SATURATION_ENABLED_DOC = "Enable or disable Oura daily oxygen saturation";
+  private static final String OURA_DAILY_OXYGEN_SATURATION_ENABLED_DISPLAY = "Oura daily oxygen saturation enabled";
+
+  private static final String OURA_HEART_RATE_ENABLED_CONFIG = "oura.heart.rate.enabled";
+  private static final String OURA_HEART_RATE_ENABLED_DOC = "Enable or disable Oura heart rate";
+  private static final String OURA_HEART_RATE_ENABLED_DISPLAY = "Oura heart rate enabled";
+
+  private static final String OURA_PERSONAL_INFO_ENABLED_CONFIG = "oura.personal.info.enabled";
+  private static final String OURA_PERSONAL_INFO_ENABLED_DOC = "Enable or disable Oura personal info";
+  private static final String OURA_PERSONAL_INFO_ENABLED_DISPLAY = "Oura personal info enabled";
+
+  private static final String OURA_SESSION_ENABLED_CONFIG = "oura.session.enabled";
+  private static final String OURA_SESSION_ENABLED_DOC = "Enable or disable Oura sessions";
+  private static final String OURA_SESSION_ENABLED_DISPLAY = "Oura sessions enabled";
+
+  private static final String OURA_SLEEP_ENABLED_CONFIG = "oura.sleep.enabled";
+  private static final String OURA_SLEEP_ENABLED_DOC = "Enable or disable Oura sleep";
+  private static final String OURA_SLEEP_ENABLED_DISPLAY = "Oura sleep enabled";
+
+  private static final String OURA_TAG_ENABLED_CONFIG = "oura.tag.enabled";
+  private static final String OURA_TAG_ENABLED_DOC = "Enable or disable Oura tags";
+  private static final String OURA_TAG_ENABLED_DISPLAY = "Oura tags enabled";
+
+  private static final String OURA_WORKOUT_ENABLED_CONFIG = "oura.workout.enabled";
+  private static final String OURA_WORKOUT_ENABLED_DOC = "Enable or disable Oura workouts";
+  private static final String OURA_WORKOUT_ENABLED_DISPLAY = "Oura workouts enabled";
+
+  private static final String OURA_RING_CONFIGURATION_ENABLED_CONFIG = "oura.ring.configuration.enabled";
+  private static final String OURA_RING_CONFIGURATION_ENABLED_DOC = "Enable or disable Oura ring configuration";
+  private static final String OURA_RING_CONFIGURATION_ENABLED_DISPLAY = "Oura ring configuration enabled";
+
+  private static final String OURA_REST_MODE_PERIOD_ENABLED_CONFIG = "oura.rest.mode.period.enabled";
+  private static final String OURA_REST_MODE_PERIOD_ENABLED_DOC = "Enable or disable Oura rest mode period";
+  private static final String OURA_REST_MODE_PERIOD_ENABLED_DISPLAY = "Oura rest mode period enabled";
+
+  private static final String OURA_SLEEP_TIME_RECOMMENDATION_ENABLED_CONFIG = "oura.sleep.time.recommendation.enabled";
+  private static final String OURA_SLEEP_TIME_RECOMMENDATION_ENABLED_DOC = "Enable or disable Oura sleep time recommendation";
+  private static final String OURA_SLEEP_TIME_RECOMMENDATION_ENABLED_DISPLAY = "Oura sleep time recommendation enabled";
+
+  private static final String OURA_DAILY_STRESS_ENABLED_CONFIG = "oura.daily.stress.enabled";
+  private static final String OURA_DAILY_STRESS_ENABLED_DOC = "Enable or disable Oura daily stress";
+  private static final String OURA_DAILY_STRESS_ENABLED_DISPLAY = "Oura daily stress enabled";
+
+  private static final String OURA_VO2MAX_ENABLED_CONFIG = "oura.vo2max.enabled";
+  private static final String OURA_VO2MAX_ENABLED_DOC = "Enable or disable Oura vo2max";
+  private static final String OURA_VO2MAX_ENABLED_DISPLAY = "Oura vo2max enabled";
+
+  private static final String OURA_DAILY_RESILIENCE_ENABLED_CONFIG = "oura.daily.resilience.enabled";
+  private static final String OURA_DAILY_RESILIENCE_ENABLED_DOC = "Enable or disable Oura daily resilience";
+  private static final String OURA_DAILY_RESILIENCE_ENABLED_DISPLAY = "Oura daily resilience enabled";
+
+  private static final String OURA_DAILY_CARDIOVASCULAR_AGE_ENABLED_CONFIG = "oura.daily.cardiovascular.age.enabled";
+  private static final String OURA_DAILY_CARDIOVASCULAR_AGE_ENABLED_DOC = "Enable or disable Oura daily cardiovascular age";
+  private static final String OURA_DAILY_CARDIOVASCULAR_AGE_ENABLED_DISPLAY = "Oura daily cardiovascular age enabled";
+
+  private static final String OURA_ENHANCED_TAG_ENABLED_CONFIG = "oura.enhanced.tag.enabled";
+  private static final String OURA_ENHANCED_TAG_ENABLED_DOC = "Enable or disable Oura enhanced tag";
+  private static final String OURA_ENHANCED_TAG_ENABLED_DISPLAY = "Oura enhanced tag enabled";
+
   private OuraUserRepository userRepository;
   private final Headers clientCredentials;
 
@@ -240,6 +313,187 @@ public class OuraRestSourceConnectorConfig extends AbstractConfig {
             ++orderInGroup,
             Width.SHORT,
             OURA_USER_REPOSITORY_TOKEN_URL_DISPLAY)
+
+        // Route enable/disable flags
+        .define(OURA_DAILY_ACTIVITY_ENABLED_CONFIG,
+            Type.BOOLEAN,
+            true,
+            Importance.LOW,
+            OURA_DAILY_ACTIVITY_ENABLED_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            OURA_DAILY_ACTIVITY_ENABLED_DISPLAY)
+
+        .define(OURA_DAILY_READINESS_ENABLED_CONFIG,
+            Type.BOOLEAN,
+            true,
+            Importance.LOW,
+            OURA_DAILY_READINESS_ENABLED_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            OURA_DAILY_READINESS_ENABLED_DISPLAY)
+
+        .define(OURA_DAILY_SLEEP_ENABLED_CONFIG,
+            Type.BOOLEAN,
+            true,
+            Importance.LOW,
+            OURA_DAILY_SLEEP_ENABLED_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            OURA_DAILY_SLEEP_ENABLED_DISPLAY)
+
+        .define(OURA_DAILY_OXYGEN_SATURATION_ENABLED_CONFIG,
+            Type.BOOLEAN,
+            true,
+            Importance.LOW,
+            OURA_DAILY_OXYGEN_SATURATION_ENABLED_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            OURA_DAILY_OXYGEN_SATURATION_ENABLED_DISPLAY)
+
+        .define(OURA_HEART_RATE_ENABLED_CONFIG,
+            Type.BOOLEAN,
+            true,
+            Importance.LOW,
+            OURA_HEART_RATE_ENABLED_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            OURA_HEART_RATE_ENABLED_DISPLAY)
+
+        .define(OURA_PERSONAL_INFO_ENABLED_CONFIG,
+            Type.BOOLEAN,
+            true,
+            Importance.LOW,
+            OURA_PERSONAL_INFO_ENABLED_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            OURA_PERSONAL_INFO_ENABLED_DISPLAY)
+
+        .define(OURA_SESSION_ENABLED_CONFIG,
+            Type.BOOLEAN,
+            true,
+            Importance.LOW,
+            OURA_SESSION_ENABLED_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            OURA_SESSION_ENABLED_DISPLAY)
+
+        .define(OURA_SLEEP_ENABLED_CONFIG,
+            Type.BOOLEAN,
+            true,
+            Importance.LOW,
+            OURA_SLEEP_ENABLED_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            OURA_SLEEP_ENABLED_DISPLAY)
+
+        .define(OURA_TAG_ENABLED_CONFIG,
+            Type.BOOLEAN,
+            true,
+            Importance.LOW,
+            OURA_TAG_ENABLED_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            OURA_TAG_ENABLED_DISPLAY)
+
+        .define(OURA_WORKOUT_ENABLED_CONFIG,
+            Type.BOOLEAN,
+            true,
+            Importance.LOW,
+            OURA_WORKOUT_ENABLED_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            OURA_WORKOUT_ENABLED_DISPLAY)
+
+        .define(OURA_RING_CONFIGURATION_ENABLED_CONFIG,
+            Type.BOOLEAN,
+            true,
+            Importance.LOW,
+            OURA_RING_CONFIGURATION_ENABLED_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            OURA_RING_CONFIGURATION_ENABLED_DISPLAY)
+
+        .define(OURA_REST_MODE_PERIOD_ENABLED_CONFIG,
+            Type.BOOLEAN,
+            true,
+            Importance.LOW,
+            OURA_REST_MODE_PERIOD_ENABLED_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            OURA_REST_MODE_PERIOD_ENABLED_DISPLAY)
+
+        .define(OURA_SLEEP_TIME_RECOMMENDATION_ENABLED_CONFIG,
+            Type.BOOLEAN,
+            true,
+            Importance.LOW,
+            OURA_SLEEP_TIME_RECOMMENDATION_ENABLED_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            OURA_SLEEP_TIME_RECOMMENDATION_ENABLED_DISPLAY)
+
+        .define(OURA_DAILY_STRESS_ENABLED_CONFIG,
+            Type.BOOLEAN,
+            true,
+            Importance.LOW,
+            OURA_DAILY_STRESS_ENABLED_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            OURA_DAILY_STRESS_ENABLED_DISPLAY)
+
+        .define(OURA_VO2MAX_ENABLED_CONFIG,
+            Type.BOOLEAN,
+            true,
+            Importance.LOW,
+            OURA_VO2MAX_ENABLED_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            OURA_VO2MAX_ENABLED_DISPLAY)
+
+        .define(OURA_DAILY_RESILIENCE_ENABLED_CONFIG,
+            Type.BOOLEAN,
+            true,
+            Importance.LOW,
+            OURA_DAILY_RESILIENCE_ENABLED_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            OURA_DAILY_RESILIENCE_ENABLED_DISPLAY)
+
+        .define(OURA_DAILY_CARDIOVASCULAR_AGE_ENABLED_CONFIG,
+            Type.BOOLEAN,
+            true,
+            Importance.LOW,
+            OURA_DAILY_CARDIOVASCULAR_AGE_ENABLED_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            OURA_DAILY_CARDIOVASCULAR_AGE_ENABLED_DISPLAY)
+
+        .define(OURA_ENHANCED_TAG_ENABLED_CONFIG,
+            Type.BOOLEAN,
+            true,
+            Importance.LOW,
+            OURA_ENHANCED_TAG_ENABLED_DOC,
+            group,
+            ++orderInGroup,
+            Width.SHORT,
+            OURA_ENHANCED_TAG_ENABLED_DISPLAY)
         ;
   }
 
@@ -327,4 +581,25 @@ public class OuraRestSourceConnectorConfig extends AbstractConfig {
       }
     }
   }
+
+  // Route enabled getters
+  public boolean getOuraDailyActivityEnabled() { return getBoolean(OURA_DAILY_ACTIVITY_ENABLED_CONFIG); }
+  public boolean getOuraDailyReadinessEnabled() { return getBoolean(OURA_DAILY_READINESS_ENABLED_CONFIG); }
+  public boolean getOuraDailySleepEnabled() { return getBoolean(OURA_DAILY_SLEEP_ENABLED_CONFIG); }
+  public boolean getOuraDailyOxygenSaturationEnabled() { return getBoolean(OURA_DAILY_OXYGEN_SATURATION_ENABLED_CONFIG); }
+  public boolean getOuraHeartRateEnabled() { return getBoolean(OURA_HEART_RATE_ENABLED_CONFIG); }
+  public boolean getOuraPersonalInfoEnabled() { return getBoolean(OURA_PERSONAL_INFO_ENABLED_CONFIG); }
+  public boolean getOuraSessionEnabled() { return getBoolean(OURA_SESSION_ENABLED_CONFIG); }
+  public boolean getOuraSleepEnabled() { return getBoolean(OURA_SLEEP_ENABLED_CONFIG); }
+  public boolean getOuraTagEnabled() { return getBoolean(OURA_TAG_ENABLED_CONFIG); }
+  public boolean getOuraWorkoutEnabled() { return getBoolean(OURA_WORKOUT_ENABLED_CONFIG); }
+  public boolean getOuraRingConfigurationEnabled() { return getBoolean(OURA_RING_CONFIGURATION_ENABLED_CONFIG); }
+  public boolean getOuraRestModePeriodEnabled() { return getBoolean(OURA_REST_MODE_PERIOD_ENABLED_CONFIG); }
+  public boolean getOuraSleepTimeRecommendationEnabled() { return getBoolean(OURA_SLEEP_TIME_RECOMMENDATION_ENABLED_CONFIG); }
+  public boolean getOuraDailyStressEnabled() { return getBoolean(OURA_DAILY_STRESS_ENABLED_CONFIG); }
+  public boolean getOuraVo2maxEnabled() { return getBoolean(OURA_VO2MAX_ENABLED_CONFIG); }
+  public boolean getOuraDailyResilienceEnabled() { return getBoolean(OURA_DAILY_RESILIENCE_ENABLED_CONFIG); }
+  public boolean getOuraDailyCardiovascularAgeEnabled() { return getBoolean(OURA_DAILY_CARDIOVASCULAR_AGE_ENABLED_CONFIG); }
+  public boolean getOuraEnhancedTagEnabled() { return getBoolean(OURA_ENHANCED_TAG_ENABLED_CONFIG); }
+
 }
