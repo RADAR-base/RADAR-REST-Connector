@@ -164,6 +164,9 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
     lastPollPerUser.put(((FitbitRestRequest) request).getUser().getId(), lastPoll);
     FitbitRestRequest fitbitRequest = (FitbitRestRequest) request;
     Instant endOffset = fitbitRequest.getDateRange().end().toInstant();
+    // When having polled a date range for a route for HISTORICAL_TIME_DAYS days and
+    // the response has no data, consider this data not to exist by considering
+    // the end of the date range as the last successful data retrieval.
     if (DAYS.between(endOffset, lastPoll) >= HISTORICAL_TIME_DAYS) {
       String key = fitbitRequest.getUser().getVersionedId();
       offsets.put(key, endOffset);
