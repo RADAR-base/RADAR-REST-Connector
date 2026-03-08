@@ -26,7 +26,11 @@ of Java 17 or later.
 
 Generally, this component is installed
 with [RADAR-Kubernetes](https://github.com/RADAR-base/RADAR-Kubernetes). It uses Docker
-image [radarbase/kafka-connect-rest-fitbit-source](https://hub.docker.com/r/radarbase/kafka-connect-rest-fitbit-source).
+image [radarbase/kafka-connect-rest-fitbit-source](https://hub.docker.com/r/radarbase/kafka-connect-rest-fitbit-source), 
+which is built from the `kafka-connect-fitbit-source/Dockerfile`. The image is based on the Strimzi Kafka Connect image.
+
+The Fitbit source connector can be also run with docker compose and the Confluent Kafka Connect image, using the `kafka-connect-fitbit-source/Dockerfile-legacy`.
+
 
 First, [register a Fitbit App](https://dev.fitbit.com/apps) with Fitbit. It should be either a
 server app, for multiple users, or a personal app for a single user. With the server app, you need
@@ -39,7 +43,7 @@ For every Fitbit user you want access to, copy `docker/fitbit-user.yml.template`
 For automatic configuration for multiple users, please take a look at
 `scripts/REDCAP-FITBIT-AUTH-AUTO/README.md`.
 
-Copy `docker/source-fitbit.properties.template` to `docker/source-fitbit.properties` and enter
+Copy `docker/legacy/source-fitbit.properties.template` to `docker/legacy/source-fitbit.properties` and enter
 your Fitbit App client ID and client secret. The following tables shows the possible properties.
 
 <table class="data-table"><tbody>

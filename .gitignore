@@ -5,7 +5,7 @@ build/
 out/
 .gradle/
 docker/users
-docker/source-fitbit.properties
-docker/source-oura.properties
+docker/legacy/source-fitbit.properties
+docker/legacy/source-oura.properties
 bin/
 .DS_Store
