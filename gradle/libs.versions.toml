@@ -1,5 +1,5 @@
 [versions]
-project = "0.7.2"
+project = "0.7.3"
 java = "17"
 gradle = "8.14"
 kotlin = "1.9.24"
