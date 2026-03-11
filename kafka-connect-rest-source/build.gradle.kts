@@ -1,22 +1,22 @@
 description = "Kafka connector for generic REST API sources"
 
 dependencies {
-    api("com.squareup.okhttp3:okhttp:${Versions.okhttp}")
+    api(libs.okhttp)
 
     // included in runtime
-    compileOnly("org.apache.kafka:connect-api:${Versions.kafka}")
-    compileOnly("org.slf4j:slf4j-api:${Versions.slf4j}")
+    compileOnly(libs.kafka.connect.api)
+    compileOnly(libs.slf4j.api)
 
-    testImplementation("org.mockito:mockito-core:${Versions.mockito}")
-    testImplementation("com.github.tomakehurst:wiremock:${Versions.wiremock}")
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.wiremock)
 
-    testImplementation("org.apache.kafka:connect-api:${Versions.kafka}")
+    testImplementation(libs.kafka.connect.api)
 
     // Application monitoring
     // These dependencies are not used by the REST connector, but copied into the Docker image (Dockerfile)
-    runtimeOnly("io.sentry:sentry-log4j:${Versions.sentryLog4j}") {
+    runtimeOnly(libs.sentry.log4j) {
         // Exclude log4j with security vulnerability (safe version is provided by docker image).
         exclude(group = "log4j", module = "log4j")
     }
-    runtimeOnly("io.sentry:sentry-opentelemetry-agent:${Versions.sentryOpenTelemetryAgent}")
+    runtimeOnly(libs.sentry.opentelemetry.agent)
 }

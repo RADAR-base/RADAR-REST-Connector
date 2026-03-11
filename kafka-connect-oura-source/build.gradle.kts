@@ -5,32 +5,32 @@ dependencies {
     /* The entries in the block below are added here to force the version of
      * transitive dependencies and mitigate reported vulnerabilities
      */
-    implementation("io.netty:netty-handler-proxy:${Versions.nettyVersion}")
-    implementation("io.netty:netty-handler:${Versions.nettyVersion}")
+    implementation(libs.netty.handler.proxy)
+    implementation(libs.netty.handler)
 
     api(project(":oura-library"))
-    api("io.confluent:kafka-connect-avro-converter:${Versions.confluent}")
-    api("org.radarbase:radar-schemas-commons:${Versions.radarSchemas}")
-    implementation("org.radarbase:radar-commons-kotlin:${Versions.radarCommons}")
+    api(libs.kafka.connect.avro.converter)
+    api(libs.radar.schemas.commons)
+    implementation(libs.radar.commons.kotlin)
 
-    api("com.squareup.okhttp3:okhttp:${Versions.okhttp}")
-    implementation(platform("com.fasterxml.jackson:jackson-bom:${Versions.jackson}"))
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
-    implementation("com.google.firebase:firebase-admin:${Versions.firebaseAdmin}")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.21")
+    api(libs.okhttp)
+    implementation(platform(libs.jackson.bom))
+    implementation(libs.jackson.dataformat.yaml)
+    implementation(libs.jackson.datatype.jsr310)
+    implementation(libs.firebase.admin)
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
-    implementation("io.ktor:ktor-client-auth:${Versions.ktor}")
-    implementation("io.ktor:ktor-client-content-negotiation:${Versions.ktor}")
-    implementation("io.ktor:ktor-serialization-jackson:${Versions.ktor}")
-    implementation("io.ktor:ktor-client-cio-jvm:${Versions.ktor}")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:${Versions.ktor}")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:${Versions.jackson}")
+    implementation(libs.ktor.client.auth)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.serialization.jackson)
+    implementation(libs.ktor.client.cio)
+    implementation(libs.ktor.serialization.kotlinx.json)
+    implementation(libs.jackson.module.kotlin)
 
     // Included in connector runtime
-    compileOnly("org.apache.kafka:connect-api:${Versions.kafka}")
-    compileOnly(platform("com.fasterxml.jackson:jackson-bom:${Versions.jackson}"))
-    compileOnly("com.fasterxml.jackson.core:jackson-databind")
+    compileOnly(libs.kafka.connect.api)
+    compileOnly(platform(libs.jackson.bom))
+    compileOnly(libs.jackson.databind)
 
-    testImplementation("org.apache.kafka:connect-api:${Versions.kafka}")
+    testImplementation(libs.kafka.connect.api)
 }

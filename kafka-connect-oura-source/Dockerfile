@@ -20,7 +20,7 @@ WORKDIR /code
 ENV GRADLE_USER_HOME=/code/.gradlecache \
   GRADLE_OPTS="-Dorg.gradle.vfs.watch=false -Djdk.lang.Process.launchMechanism=vfork"
 
-COPY buildSrc /code/buildSrc
+COPY ./gradle/libs.versions.toml /code/gradle/
 COPY ./build.gradle.kts ./settings.gradle.kts ./gradle.properties /code/
 COPY kafka-connect-oura-source/build.gradle.kts /code/kafka-connect-oura-source/
 COPY oura-library/build.gradle /code/oura-library/

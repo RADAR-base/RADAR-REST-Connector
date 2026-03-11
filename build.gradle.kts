@@ -1,22 +1,20 @@
 import org.radarbase.gradle.plugin.radarKotlin
 
 plugins {
-    id("org.radarbase.radar-root-project") version Versions.radarCommons
-    id("org.radarbase.radar-dependency-management") version Versions.radarCommons
-    id("org.radarbase.radar-kotlin") version Versions.radarCommons apply false
+    alias(libs.plugins.radar.root.project)
+    alias(libs.plugins.radar.dependency.management)
+    alias(libs.plugins.radar.kotlin) apply false
 }
 
 repositories {
-    // Use jcenter for resolving dependencies.
-    // You can declare any Maven/Ivy/file repository here.
     mavenCentral()
 }
 
 description = "Kafka connector for REST API sources"
 
 radarRootProject {
-    projectVersion.set(Versions.project)
-    gradleVersion.set(Versions.wrapper)
+    projectVersion.set(libs.versions.project)
+    gradleVersion.set(libs.versions.gradle)
 }
 
 subprojects {
@@ -27,16 +25,16 @@ subprojects {
             /* The entries in the block below are added here to force the version of
              * transitive dependencies and mitigate reported vulnerabilities */
             force(
-                "org.apache.commons:commons-lang3:3.18.0",
+                "org.apache.commons:commons-lang3:${rootProject.libs.versions.commonsLang3.get()}",
             )
         }
     }
 
     radarKotlin {
-        javaVersion.set(Versions.java)
-        kotlinVersion.set(Versions.kotlin)
-        slf4jVersion.set(Versions.slf4j)
-        log4j2Version.set(Versions.log4j2)
-        junitVersion.set(Versions.junit)
+        javaVersion.set(rootProject.libs.versions.java.get().toInt())
+        kotlinVersion.set(rootProject.libs.versions.kotlin)
+        slf4jVersion.set(rootProject.libs.versions.slf4j)
+        log4j2Version.set(rootProject.libs.versions.log4j2)
+        junitVersion.set(rootProject.libs.versions.junit)
     }
 }

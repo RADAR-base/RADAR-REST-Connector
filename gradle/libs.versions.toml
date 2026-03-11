@@ -1,0 +1,57 @@
+[versions]
+project = "0.7.2"
+java = "17"
+gradle = "8.13"
+kotlin = "1.9.22"
+radarCommons = "1.2.4"
+confluent = "7.8.1"
+avro = "1.12.0"
+jackson = "2.17.3"
+log4j2 = "2.23.1"
+slf4j = "2.0.13"
+sentryLog4j = "1.7.30"
+sentryOpenTelemetryAgent = "8.1.0"
+okhttp = "4.12.0"
+firebaseAdmin = "9.6.0"
+radarSchemas = "0.8.14"
+ktor = "2.3.10"
+junit = "5.10.2"
+wiremock = "3.0.1"
+mockito = "5.11.0"
+netty = "4.1.125.Final"
+commonsLang3 = "3.18.0"
+
+[libraries]
+radar-commons-kotlin = { group = "org.radarbase", name = "radar-commons-kotlin", version.ref = "radarCommons" }
+radar-schemas-commons = { group = "org.radarbase", name = "radar-schemas-commons", version.ref = "radarSchemas" }
+kafka-connect-api = { group = "org.apache.kafka", name = "connect-api", version = "7.8.1-ce" }
+kafka-connect-avro-converter = { group = "io.confluent", name = "kafka-connect-avro-converter", version.ref = "confluent" }
+okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
+jackson-bom = { group = "com.fasterxml.jackson", name = "jackson-bom", version.ref = "jackson" }
+jackson-annotations = { group = "com.fasterxml.jackson.core", name = "jackson-annotations", version.ref = "jackson" }
+jackson-databind = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version.ref = "jackson" }
+jackson-dataformat-yaml = { group = "com.fasterxml.jackson.dataformat", name = "jackson-dataformat-yaml", version.ref = "jackson" }
+jackson-datatype-jsr310 = { group = "com.fasterxml.jackson.datatype", name = "jackson-datatype-jsr310", version.ref = "jackson" }
+jackson-module-kotlin = { group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin", version.ref = "jackson" }
+ktor-client-auth = { group = "io.ktor", name = "ktor-client-auth", version.ref = "ktor" }
+ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-serialization-jackson = { group = "io.ktor", name = "ktor-serialization-jackson", version.ref = "ktor" }
+ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio-jvm", version.ref = "ktor" }
+ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
+firebase-admin = { group = "com.google.firebase", name = "firebase-admin", version.ref = "firebaseAdmin" }
+avro = { group = "org.apache.avro", name = "avro", version.ref = "avro" }
+slf4j-api = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }
+sentry-log4j = { group = "io.sentry", name = "sentry-log4j", version.ref = "sentryLog4j" }
+sentry-opentelemetry-agent = { group = "io.sentry", name = "sentry-opentelemetry-agent", version.ref = "sentryOpenTelemetryAgent" }
+netty-handler-proxy = { group = "io.netty", name = "netty-handler-proxy", version.ref = "netty" }
+netty-handler = { group = "io.netty", name = "netty-handler", version.ref = "netty" }
+commons-lang3 = { group = "org.apache.commons", name = "commons-lang3", version.ref = "commonsLang3" }
+mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }
+wiremock = { group = "com.github.tomakehurst", name = "wiremock", version.ref = "wiremock" }
+kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
+kotlin-test-junit = { group = "org.jetbrains.kotlin", name = "kotlin-test-junit", version.ref = "kotlin" }
+
+[plugins]
+radar-root-project = { id = "org.radarbase.radar-root-project", version.ref = "radarCommons" }
+radar-dependency-management = { id = "org.radarbase.radar-dependency-management", version.ref = "radarCommons" }
+radar-kotlin = { id = "org.radarbase.radar-kotlin", version.ref = "radarCommons" }
