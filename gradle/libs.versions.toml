@@ -1,7 +1,7 @@
 [versions]
 project = "0.7.2"
 java = "17"
-gradle = "8.13"
+gradle = "8.14"
 kotlin = "1.9.22"
 radarCommons = "1.2.4"
 confluent = "7.8.1"
