@@ -17,6 +17,9 @@ dependencies {
     runtimeOnly(libs.sentry.log4j) {
         // Exclude log4j with security vulnerability (safe version is provided by docker image).
         exclude(group = "log4j", module = "log4j")
+        exclude(group = "org.slf4j", module = "slf4j-api")
+        // Exclude Jackson with security vulnerability (safe version is provided by docker image).
+        exclude(group = "com.fasterxml.jackson.core")
     }
     runtimeOnly(libs.sentry.opentelemetry.agent)
 }

@@ -32,7 +32,7 @@ COPY ./oura-library/src/ /code/oura-library/src
 
 RUN gradle jar
 
-FROM confluentinc/cp-kafka-connect-base:7.8.1
+FROM confluentinc/cp-kafka-connect-base:7.8.7
 
 
 LABEL org.opencontainers.image.authors="pauline.conde@kcl.ac.uk"

@@ -2,18 +2,19 @@
 project = "0.7.2"
 java = "17"
 gradle = "8.14"
-kotlin = "1.9.22"
-radarCommons = "1.2.4"
+kotlin = "1.9.24"
+radarCommons = "1.2.6"
 confluent = "7.8.1"
 avro = "1.12.0"
-jackson = "2.17.3"
+jackson = "2.20.2"
+jacksonAnnotations = "2.20"
 log4j2 = "2.23.1"
 slf4j = "2.0.13"
 sentryLog4j = "1.7.30"
 sentryOpenTelemetryAgent = "8.1.0"
 okhttp = "4.12.0"
 firebaseAdmin = "9.6.0"
-radarSchemas = "0.8.14"
+radarSchemas = "0.8.16"
 ktor = "2.3.10"
 junit = "5.10.2"
 wiremock = "3.0.1"
@@ -28,7 +29,7 @@ kafka-connect-api = { group = "org.apache.kafka", name = "connect-api", version 
 kafka-connect-avro-converter = { group = "io.confluent", name = "kafka-connect-avro-converter", version.ref = "confluent" }
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 jackson-bom = { group = "com.fasterxml.jackson", name = "jackson-bom", version.ref = "jackson" }
-jackson-annotations = { group = "com.fasterxml.jackson.core", name = "jackson-annotations", version.ref = "jackson" }
+jackson-annotations = { group = "com.fasterxml.jackson.core", name = "jackson-annotations", version.ref = "jacksonAnnotations" }
 jackson-databind = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version.ref = "jackson" }
 jackson-dataformat-yaml = { group = "com.fasterxml.jackson.dataformat", name = "jackson-dataformat-yaml", version.ref = "jackson" }
 jackson-datatype-jsr310 = { group = "com.fasterxml.jackson.datatype", name = "jackson-datatype-jsr310", version.ref = "jackson" }

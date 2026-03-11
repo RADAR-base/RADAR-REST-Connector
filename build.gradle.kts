@@ -20,15 +20,20 @@ radarRootProject {
 subprojects {
     apply(plugin = "org.radarbase.radar-kotlin")
 
-    configurations.all {
-        resolutionStrategy {
-            /* The entries in the block below are added here to force the version of
-             * transitive dependencies and mitigate reported vulnerabilities */
-            force(
-                "org.apache.commons:commons-lang3:${rootProject.libs.versions.commonsLang3.get()}",
-            )
+    // --- Vulnerability fixes start ---
+    dependencies {
+        plugins.withType<JavaPlugin> {
+            constraints {
+                add("implementation", rootProject.libs.jackson.bom) {
+                    because("Force safe version of Jackson across all modules")
+                }
+                add("implementation", rootProject.libs.commons.lang3) {
+                    because("Force safe version of commons-lang3 across all modules")
+                }
+            }
         }
     }
+    // --- Vulnerability fixes end ---
 
     radarKotlin {
         javaVersion.set(rootProject.libs.versions.java.get().toInt())
