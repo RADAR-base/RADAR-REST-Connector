@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM --platform=$BUILDPLATFORM gradle:8.13-jdk17 AS builder
+FROM --platform=$BUILDPLATFORM gradle:8.14-jdk17 AS builder
 
 RUN mkdir /code
 WORKDIR /code
@@ -20,7 +20,7 @@ WORKDIR /code
 ENV GRADLE_USER_HOME=/code/.gradlecache \
   GRADLE_OPTS="-Dorg.gradle.vfs.watch=false -Djdk.lang.Process.launchMechanism=vfork"
 
-COPY buildSrc /code/buildSrc
+COPY ./gradle/libs.versions.toml /code/gradle/
 COPY ./build.gradle.kts ./settings.gradle.kts ./gradle.properties /code/
 COPY kafka-connect-oura-source/build.gradle.kts /code/kafka-connect-oura-source/
 COPY oura-library/build.gradle /code/oura-library/
@@ -32,7 +32,7 @@ COPY ./oura-library/src/ /code/oura-library/src
 
 RUN gradle jar
 
-FROM confluentinc/cp-kafka-connect-base:7.8.1
+FROM confluentinc/cp-kafka-connect-base:7.8.7
 
 
 LABEL org.opencontainers.image.authors="pauline.conde@kcl.ac.uk"

@@ -1,42 +1,51 @@
 import org.radarbase.gradle.plugin.radarKotlin
 
 plugins {
-    id("org.radarbase.radar-root-project") version Versions.radarCommons
-    id("org.radarbase.radar-dependency-management") version Versions.radarCommons
-    id("org.radarbase.radar-kotlin") version Versions.radarCommons apply false
+    alias(libs.plugins.radar.root.project)
+    alias(libs.plugins.radar.dependency.management)
+    alias(libs.plugins.radar.kotlin) apply false
 }
 
 repositories {
-    // Use jcenter for resolving dependencies.
-    // You can declare any Maven/Ivy/file repository here.
     mavenCentral()
 }
 
 description = "Kafka connector for REST API sources"
 
 radarRootProject {
-    projectVersion.set(Versions.project)
-    gradleVersion.set(Versions.wrapper)
+    projectVersion.set(libs.versions.project)
+    gradleVersion.set(libs.versions.gradle)
 }
 
 subprojects {
     apply(plugin = "org.radarbase.radar-kotlin")
 
-    configurations.all {
-        resolutionStrategy {
-            /* The entries in the block below are added here to force the version of
-             * transitive dependencies and mitigate reported vulnerabilities */
-            force(
-                "org.apache.commons:commons-lang3:3.18.0",
-            )
+    // --- Vulnerability fixes start ---
+    dependencies {
+        plugins.withType<JavaPlugin> {
+            constraints {
+                add("implementation", rootProject.libs.jackson.bom) {
+                    because("Force safe version of Jackson across all modules")
+                }
+                add("implementation", rootProject.libs.commons.lang3) {
+                    because("Force safe version of commons-lang3 across all modules")
+                }
+            }
         }
     }
+    configurations.all {
+        resolutionStrategy.dependencySubstitution {
+            // Substitute the old group/module with drop-in replacement
+            substitute(module("org.lz4:lz4-java"))
+                .using(module(rootProject.libs.lz4.get().toString()))
+                .because("Force safe version of LZ4 across all modules")
+        }
+    }
+    // --- Vulnerability fixes end ---
 
     radarKotlin {
-        javaVersion.set(Versions.java)
-        kotlinVersion.set(Versions.kotlin)
-        slf4jVersion.set(Versions.slf4j)
-        log4j2Version.set(Versions.log4j2)
-        junitVersion.set(Versions.junit)
+        log4j2Version.set(rootProject.libs.versions.log4j2)
+        sentryEnabled.set(true)
+        openTelemetryAgentEnabled.set(false)
     }
 }
