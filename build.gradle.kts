@@ -37,5 +37,7 @@ subprojects {
 
     radarKotlin {
         log4j2Version.set(rootProject.libs.versions.log4j2)
+        sentryEnabled.set(true)
+        openTelemetryAgentEnabled.set(false)
     }
 }
