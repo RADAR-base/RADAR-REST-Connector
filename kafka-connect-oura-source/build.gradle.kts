@@ -18,7 +18,7 @@ dependencies {
     implementation(libs.jackson.dataformat.yaml)
     implementation(libs.jackson.datatype.jsr310)
     implementation(libs.firebase.admin)
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib")
 
     implementation(libs.ktor.client.auth)
     implementation(libs.ktor.client.content.negotiation)
