@@ -64,11 +64,17 @@ public class FitbitIntradayHeartRateAvroConverter extends FitbitAvroConverter {
 
     // Used as the date to convert the local times in the dataset to absolute times.
     ZonedDateTime startDate = request.getDateRange().start();
+    Instant rangeStart = startDate.toInstant();
+    Instant rangeEnd = request.getDateRange().end().toInstant();
 
     return iterableToStream(dataset)
         .map(tryOrNull(activity -> {
           Instant time = startDate.with(LocalTime.parse(activity.get("time").asText()))
               .toInstant();
+
+          if (time.isBefore(rangeStart) || !time.isBefore(rangeEnd)) {
+            return null;
+          }
 
           FitbitIntradayHeartRate heartRate = new FitbitIntradayHeartRate(
               time.toEpochMilli() / 1000d,
