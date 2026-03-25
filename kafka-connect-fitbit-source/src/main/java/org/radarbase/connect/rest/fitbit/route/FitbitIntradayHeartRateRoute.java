@@ -17,7 +17,6 @@
 
 package org.radarbase.connect.rest.fitbit.route;
 
-import static java.time.format.DateTimeFormatter.ISO_LOCAL_TIME;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.SECONDS;
 
@@ -48,8 +47,8 @@ public class FitbitIntradayHeartRateRoute extends FitbitPollingRoute {
         .map(dateRange -> newRequest(user, dateRange,
             user.getExternalUserId(), DATE_FORMAT.format(dateRange.start()),
             // Always request full day boundaries
-            ISO_LOCAL_TIME.format(dateRange.start().truncatedTo(DAYS).truncatedTo(SECONDS)),
-            ISO_LOCAL_TIME.format(dateRange.start().truncatedTo(DAYS).plusDays(1).minusNanos(1)
+            TIME_FORMAT.format(dateRange.start().truncatedTo(DAYS).truncatedTo(SECONDS)),
+            TIME_FORMAT.format(dateRange.start().truncatedTo(DAYS).plusDays(1).minusNanos(1)
                 .truncatedTo(SECONDS))));
   }
 
