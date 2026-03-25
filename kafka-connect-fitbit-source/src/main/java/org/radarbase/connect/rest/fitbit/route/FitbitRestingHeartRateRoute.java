@@ -18,13 +18,12 @@
 package org.radarbase.connect.rest.fitbit.route;
 
 import static java.time.ZoneOffset.UTC;
-import static java.time.temporal.ChronoUnit.SECONDS;
+import static java.time.temporal.ChronoUnit.DAYS;
 
 import io.confluent.connect.avro.AvroData;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.stream.Stream;
 
 import org.radarbase.connect.rest.fitbit.converter.FitbitRestingHeartRateAvroConverter;
@@ -47,9 +46,14 @@ public class FitbitRestingHeartRateRoute extends FitbitPollingRoute {
 
   @Override
   protected Stream<FitbitRestRequest> createRequests(User user) {
-    ZonedDateTime startDate = this.getOffset(user).plus(ONE_SECOND)
+    // Important: resting heart rate is queried at the resolution of a single
+    // day, so the offset for the next request will be set to the next day.
+    ZonedDateTime startDate = this.getOffset(user).plus(ONE_DAY)
         .atZone(UTC)
-        .truncatedTo(SECONDS);
+        .truncatedTo(DAYS);
+    // Note: the date range of startDate to now() is not correct, but will ensure that in case of empty
+    // results, the HISTORICAL_TIME_DAYS retry inactivation in requestEmpty() of FitbitPollingRoute.java
+    // will never be used.
     return Stream.of(newRequest(user, new DateRange(startDate, ZonedDateTime.now(UTC)),
         user.getExternalUserId(), DATE_FORMAT.format(startDate)));
   }
