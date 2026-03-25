@@ -46,8 +46,8 @@ public class FitbitIntradayHeartRateRoute extends FitbitPollingRoute {
     return startDateGenerator(getOffset(user).plus(ONE_SECOND).truncatedTo(SECONDS))
         .map(dateRange -> newRequest(user, dateRange,
             user.getExternalUserId(), DATE_FORMAT.format(dateRange.start()),
-            ISO_LOCAL_TIME.format(dateRange.start()),
-            ISO_LOCAL_TIME.format(dateRange.end().truncatedTo(SECONDS))));
+            TIME_FORMAT.format(dateRange.start()),
+            TIME_FORMAT.format(dateRange.end().truncatedTo(SECONDS))));
   }
 
   @Override
