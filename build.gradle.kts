@@ -37,10 +37,14 @@ subprojects {
                     name.set("Yatharth Ranjan")
                     email.set("yatharth.ranjan@kcl.ac.uk")
                     organization.set("King's College London")
+                }
+                developer {
                     id.set("mpgxvii")
                     name.set("Pauline Conde")
                     email.set("mpgxvii@gmail.com")
                     organization.set("King's College London")
+                }
+                developer {
                     id.set("this-Aditya")
                     name.set("Aditya Mishra")
                     email.set("aditya.mishra@kcl.ac.uk")
