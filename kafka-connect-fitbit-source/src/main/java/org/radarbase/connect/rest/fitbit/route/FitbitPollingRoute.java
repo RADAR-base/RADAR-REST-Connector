@@ -95,7 +95,8 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
   protected static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE;
   protected static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
   protected static final Duration LOOKBACK_TIME = Duration.ofDays(1); // 1 day
-  protected static final long HISTORICAL_TIME_DAYS = 14L;
+  // FIXME temporarily set the historic date to 2 days.
+  protected static final long HISTORICAL_TIME_DAYS = 2L;
   protected static final Duration ONE_DAY = DAYS.getDuration();
   protected static final Duration THIRTY_DAYS = Duration.ofDays(30);
   protected static final Duration ONE_NANO = NANOS.getDuration();
@@ -166,6 +167,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
   public void requestEmpty(RestRequest request) {
     lastPollPerUser.put(((FitbitRestRequest) request).getUser().getId(), lastPoll);
     FitbitRestRequest fitbitRequest = (FitbitRestRequest) request;
+    // End of the requested date-time range
     Instant endOffset = fitbitRequest.getDateRange().end().toInstant();
     // When having polled a date range for a route for HISTORICAL_TIME_DAYS days and
     // the response has no data, consider this data not to exist by considering

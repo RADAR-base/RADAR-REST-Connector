@@ -51,10 +51,8 @@ public class FitbitRestingHeartRateRoute extends FitbitPollingRoute {
     ZonedDateTime startDate = this.getOffset(user).plus(ONE_DAY)
         .atZone(UTC)
         .truncatedTo(DAYS);
-    // Note: the date range of startDate to now() is not correct, but will ensure that in case of empty
-    // results, the HISTORICAL_TIME_DAYS retry inactivation in requestEmpty() of FitbitPollingRoute.java
-    // will never be used.
-    return Stream.of(newRequest(user, new DateRange(startDate, ZonedDateTime.now(UTC)),
+    ZonedDateTime endDate = startDate.minus(ONE_NANO);
+    return Stream.of(newRequest(user, new DateRange(startDate, endDate),
         user.getExternalUserId(), DATE_FORMAT.format(startDate)));
   }
 
