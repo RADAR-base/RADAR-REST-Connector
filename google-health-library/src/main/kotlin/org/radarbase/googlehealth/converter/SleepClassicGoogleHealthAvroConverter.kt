@@ -33,16 +33,8 @@ class SleepClassicGoogleHealthAvroConverter(topic: String) : GoogleHealthAvroCon
     ): List<Pair<SpecificRecord, SpecificRecord>> {
         val data = point["sleep"] ?: return emptyList()
         val stages = data["stages"]?.takeIf { it.isArray } ?: return emptyList()
+        if (SleepSession.familyOf(data) != SleepSessionFamily.CLASSIC) return emptyList()
         val timeReceived = nowEpochSeconds()
-        // Route by stage-type family. This converter only emits records for CLASSIC
-        // stages (ASLEEP/RESTLESS). Also includes AWAKE because AWAKE appears in
-        // both Google's STAGES and CLASSIC enum families — we map it here ONLY when
-        // the session has at least one ASLEEP or RESTLESS stage (otherwise a STAGES
-        // session's AWAKE would incorrectly route to classic). See SleepStageGoogleHealthAvroConverter.
-        val isClassicSession = stages.any { s ->
-            s["type"]?.asText() in CLASSIC_ONLY
-        }
-        if (!isClassicSession) return emptyList()
         return stages.mapNotNull { stage ->
             val stageType = stage["type"]?.asText() ?: return@mapNotNull null
             if (stageType !in CLASSIC_FAMILY) return@mapNotNull null
@@ -70,7 +62,6 @@ class SleepClassicGoogleHealthAvroConverter(topic: String) : GoogleHealthAvroCon
 
     companion object {
         private val LOCAL_FMT: DateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
-        private val CLASSIC_ONLY = setOf("ASLEEP", "RESTLESS")
         private val CLASSIC_FAMILY = setOf("ASLEEP", "RESTLESS", "AWAKE")
     }
 }

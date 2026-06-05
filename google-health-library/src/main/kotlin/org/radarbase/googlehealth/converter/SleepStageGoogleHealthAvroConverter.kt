@@ -33,12 +33,8 @@ class SleepStageGoogleHealthAvroConverter(topic: String) : GoogleHealthAvroConve
     ): List<Pair<SpecificRecord, SpecificRecord>> {
         val data = point["sleep"] ?: return emptyList()
         val stages = data["stages"]?.takeIf { it.isArray } ?: return emptyList()
+        if (SleepSession.familyOf(data) != SleepSessionFamily.STAGES) return emptyList()
         val timeReceived = nowEpochSeconds()
-        // Route by stage-type family rather than relying on a top-level `type` field,
-        // whose presence in list/reconcile responses is unverified — the v4 discovery
-        // schema does NOT list `type` on the Sleep resource. This converter only emits
-        // records for the STAGES family (DEEP/LIGHT/REM/AWAKE). Classic stages
-        // (ASLEEP/RESTLESS) are handled by SleepClassicGoogleHealthAvroConverter.
         return stages.mapNotNull { stage ->
             val stageType = stage["type"]?.asText() ?: return@mapNotNull null
             if (stageType !in STAGES_FAMILY) return@mapNotNull null
