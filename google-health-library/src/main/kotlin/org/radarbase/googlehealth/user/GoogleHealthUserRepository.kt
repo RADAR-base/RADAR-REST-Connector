@@ -27,4 +27,6 @@ abstract class GoogleHealthUserRepository : UserRepository {
     abstract fun getOAuth2AccessToken(user: User): String
 
     abstract fun deregisterUser(serviceUserId: String)
+
+    abstract fun fetchUnauthorizedUsers(): List<User>
 }
