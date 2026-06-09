@@ -34,7 +34,7 @@ data class GoogleHealthUser(
     @param:JsonProperty("startDate") override val startDate: Instant,
     @param:JsonProperty("endDate") override val endDate: Instant?,
     @param:JsonProperty("version") override val version: String? = null,
-    @param:JsonProperty("serviceUserId") override val serviceUserId: String,
+    @param:JsonProperty("serviceUserId") override val serviceUserId: String?,
 ) : User {
     override val observationKey: ObservationKey = ObservationKey(projectId, userId, sourceId)
     override val versionedId: String = "$id${version?.let { "#$it" } ?: ""}"
