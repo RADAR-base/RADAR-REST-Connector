@@ -1,5 +1,5 @@
 [versions]
-project = "0.7.3-SNAPSHOT"
+project = "0.7.6-SNAPSHOT"
 gradle = "8.14"
 kotlin = "1.9.24"
 radarCommons = "1.2.6"
