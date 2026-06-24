@@ -19,7 +19,7 @@ package org.radarbase.googlehealth.converter
 import com.fasterxml.jackson.databind.JsonNode
 import org.apache.avro.specific.SpecificRecord
 import org.radarbase.googlehealth.user.User
-import org.radarbase.googlehealth.util.intradaySpo2
+import org.radarbase.googlehealth.util.googleHealthOxygenSaturation
 
 class OxygenSaturationGoogleHealthAvroConverter(topic: String) :
     GoogleHealthAvroConverter(topic) {
@@ -30,10 +30,10 @@ class OxygenSaturationGoogleHealthAvroConverter(topic: String) :
         val data = point["oxygenSaturation"] ?: return emptyList()
         val time = parseSampleTime(data) ?: return emptyList()
         val pct = data["percentage"]?.floatValue() ?: return emptyList()
-        val record = intradaySpo2 {
+        val record = googleHealthOxygenSaturation {
             this.time = epochSeconds(time)
             timeReceived = nowEpochSeconds()
-            spo2 = pct
+            percentage = pct
         }
         return listOf(user.observationKey to record)
     }

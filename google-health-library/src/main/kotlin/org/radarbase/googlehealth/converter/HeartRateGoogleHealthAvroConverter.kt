@@ -19,7 +19,7 @@ package org.radarbase.googlehealth.converter
 import com.fasterxml.jackson.databind.JsonNode
 import org.apache.avro.specific.SpecificRecord
 import org.radarbase.googlehealth.user.User
-import org.radarbase.googlehealth.util.intradayHeartRate
+import org.radarbase.googlehealth.util.googleHealthHeartRate
 
 class HeartRateGoogleHealthAvroConverter(topic: String) : GoogleHealthAvroConverter(topic) {
     override fun convertDataPoint(
@@ -29,7 +29,7 @@ class HeartRateGoogleHealthAvroConverter(topic: String) : GoogleHealthAvroConver
         val data = point["heartRate"] ?: return emptyList()
         val time = parseSampleTime(data) ?: return emptyList()
         val bpm = data["beatsPerMinute"]?.asInt() ?: return emptyList()
-        val record = intradayHeartRate {
+        val record = googleHealthHeartRate {
             this.time = epochSeconds(time)
             timeReceived = nowEpochSeconds()
             timeInterval = 1

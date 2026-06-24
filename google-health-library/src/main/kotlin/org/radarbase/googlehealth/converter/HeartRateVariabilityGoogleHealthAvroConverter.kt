@@ -19,7 +19,7 @@ package org.radarbase.googlehealth.converter
 import com.fasterxml.jackson.databind.JsonNode
 import org.apache.avro.specific.SpecificRecord
 import org.radarbase.googlehealth.user.User
-import org.radarbase.googlehealth.util.intradayHeartRateVariability
+import org.radarbase.googlehealth.util.googleHealthHeartRateVariability
 
 class HeartRateVariabilityGoogleHealthAvroConverter(topic: String) :
     GoogleHealthAvroConverter(topic) {
@@ -31,18 +31,11 @@ class HeartRateVariabilityGoogleHealthAvroConverter(topic: String) :
         val time = parseSampleTime(data) ?: return emptyList()
         val rmssd = data["rootMeanSquareOfSuccessiveDifferencesMilliseconds"]?.floatValue()
             ?: return emptyList()
-        val record = intradayHeartRateVariability {
+        val record = googleHealthHeartRateVariability {
             this.time = epochSeconds(time)
             timeReceived = nowEpochSeconds()
             this.rmssd = rmssd
-            coverage = UNAVAILABLE
-            highFrequency = UNAVAILABLE
-            lowFrequency = UNAVAILABLE
         }
         return listOf(user.observationKey to record)
-    }
-
-    companion object {
-        private const val UNAVAILABLE = 0.0f
     }
 }

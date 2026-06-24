@@ -19,8 +19,8 @@ package org.radarbase.googlehealth.converter
 import com.fasterxml.jackson.databind.JsonNode
 import org.apache.avro.specific.SpecificRecord
 import org.radarbase.googlehealth.user.User
-import org.radarbase.googlehealth.util.sleepStage
-import org.radarcns.connector.fitbit.FitbitSleepStageLevel
+import org.radarbase.googlehealth.util.googleHealthSleepStage
+import org.radarcns.push.googlehealth.GoogleHealthSleepStageLevel
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset
@@ -42,23 +42,24 @@ class SleepStageGoogleHealthAvroConverter(topic: String) : GoogleHealthAvroConve
                 ?.let { runCatching { Instant.parse(it) }.getOrNull() } ?: return@mapNotNull null
             val end = stage["endTime"]?.asText()
                 ?.let { runCatching { Instant.parse(it) }.getOrNull() } ?: return@mapNotNull null
-            val record = sleepStage {
-                dateTime = LOCAL_FMT.format(LocalDateTime.ofInstant(start, ZoneOffset.UTC))
+
+            val startZone = ZoneOffset.ofTotalSeconds(parseUtcOffsetSeconds(stage["startUtcOffset"]?.asText()))
+            val record = googleHealthSleepStage {
+                dateTime = LOCAL_FMT.format(LocalDateTime.ofInstant(start, startZone))
                 this.timeReceived = timeReceived
                 duration = (end.epochSecond - start.epochSecond).toInt().coerceAtLeast(0)
                 level = mapLevel(stageType)
-                efficiency = null
             }
             user.observationKey to record
         }
     }
 
-    private fun mapLevel(text: String?): FitbitSleepStageLevel = when (text) {
-        "DEEP" -> FitbitSleepStageLevel.DEEP
-        "LIGHT" -> FitbitSleepStageLevel.LIGHT
-        "REM" -> FitbitSleepStageLevel.REM
-        "AWAKE" -> FitbitSleepStageLevel.AWAKE
-        else -> FitbitSleepStageLevel.UNKNOWN
+    private fun mapLevel(text: String?): GoogleHealthSleepStageLevel = when (text) {
+        "DEEP" -> GoogleHealthSleepStageLevel.DEEP
+        "LIGHT" -> GoogleHealthSleepStageLevel.LIGHT
+        "REM" -> GoogleHealthSleepStageLevel.REM
+        "AWAKE" -> GoogleHealthSleepStageLevel.AWAKE
+        else -> GoogleHealthSleepStageLevel.UNKNOWN
     }
 
     companion object {

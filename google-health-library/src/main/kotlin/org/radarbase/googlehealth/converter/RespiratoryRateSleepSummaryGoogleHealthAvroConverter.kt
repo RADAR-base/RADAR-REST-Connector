@@ -19,7 +19,7 @@ package org.radarbase.googlehealth.converter
 import com.fasterxml.jackson.databind.JsonNode
 import org.apache.avro.specific.SpecificRecord
 import org.radarbase.googlehealth.user.User
-import org.radarbase.googlehealth.util.breathingRate
+import org.radarbase.googlehealth.util.googleHealthRespiratoryRateSleepSummary
 
 class RespiratoryRateSleepSummaryGoogleHealthAvroConverter(topic: String) :
     GoogleHealthAvroConverter(topic) {
@@ -33,7 +33,7 @@ class RespiratoryRateSleepSummaryGoogleHealthAvroConverter(topic: String) :
         val full = data["fullSleepStats"]?.get("breathsPerMinute")?.floatValue() ?: UNAVAILABLE
         val light = data["lightSleepStats"]?.get("breathsPerMinute")?.floatValue() ?: UNAVAILABLE
         val rem = data["remSleepStats"]?.get("breathsPerMinute")?.floatValue() ?: UNAVAILABLE
-        val record = breathingRate {
+        val record = googleHealthRespiratoryRateSleepSummary {
             this.time = epochSeconds(time)
             timeReceived = nowEpochSeconds()
             lightSleep = light

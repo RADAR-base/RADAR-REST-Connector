@@ -19,8 +19,8 @@ package org.radarbase.googlehealth.converter
 import com.fasterxml.jackson.databind.JsonNode
 import org.apache.avro.specific.SpecificRecord
 import org.radarbase.googlehealth.user.User
-import org.radarbase.googlehealth.util.sleepClassic
-import org.radarcns.connector.fitbit.FitbitSleepClassicLevel
+import org.radarbase.googlehealth.util.googleHealthSleepClassic
+import org.radarcns.push.googlehealth.GoogleHealthSleepClassicLevel
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset
@@ -42,22 +42,24 @@ class SleepClassicGoogleHealthAvroConverter(topic: String) : GoogleHealthAvroCon
                 ?.let { runCatching { Instant.parse(it) }.getOrNull() } ?: return@mapNotNull null
             val end = stage["endTime"]?.asText()
                 ?.let { runCatching { Instant.parse(it) }.getOrNull() } ?: return@mapNotNull null
-            val record = sleepClassic {
-                dateTime = LOCAL_FMT.format(LocalDateTime.ofInstant(start, ZoneOffset.UTC))
+            // Render in the stage's own UTC offset so dateTime is the device's local wall clock
+            // (like Fitbit), not UTC. Google derives its civil fields the same way (physical + offset).
+            val startZone = ZoneOffset.ofTotalSeconds(parseUtcOffsetSeconds(stage["startUtcOffset"]?.asText()))
+            val record = googleHealthSleepClassic {
+                dateTime = LOCAL_FMT.format(LocalDateTime.ofInstant(start, startZone))
                 this.timeReceived = timeReceived
                 duration = (end.epochSecond - start.epochSecond).toInt().coerceAtLeast(0)
                 level = mapLevel(stageType)
-                efficiency = null
             }
             user.observationKey to record
         }
     }
 
-    private fun mapLevel(text: String?): FitbitSleepClassicLevel = when (text) {
-        "ASLEEP" -> FitbitSleepClassicLevel.ASLEEP
-        "RESTLESS" -> FitbitSleepClassicLevel.RESTLESS
-        "AWAKE" -> FitbitSleepClassicLevel.AWAKE
-        else -> FitbitSleepClassicLevel.UNKNOWN
+    private fun mapLevel(text: String?): GoogleHealthSleepClassicLevel = when (text) {
+        "ASLEEP" -> GoogleHealthSleepClassicLevel.ASLEEP
+        "RESTLESS" -> GoogleHealthSleepClassicLevel.RESTLESS
+        "AWAKE" -> GoogleHealthSleepClassicLevel.AWAKE
+        else -> GoogleHealthSleepClassicLevel.UNKNOWN
     }
 
     companion object {

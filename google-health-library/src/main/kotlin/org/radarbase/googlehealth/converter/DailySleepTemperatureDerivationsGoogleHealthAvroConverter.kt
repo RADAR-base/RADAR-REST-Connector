@@ -19,8 +19,7 @@ package org.radarbase.googlehealth.converter
 import com.fasterxml.jackson.databind.JsonNode
 import org.apache.avro.specific.SpecificRecord
 import org.radarbase.googlehealth.user.User
-import org.radarbase.googlehealth.util.skinTemperature
-import org.radarcns.connector.fitbit.FitbitSkinTemperatureLogType
+import org.radarbase.googlehealth.util.googleHealthDailySleepTemperatureDerivations
 
 class DailySleepTemperatureDerivationsGoogleHealthAvroConverter(topic: String) :
     GoogleHealthAvroConverter(topic) {
@@ -31,12 +30,20 @@ class DailySleepTemperatureDerivationsGoogleHealthAvroConverter(topic: String) :
         val data = point["dailySleepTemperatureDerivations"] ?: return emptyList()
         val nightly = data["nightlyTemperatureCelsius"]?.takeIf { it.isNumber }?.floatValue() ?: return emptyList()
         val baseline = data["baselineTemperatureCelsius"]?.takeIf { it.isNumber }?.floatValue() ?: return emptyList()
-        val time = parseDate(data) ?: return emptyList()
-        val record = skinTemperature {
-            this.time = epochSeconds(time)
+        // `date` is the civil date (in the user's timezone) the derivation is for — emit it
+        // directly as a yyyy-MM-dd string, like DailyRestingHeartRate, rather than as a
+        // UTC-midnight instant that could shift to the wrong local day downstream.
+        val dateNode = data["date"] ?: return emptyList()
+        val isoDate = String.format(
+            "%04d-%02d-%02d",
+            dateNode["year"].asInt(),
+            dateNode["month"].asInt(),
+            dateNode["day"].asInt(),
+        )
+        val record = googleHealthDailySleepTemperatureDerivations {
+            date = isoDate
             timeReceived = nowEpochSeconds()
             relativeTemperature = nightly - baseline
-            logType = FitbitSkinTemperatureLogType.UNKNOWN
         }
         return listOf(user.observationKey to record)
     }
