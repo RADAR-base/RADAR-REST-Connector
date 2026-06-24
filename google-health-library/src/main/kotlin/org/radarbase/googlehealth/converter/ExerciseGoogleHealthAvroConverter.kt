@@ -42,10 +42,7 @@ class ExerciseGoogleHealthAvroConverter(topic: String) : GoogleHealthAvroConvert
         val avgHr = metrics?.get("averageHeartRateBeatsPerMinute")?.takeIf { !it.isNull }?.asInt()
         val avgHeartRate = avgHr?.let { exerciseHeartRate { mean = it } }
         val exerciseType = data["exerciseType"]?.asText()
-        // The exercise (log) id is the last segment of the reconcile data point's `dataPointName`
-        // (e.g. users/{u}/dataTypes/exercise/dataPoints/7726011858216679720). Exercise is an
-        // identifiable data type, so this is always present — fail loudly rather than emit a
-        // fabricated id. It is also the id used to export the session's TCX track.
+
         val activityId = point["dataPointName"]?.asText()?.substringAfterLast('/')?.toLongOrNull()
             ?: throw IllegalStateException("Exercise data point has no usable dataPointName log id: $point")
         val record = activityLogRecord {
