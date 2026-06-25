@@ -29,7 +29,7 @@ dependencies {
     implementation(libs.jackson.module.kotlin)
 
     // Included in connector runtime
-    compileOnly(libs.kafka.connect.api)
+    implementation(libs.kafka.connect.api)
     compileOnly(platform(libs.jackson.bom))
     compileOnly(libs.jackson.databind)
 

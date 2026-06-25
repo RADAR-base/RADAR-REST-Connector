@@ -4,7 +4,7 @@ dependencies {
     api(libs.okhttp)
 
     // included in runtime
-    compileOnly(libs.kafka.connect.api)
+    implementation(libs.kafka.connect.api)
     compileOnly(libs.slf4j.api)
 
     testImplementation(libs.mockito.core)

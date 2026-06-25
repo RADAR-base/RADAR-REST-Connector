@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.apache.kafka.connect.errors.ConnectException;
+import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.apache.kafka.connect.source.SourceTask;
 import org.radarbase.connect.rest.request.RequestGenerator;
@@ -63,11 +64,6 @@ public class RestSourceTask extends SourceTask {
     List<SourceRecord> requests = Collections.emptyList();
 
     do {
-      long timeout = MILLIS.between(Instant.now(), requestGenerator.getTimeOfNextRequest());
-      if (timeout > 0) {
-        logger.info("Waiting {} milliseconds for next available request", timeout);
-        Thread.sleep(timeout);
-      }
 
       Iterator<? extends RestRequest> requestIterator = requestGenerator.requests()
           .iterator();
@@ -93,7 +89,20 @@ public class RestSourceTask extends SourceTask {
     } while (requests.isEmpty());
 
     logger.info("Processed {} records from {} URLs", requests.size(), requestsGenerated);
-
+    if (!requests.isEmpty()) {
+      SourceRecord first = requests.get(0);
+      SourceRecord last = requests.get(requests.size() - 1);
+      if (first.value() instanceof Struct && last.value() instanceof Struct) {
+        Struct firstValue = (Struct) first.value();
+        Struct lastValue = (Struct) last.value();
+        if (firstValue.schema().field("time") != null && lastValue.schema().field("time") != null) {
+          logger.info("Time of first record: {} Time of last record: {}",
+              Instant.ofEpochMilli((long) (firstValue.getFloat64("time") * 1000)),
+              Instant.ofEpochMilli((long) (lastValue.getFloat64("time") * 1000))
+          );
+        }
+      }
+    }
     return requests;
   }
 

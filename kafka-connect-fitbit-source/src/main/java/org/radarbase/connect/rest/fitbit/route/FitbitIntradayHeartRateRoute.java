@@ -17,22 +17,27 @@
 
 package org.radarbase.connect.rest.fitbit.route;
 
-import static java.time.format.DateTimeFormatter.ISO_LOCAL_TIME;
-import static java.time.temporal.ChronoUnit.SECONDS;
-
 import io.confluent.connect.avro.AvroData;
-import java.util.stream.Stream;
 import org.radarbase.connect.rest.fitbit.converter.FitbitIntradayHeartRateAvroConverter;
 import org.radarbase.connect.rest.fitbit.request.FitbitRequestGenerator;
 import org.radarbase.connect.rest.fitbit.request.FitbitRestRequest;
 import org.radarbase.connect.rest.fitbit.user.User;
 import org.radarbase.connect.rest.fitbit.user.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
+import java.util.stream.Stream;
+
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_TIME;
+import static java.time.temporal.ChronoUnit.SECONDS;
 
 public class FitbitIntradayHeartRateRoute extends FitbitPollingRoute {
+  private static final Logger log = LoggerFactory.getLogger(FitbitIntradayHeartRateRoute.class);
   private final FitbitIntradayHeartRateAvroConverter converter;
 
   public FitbitIntradayHeartRateRoute(FitbitRequestGenerator generator,
-      UserRepository userRepository, AvroData avroData) {
+                                      UserRepository userRepository, AvroData avroData) {
     super(generator, userRepository, "heart_rate");
     this.converter = new FitbitIntradayHeartRateAvroConverter(avroData);
   }
@@ -43,11 +48,16 @@ public class FitbitIntradayHeartRateRoute extends FitbitPollingRoute {
   }
 
   protected Stream<FitbitRestRequest> createRequests(User user) {
-    return startDateGenerator(getOffset(user).plus(ONE_SECOND).truncatedTo(SECONDS))
-        .map(dateRange -> newRequest(user, dateRange,
-            user.getExternalUserId(), DATE_FORMAT.format(dateRange.start()),
-            ISO_LOCAL_TIME.format(dateRange.start()),
-            ISO_LOCAL_TIME.format(dateRange.end().truncatedTo(SECONDS))));
+    List<FitbitRestRequest> requests = startDateGenerator(getOffset(user).plus(ONE_SECOND).truncatedTo(SECONDS))
+        .map(dateRange -> {
+          return newRequest(user, dateRange,
+              user.getExternalUserId(), DATE_FORMAT.format(dateRange.start()),
+              ISO_LOCAL_TIME.format(dateRange.start()),
+              ISO_LOCAL_TIME.format(dateRange.end().truncatedTo(SECONDS)));
+        })
+        .toList();
+    log.info("Creating request from {} to {}", requests.get(0).getDateRange(), requests.get(requests.size() - 1).getDateRange());
+    return requests.stream();
   }
 
   @Override

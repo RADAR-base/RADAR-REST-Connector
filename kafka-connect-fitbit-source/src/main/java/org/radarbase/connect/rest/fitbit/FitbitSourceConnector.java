@@ -68,7 +68,7 @@ public class FitbitSourceConnector extends AbstractRestSourceConnector {
           logger.warn("Failed to refresh users: {}", e.toString());
         }
       } else {
-        logger.info("No pending updates found. Not attempting to refresh users.");
+//        logger.info("No pending updates found. Not attempting to refresh users.");
       }
     }, 0, applicationLoopInterval.toSeconds(), TimeUnit.SECONDS);
   }

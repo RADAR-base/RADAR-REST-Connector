@@ -29,12 +29,7 @@ import static java.time.temporal.ChronoUnit.MINUTES;
 import static java.time.temporal.ChronoUnit.NANOS;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import java.time.temporal.TemporalAmount;
-import java.util.AbstractMap;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -266,7 +261,7 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
     tooManyRequestsForUser.clear();
     lastPoll = Instant.now();
     try {
-      return userRepository.stream()
+      List<FitbitRestRequest> requests = userRepository.stream()
           // Collect Instant of nextPoll for each user
           .map(u -> new AbstractMap.SimpleImmutableEntry<>(u, nextPoll(u)))
           // Keep users where the lastPoll is later than the nextPoll for the user (i.e., user needs to be polled)
@@ -274,7 +269,8 @@ public abstract class FitbitPollingRoute implements PollingRequestRoute {
           // Sort users by nextPoll (old to new?)
           .sorted(Map.Entry.comparingByValue())
           .flatMap(u -> this.createRequests(u.getKey()))
-          .filter(Objects::nonNull);
+          .filter(Objects::nonNull).toList();
+      return requests.stream();
     } catch (IOException e) {
       logger.warn("Cannot read users");
       return Stream.empty();
