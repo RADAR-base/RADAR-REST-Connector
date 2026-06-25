@@ -2,6 +2,7 @@ package org.radarbase.googlehealth.util
 
 import org.radarcns.push.googlehealth.GoogleHealthExerciseHeartRate
 import org.radarcns.push.googlehealth.GoogleHealthExercise
+import org.radarcns.push.googlehealth.GoogleHealthSource
 import org.radarcns.push.googlehealth.GoogleHealthRespiratoryRateSleepSummary
 import org.radarcns.push.googlehealth.GoogleHealthTotalCalories
 import org.radarcns.push.googlehealth.GoogleHealthHeartRate
@@ -12,6 +13,17 @@ import org.radarcns.push.googlehealth.GoogleHealthDailyRestingHeartRate
 import org.radarcns.push.googlehealth.GoogleHealthDailySleepTemperatureDerivations
 import org.radarcns.push.googlehealth.GoogleHealthSleepClassic
 import org.radarcns.push.googlehealth.GoogleHealthSleepStage
+import org.radarcns.push.googlehealth.GoogleHealthElectrocardiogram
+import org.radarcns.push.googlehealth.GoogleHealthIrregularRhythmNotification
+
+inline fun googleHealthSource(block: GoogleHealthSource.Builder.() -> Unit): GoogleHealthSource =
+    GoogleHealthSource.newBuilder().apply(block).build()
+
+inline fun googleHealthElectrocardiogram(block: GoogleHealthElectrocardiogram.Builder.() -> Unit): GoogleHealthElectrocardiogram =
+    GoogleHealthElectrocardiogram.newBuilder().apply(block).build()
+
+inline fun googleHealthIrregularRhythmNotification(block: GoogleHealthIrregularRhythmNotification.Builder.() -> Unit): GoogleHealthIrregularRhythmNotification =
+    GoogleHealthIrregularRhythmNotification.newBuilder().apply(block).build()
 
 inline fun googleHealthSteps(block: GoogleHealthSteps.Builder.() -> Unit): GoogleHealthSteps =
     GoogleHealthSteps.newBuilder().apply(block).build()
@@ -40,10 +52,10 @@ inline fun googleHealthSleepClassic(block: GoogleHealthSleepClassic.Builder.() -
 inline fun googleHealthSleepStage(block: GoogleHealthSleepStage.Builder.() -> Unit): GoogleHealthSleepStage =
     GoogleHealthSleepStage.newBuilder().apply(block).build()
 
-inline fun activityLogRecord(block: GoogleHealthExercise.Builder.() -> Unit): GoogleHealthExercise =
+inline fun googleHealthExercise(block: GoogleHealthExercise.Builder.() -> Unit): GoogleHealthExercise =
     GoogleHealthExercise.newBuilder().apply(block).build()
 
-inline fun exerciseHeartRate(block: GoogleHealthExerciseHeartRate.Builder.() -> Unit): GoogleHealthExerciseHeartRate =
+inline fun googleHealthExerciseHeartRate(block: GoogleHealthExerciseHeartRate.Builder.() -> Unit): GoogleHealthExerciseHeartRate =
     GoogleHealthExerciseHeartRate.newBuilder().apply(block).build()
 
 inline fun googleHealthTotalCalories(block: GoogleHealthTotalCalories.Builder.() -> Unit): GoogleHealthTotalCalories =

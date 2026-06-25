@@ -19,6 +19,8 @@ package org.radarbase.googlehealth.converter
 import com.fasterxml.jackson.databind.JsonNode
 import org.apache.avro.specific.SpecificRecord
 import org.radarbase.googlehealth.user.User
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -26,6 +28,8 @@ import java.time.LocalTime
 import java.time.ZoneOffset
 
 abstract class GoogleHealthAvroConverter(override val topic: String) : AvroConverter {
+
+    protected val logger: Logger = LoggerFactory.getLogger(javaClass)
 
     abstract fun convertDataPoint(
         point: JsonNode,
@@ -79,12 +83,16 @@ abstract class GoogleHealthAvroConverter(override val topic: String) : AvroConve
             return dateTime.toInstant(ZoneOffset.ofTotalSeconds(utcOffsetSeconds))
         }
 
-        fun parseUtcOffsetSeconds(durationText: String?): Int {
+        /** Parses a Google `Duration` string (e.g. "36s", "780s") to whole seconds. */
+        fun parseDurationSeconds(durationText: String?): Int {
             if (durationText.isNullOrEmpty()) return 0
             val trimmed = durationText.trim().removeSuffix("s")
-            val seconds = trimmed.toLongOrNull() ?: return 0
+            val seconds = trimmed.toDoubleOrNull() ?: return 0
             return seconds.toInt()
         }
+
+        /** A UTC offset is encoded as a [Duration]; returns its value in seconds. */
+        fun parseUtcOffsetSeconds(offsetText: String?): Int = parseDurationSeconds(offsetText)
 
         fun epochSeconds(instant: Instant): Double = instant.toEpochMilli() / 1000.0
 
