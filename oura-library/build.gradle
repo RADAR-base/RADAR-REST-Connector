@@ -1,3 +1,5 @@
+description = "Library for converting Oura data into RADAR-base Avro records"
+
 dependencies {
     implementation libs.kotlin.stdlib
 
