@@ -29,8 +29,12 @@ class DailySleepTemperatureDerivationsGoogleHealthAvroConverter(topic: String) :
         user: User,
     ): List<Pair<SpecificRecord, SpecificRecord>> {
         val data = point["dailySleepTemperatureDerivations"] ?: return emptyList()
-        val nightly = data["nightlyTemperatureCelsius"]?.takeIf { it.isNumber }?.floatValue() ?: return emptyList()
-        val baseline = data["baselineTemperatureCelsius"]?.takeIf { it.isNumber }?.floatValue() ?: return emptyList()
+        val nightly = data["nightlyTemperatureCelsius"]?.takeIf {
+            it.isNumber
+        }?.floatValue() ?: return emptyList()
+        val baseline = data["baselineTemperatureCelsius"]?.takeIf {
+            it.isNumber
+        }?.floatValue() ?: return emptyList()
         val time = parseDate(data) ?: return emptyList()
         val record = skinTemperature {
             this.time = epochSeconds(time)
