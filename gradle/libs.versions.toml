@@ -15,7 +15,7 @@ sentryOpenTelemetryAgent = "8.36.0"
 # @pin Upgrade to 5.x.x requires kotlin v2 minimum
 okhttp = "4.12.0"
 firebaseAdmin = "9.8.0"
-radarSchemas = "0.8.17"
+radarSchemas = "0.8.18"
 # @pin Upgrade to 3.x.x requires kotlin v2 minimum
 ktor = "2.3.13"
 wiremock = "3.0.1"
