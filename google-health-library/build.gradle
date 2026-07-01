@@ -1,4 +1,4 @@
-description = "Library for converting Oura data into RADAR-base Avro records"
+description = "Google Health library with utility components to be used in RADAR-Pushendpoint"
 
 dependencies {
     implementation libs.kotlin.stdlib
