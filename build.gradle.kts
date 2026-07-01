@@ -22,7 +22,7 @@ radarRootProject {
 val githubRepoName = "RADAR-base/RADAR-REST-Connector"
 val githubProjectUrl = "https://github.com/$githubRepoName"
 
-val publishedSubprojects = setOf("oura-library", "google-health-library")
+val publishedSubprojects = setOf("google-health-library")
 
 subprojects {
     apply(plugin = "org.radarbase.radar-kotlin")
