@@ -50,14 +50,14 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import org.radarbase.connect.rest.huawei.HuaweiRestSourceConnectorConfig
+import org.radarbase.huawei.user.HuaweiUser
+import org.radarbase.huawei.user.User
+import org.radarbase.huawei.user.UserNotAuthorizedException
 import org.radarbase.kotlin.coroutines.CacheConfig
 import org.radarbase.kotlin.coroutines.CachedSet
 import org.radarbase.kotlin.coroutines.CachedValue
 import org.radarbase.ktor.auth.ClientCredentialsConfig
 import org.radarbase.ktor.auth.clientCredentials
-import org.radarbase.huawei.user.HuaweiUser
-import org.radarbase.huawei.user.User
-import org.radarbase.huawei.user.UserNotAuthorizedException
 import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
@@ -90,11 +90,13 @@ class HuaweiServiceUserRepository : HuaweiUserRepository() {
 
     override fun initialize(config: HuaweiRestSourceConnectorConfig) {
         val containedUsers = config.getHuaweiUsers().toHashSet()
+        val tokenUrl = config.getHuaweiUserRepositoryTokenUrl()
+            ?.let { URLBuilder(it.toString()).build() }
 
         client =
             createClient(
                 baseUrl = config.getHuaweiUserRepositoryUrl(),
-                tokenUrl = config.getHuaweiUserRepositoryTokenUrl()?.let { URLBuilder(it.toString()).build() },
+                tokenUrl = tokenUrl,
                 clientId = config.getHuaweiUserRepositoryClientId(),
                 clientSecret = config.getHuaweiUserRepositoryClientSecret(),
                 scope = "SUBJECT.READ MEASUREMENT.CREATE",

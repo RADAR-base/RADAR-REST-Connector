@@ -47,7 +47,11 @@ class HuaweiRestSourceConnectorConfig(
     doLog: Boolean,
 ) : AbstractConfig(config, parsedConfig, doLog) {
 
-    constructor(parsedConfig: MutableMap<String, String>, doLog: Boolean) : this(conf(), parsedConfig, doLog)
+    constructor(parsedConfig: MutableMap<String, String>, doLog: Boolean) : this(
+        conf(),
+        parsedConfig,
+        doLog,
+    )
 
     private var userRepository: HuaweiUserRepository? = null
 
@@ -58,7 +62,8 @@ class HuaweiRestSourceConnectorConfig(
     fun getHuaweiClientSecret(): String = getPassword(HUAWEI_API_SECRET_CONFIG).value()
 
     fun getUserRepository(reuse: HuaweiUserRepository?): HuaweiUserRepository {
-        val repo = if (reuse != null && reuse.javaClass == getClass(HUAWEI_USER_REPOSITORY_CONFIG)) {
+        val configuredClass = getClass(HUAWEI_USER_REPOSITORY_CONFIG)
+        val repo = if (reuse != null && reuse.javaClass == configuredClass) {
             reuse
         } else {
             createUserRepository()
@@ -96,9 +101,13 @@ class HuaweiRestSourceConnectorConfig(
             )
     }
 
-    fun getPollIntervalPerUser(): Duration = Duration.ofSeconds(getInt(HUAWEI_USER_POLL_INTERVAL_CONFIG).toLong())
+    fun getPollIntervalPerUser(): Duration = Duration.ofSeconds(
+        getInt(HUAWEI_USER_POLL_INTERVAL_CONFIG).toLong(),
+    )
 
-    fun getHuaweiUserRepositoryClientId(): String = getString(HUAWEI_USER_REPOSITORY_CLIENT_ID_CONFIG)
+    fun getHuaweiUserRepositoryClientId(): String = getString(
+        HUAWEI_USER_REPOSITORY_CLIENT_ID_CONFIG,
+    )
 
     fun getHuaweiUserRepositoryClientSecret(): String =
         getPassword(HUAWEI_USER_REPOSITORY_CLIENT_SECRET_CONFIG).value()
@@ -147,11 +156,13 @@ class HuaweiRestSourceConnectorConfig(
         private const val HUAWEI_API_CLIENT_DISPLAY = "Huawei API client ID"
 
         const val HUAWEI_API_SECRET_CONFIG = "huawei.api.secret"
-        private const val HUAWEI_API_SECRET_DOC = "Secret for the Huawei API client set in huawei.api.client."
+        private const val HUAWEI_API_SECRET_DOC =
+            "Secret for the Huawei API client set in huawei.api.client."
         private const val HUAWEI_API_SECRET_DISPLAY = "Huawei API client secret"
 
         const val HUAWEI_USER_REPOSITORY_CONFIG = "huawei.user.repository.class"
-        private const val HUAWEI_USER_REPOSITORY_DOC = "Class for managing users and authentication."
+        private const val HUAWEI_USER_REPOSITORY_DOC =
+            "Class for managing users and authentication."
         private const val HUAWEI_USER_REPOSITORY_DISPLAY = "User repository class"
 
         const val HUAWEI_USER_POLL_INTERVAL_CONFIG = "huawei.user.poll.interval"
@@ -168,16 +179,22 @@ class HuaweiRestSourceConnectorConfig(
         private const val HUAWEI_USER_REPOSITORY_URL_DEFAULT = ""
 
         const val HUAWEI_USER_REPOSITORY_CLIENT_ID_CONFIG = "huawei.user.repository.client.id"
-        private const val HUAWEI_USER_REPOSITORY_CLIENT_ID_DOC = "Client ID for connecting to the service repository."
-        private const val HUAWEI_USER_REPOSITORY_CLIENT_ID_DISPLAY = "Client ID for user repository."
+        private const val HUAWEI_USER_REPOSITORY_CLIENT_ID_DOC =
+            "Client ID for connecting to the service repository."
+        private const val HUAWEI_USER_REPOSITORY_CLIENT_ID_DISPLAY =
+            "Client ID for user repository."
 
-        const val HUAWEI_USER_REPOSITORY_CLIENT_SECRET_CONFIG = "huawei.user.repository.client.secret"
+        const val HUAWEI_USER_REPOSITORY_CLIENT_SECRET_CONFIG =
+            "huawei.user.repository.client.secret"
         private const val HUAWEI_USER_REPOSITORY_CLIENT_SECRET_DOC =
             "Client secret for connecting to the service repository."
-        private const val HUAWEI_USER_REPOSITORY_CLIENT_SECRET_DISPLAY = "Client Secret for user repository."
+        private const val HUAWEI_USER_REPOSITORY_CLIENT_SECRET_DISPLAY =
+            "Client Secret for user repository."
 
-        const val HUAWEI_USER_REPOSITORY_TOKEN_URL_CONFIG = "huawei.user.repository.oauth2.token.url"
-        private const val HUAWEI_USER_REPOSITORY_TOKEN_URL_DOC = "OAuth 2.0 token url for retrieving client credentials."
+        const val HUAWEI_USER_REPOSITORY_TOKEN_URL_CONFIG =
+            "huawei.user.repository.oauth2.token.url"
+        private const val HUAWEI_USER_REPOSITORY_TOKEN_URL_DOC =
+            "OAuth 2.0 token url for retrieving client credentials."
         private const val HUAWEI_USER_REPOSITORY_TOKEN_URL_DISPLAY = "OAuth 2.0 token URL."
 
         private fun enabledKey(key: String) = "huawei.$key.enabled"
@@ -190,52 +207,125 @@ class HuaweiRestSourceConnectorConfig(
 
             val def = ConfigDef()
                 .define(
-                    SOURCE_POLL_INTERVAL_CONFIG, Type.LONG, SOURCE_POLL_INTERVAL_DEFAULT, Importance.LOW,
-                    SOURCE_POLL_INTERVAL_DOC, group, ++order, Width.SHORT, SOURCE_POLL_INTERVAL_DISPLAY,
+                    SOURCE_POLL_INTERVAL_CONFIG,
+                    Type.LONG,
+                    SOURCE_POLL_INTERVAL_DEFAULT,
+                    Importance.LOW,
+                    SOURCE_POLL_INTERVAL_DOC,
+                    group,
+                    ++order,
+                    Width.SHORT,
+                    SOURCE_POLL_INTERVAL_DISPLAY,
                 )
                 .define(
-                    SOURCE_URL_CONFIG, Type.STRING, SOURCE_URL_DEFAULT, Importance.HIGH,
-                    SOURCE_URL_DOC, group, ++order, Width.SHORT, SOURCE_URL_DISPLAY,
+                    SOURCE_URL_CONFIG,
+                    Type.STRING,
+                    SOURCE_URL_DEFAULT,
+                    Importance.HIGH,
+                    SOURCE_URL_DOC,
+                    group,
+                    ++order,
+                    Width.SHORT,
+                    SOURCE_URL_DISPLAY,
                 )
                 .define(
-                    HUAWEI_USERS_CONFIG, Type.LIST, emptyList<String>(), Importance.HIGH,
-                    HUAWEI_USERS_DOC, group, ++order, Width.SHORT, HUAWEI_USERS_DISPLAY,
+                    HUAWEI_USERS_CONFIG,
+                    Type.LIST,
+                    emptyList<String>(),
+                    Importance.HIGH,
+                    HUAWEI_USERS_DOC,
+                    group,
+                    ++order,
+                    Width.SHORT,
+                    HUAWEI_USERS_DISPLAY,
                 )
                 .define(
-                    HUAWEI_API_CLIENT_CONFIG, Type.STRING, ConfigDef.NO_DEFAULT_VALUE, NonEmptyString(),
-                    Importance.HIGH, HUAWEI_API_CLIENT_DOC, group, ++order, Width.SHORT, HUAWEI_API_CLIENT_DISPLAY,
+                    HUAWEI_API_CLIENT_CONFIG,
+                    Type.STRING,
+                    ConfigDef.NO_DEFAULT_VALUE,
+                    NonEmptyString(),
+                    Importance.HIGH,
+                    HUAWEI_API_CLIENT_DOC,
+                    group,
+                    ++order,
+                    Width.SHORT,
+                    HUAWEI_API_CLIENT_DISPLAY,
                 )
                 .define(
-                    HUAWEI_API_SECRET_CONFIG, Type.PASSWORD, ConfigDef.NO_DEFAULT_VALUE, Importance.HIGH,
-                    HUAWEI_API_SECRET_DOC, group, ++order, Width.SHORT, HUAWEI_API_SECRET_DISPLAY,
+                    HUAWEI_API_SECRET_CONFIG,
+                    Type.PASSWORD,
+                    ConfigDef.NO_DEFAULT_VALUE,
+                    Importance.HIGH,
+                    HUAWEI_API_SECRET_DOC,
+                    group,
+                    ++order,
+                    Width.SHORT,
+                    HUAWEI_API_SECRET_DISPLAY,
                 )
                 .define(
-                    HUAWEI_USER_POLL_INTERVAL_CONFIG, Type.INT, HUAWEI_USER_POLL_INTERVAL_DEFAULT, Importance.MEDIUM,
-                    HUAWEI_USER_POLL_INTERVAL_DOC, group, ++order, Width.SHORT, HUAWEI_USER_POLL_INTERVAL_DISPLAY,
+                    HUAWEI_USER_POLL_INTERVAL_CONFIG,
+                    Type.INT,
+                    HUAWEI_USER_POLL_INTERVAL_DEFAULT,
+                    Importance.MEDIUM,
+                    HUAWEI_USER_POLL_INTERVAL_DOC,
+                    group,
+                    ++order,
+                    Width.SHORT,
+                    HUAWEI_USER_POLL_INTERVAL_DISPLAY,
                 )
                 .define(
-                    HUAWEI_USER_REPOSITORY_CONFIG, Type.CLASS, HuaweiServiceUserRepository::class.java,
-                    Importance.MEDIUM, HUAWEI_USER_REPOSITORY_DOC, group, ++order, Width.SHORT,
+                    HUAWEI_USER_REPOSITORY_CONFIG,
+                    Type.CLASS,
+                    HuaweiServiceUserRepository::class.java,
+                    Importance.MEDIUM,
+                    HUAWEI_USER_REPOSITORY_DOC,
+                    group,
+                    ++order,
+                    Width.SHORT,
                     HUAWEI_USER_REPOSITORY_DISPLAY,
                 )
                 .define(
-                    HUAWEI_USER_REPOSITORY_URL_CONFIG, Type.STRING, HUAWEI_USER_REPOSITORY_URL_DEFAULT,
-                    Importance.LOW, HUAWEI_USER_REPOSITORY_URL_DOC, group, ++order, Width.SHORT,
+                    HUAWEI_USER_REPOSITORY_URL_CONFIG,
+                    Type.STRING,
+                    HUAWEI_USER_REPOSITORY_URL_DEFAULT,
+                    Importance.LOW,
+                    HUAWEI_USER_REPOSITORY_URL_DOC,
+                    group,
+                    ++order,
+                    Width.SHORT,
                     HUAWEI_USER_REPOSITORY_URL_DISPLAY,
                 )
                 .define(
-                    HUAWEI_USER_REPOSITORY_CLIENT_ID_CONFIG, Type.STRING, "", Importance.MEDIUM,
-                    HUAWEI_USER_REPOSITORY_CLIENT_ID_DOC, group, ++order, Width.SHORT,
+                    HUAWEI_USER_REPOSITORY_CLIENT_ID_CONFIG,
+                    Type.STRING,
+                    "",
+                    Importance.MEDIUM,
+                    HUAWEI_USER_REPOSITORY_CLIENT_ID_DOC,
+                    group,
+                    ++order,
+                    Width.SHORT,
                     HUAWEI_USER_REPOSITORY_CLIENT_ID_DISPLAY,
                 )
                 .define(
-                    HUAWEI_USER_REPOSITORY_CLIENT_SECRET_CONFIG, Type.PASSWORD, "", Importance.MEDIUM,
-                    HUAWEI_USER_REPOSITORY_CLIENT_SECRET_DOC, group, ++order, Width.SHORT,
+                    HUAWEI_USER_REPOSITORY_CLIENT_SECRET_CONFIG,
+                    Type.PASSWORD,
+                    "",
+                    Importance.MEDIUM,
+                    HUAWEI_USER_REPOSITORY_CLIENT_SECRET_DOC,
+                    group,
+                    ++order,
+                    Width.SHORT,
                     HUAWEI_USER_REPOSITORY_CLIENT_SECRET_DISPLAY,
                 )
                 .define(
-                    HUAWEI_USER_REPOSITORY_TOKEN_URL_CONFIG, Type.STRING, "", Importance.MEDIUM,
-                    HUAWEI_USER_REPOSITORY_TOKEN_URL_DOC, group, ++order, Width.SHORT,
+                    HUAWEI_USER_REPOSITORY_TOKEN_URL_CONFIG,
+                    Type.STRING,
+                    "",
+                    Importance.MEDIUM,
+                    HUAWEI_USER_REPOSITORY_TOKEN_URL_DOC,
+                    group,
+                    ++order,
+                    Width.SHORT,
                     HUAWEI_USER_REPOSITORY_TOKEN_URL_DISPLAY,
                 )
 
