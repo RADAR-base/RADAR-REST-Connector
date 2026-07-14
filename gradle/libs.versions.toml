@@ -16,6 +16,9 @@ sentryOpenTelemetryAgent = "8.36.0"
 okhttp = "4.12.0"
 firebaseAdmin = "9.8.0"
 radarSchemas = "0.8.16"
+# Huawei connector schemas are not yet released; pin to the published snapshot until a stable
+# radar-schemas-commons release containing the huawei_schemas branch is cut.
+radarSchemasHuawei = "0.9.0-SNAPSHOT"
 # @pin Upgrade to 3.x.x requires kotlin v2 minimum
 ktor = "2.3.13"
 wiremock = "3.0.1"
@@ -28,6 +31,7 @@ lz4 = "1.10.1"
 lz4 = { module = "at.yawk.lz4:lz4-java", version.ref = "lz4" }
 radar-commons-kotlin = { module = "org.radarbase:radar-commons-kotlin", version.ref = "radarCommons" }
 radar-schemas-commons = { module = "org.radarbase:radar-schemas-commons", version.ref = "radarSchemas" }
+radar-schemas-commons-huawei = { module = "org.radarbase:radar-schemas-commons", version.ref = "radarSchemasHuawei" }
 kafka-connect-api = "org.apache.kafka:connect-api:7.8.1-ce"
 kafka-connect-avro-converter = { module = "io.confluent:kafka-connect-avro-converter", version.ref = "confluent" }
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
