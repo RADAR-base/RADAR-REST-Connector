@@ -36,7 +36,7 @@ FROM confluentinc/cp-kafka-connect-base:7.8.7
 
 USER appuser
 
-LABEL org.opencontainers.image.authors="yatharth.ranjan@kcl.ac.uk"
+LABEL org.opencontainers.image.authors="yatharth.ranjan@kcl.ac.uk, yatharthranjan@onsentia.com"
 
 LABEL description="Kafka Huawei Health Kit REST API Source connector"
 

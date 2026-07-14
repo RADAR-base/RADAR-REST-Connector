@@ -25,7 +25,7 @@ env:
     },{
     'name': 'kafka-connect-huawei-source',
     'build_file': 'kafka-connect-huawei-source/Dockerfile',
-    'authors': 'Yatharth Ranjan <yatharth.ranjan@kcl.ac.uk>',
+    'authors': 'Yatharth Ranjan <yatharth.ranjan@kcl.ac.uk>, Yatharth Ranjan <yatharthranjan@onsentia.com>',
     'description': 'RADAR-base Huawei Health Kit connector application'
     }]
 
