@@ -47,7 +47,11 @@ open class HuaweiSampleSetRoute(
         max: Int,
     ): Sequence<RestRequest> = chunkedRanges(start, end, max).map { (rangeStart, rangeEnd) ->
         RestRequest(
-            request = createPostRequest(user, "sampleSet:polymerize", buildRequestBody(rangeStart, rangeEnd)),
+            request = createPostRequest(
+                user,
+                "sampleSet:polymerize",
+                buildRequestBody(rangeStart, rangeEnd),
+            ),
             user = user,
             route = this,
             startDate = rangeStart,

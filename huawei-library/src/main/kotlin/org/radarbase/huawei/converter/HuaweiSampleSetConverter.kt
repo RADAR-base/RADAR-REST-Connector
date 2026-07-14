@@ -35,7 +35,8 @@ class HuaweiSampleSetConverter(
         val sampleSets = root.get("sampleSet") ?: root.get("sampleSets") ?: return emptySequence()
         return sampleSets.asSequence()
             .flatMap { group ->
-                (group.get("samplePoints") ?: group.get("samplePoint"))?.asSequence() ?: emptySequence()
+                val points = group.get("samplePoints") ?: group.get("samplePoint")
+                points?.asSequence() ?: emptySequence()
             }
             .mapCatching { point ->
                 val startTime = point.epochInstant("startTime")

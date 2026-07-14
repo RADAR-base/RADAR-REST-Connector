@@ -106,7 +106,13 @@ class HuaweiRequestGenerator(
         logger.debug("Request successful: {}..", request.request)
         val body = response.body
         val data = body?.bytes() ?: ByteArray(0)
-        val records = request.route.converters.flatMap { it.convert(request, response.headers, data) }
+        val records = request.route.converters.flatMap {
+            it.convert(
+                request,
+                response.headers,
+                data,
+            )
+        }
         val offset = records.maxByOrNull { it.offset }?.offset
         val key = routeKey(request.route, request.user)
         if (offset != null) {
@@ -130,7 +136,10 @@ class HuaweiRequestGenerator(
                 HuaweiRateLimitError("Rate limit reached..", TooManyRequestsException(), "429")
             }
             403 -> {
-                logger.warn("User {} does not have access to this Huawei Health Kit data type.", request.user)
+                logger.warn(
+                    "User {} does not have access to this Huawei Health Kit data type.",
+                    request.user,
+                )
                 routeNextRequest[key] = Instant.now().plus(USER_BACK_OFF_TIME)
                 HuaweiAccessForbiddenError(
                     "Huawei Health Kit scope not granted or data not available..",
@@ -150,22 +159,38 @@ class HuaweiRequestGenerator(
             400 -> {
                 logger.warn("Client exception for request {}", request)
                 routeNextRequest[key] = Instant.now().plus(BACK_OFF_TIME)
-                HuaweiClientException("Client unsupported or unauthorized..", IOException("Invalid client"), "400")
+                HuaweiClientException(
+                    "Client unsupported or unauthorized..",
+                    IOException("Invalid client"),
+                    "400",
+                )
             }
             422 -> {
                 logger.warn("Request failed (validation error): {}, {}", request, response)
                 routeNextRequest[key] = Instant.now().plus(BACK_OFF_TIME)
-                HuaweiValidationError(response.body?.string() ?: "validation error", IOException("Validation error"), "422")
+                HuaweiValidationError(
+                    response.body?.string() ?: "validation error",
+                    IOException("Validation error"),
+                    "422",
+                )
             }
             404 -> {
                 logger.warn("Not found: {}", request)
                 routeNextRequest[key] = Instant.now().plus(BACK_OFF_TIME)
-                HuaweiNotFoundError(response.body?.string() ?: "not found", IOException("Data not found"), "404")
+                HuaweiNotFoundError(
+                    response.body?.string() ?: "not found",
+                    IOException("Data not found"),
+                    "404",
+                )
             }
             else -> {
                 logger.warn("Request failed: {}, {}", request, response)
                 routeNextRequest[key] = Instant.now().plus(BACK_OFF_TIME)
-                HuaweiGenericError(response.body?.string() ?: "unknown error", IOException("Unknown error"), "500")
+                HuaweiGenericError(
+                    response.body?.string() ?: "unknown error",
+                    IOException("Unknown error"),
+                    "500",
+                )
             }
         }
     }

@@ -13,52 +13,44 @@ sealed class HuaweiErrorBase(
     val code: String,
 ) : HuaweiError
 
-class HuaweiRateLimitError(message: String, cause: Exception? = null, code: String) : HuaweiErrorBase(
-    message,
-    cause,
-    code,
-)
+class HuaweiRateLimitError(
+    message: String,
+    cause: Exception? = null,
+    code: String,
+) : HuaweiErrorBase(message, cause, code)
 
-class HuaweiClientException(message: String, cause: Exception? = null, code: String) : HuaweiErrorBase(
-    message,
-    cause,
-    code,
-)
+class HuaweiClientException(
+    message: String,
+    cause: Exception? = null,
+    code: String,
+) : HuaweiErrorBase(message, cause, code)
 
 class HuaweiUnauthorizedAccessError(
     message: String,
     cause: Exception? = null,
     code: String,
-) : HuaweiErrorBase(
-    message,
-    cause,
-    code,
-)
+) : HuaweiErrorBase(message, cause, code)
 
 class HuaweiAccessForbiddenError(
     message: String,
     cause: Exception? = null,
     code: String,
-) : HuaweiErrorBase(
-    message,
-    cause,
-    code,
-)
+) : HuaweiErrorBase(message, cause, code)
 
-class HuaweiValidationError(message: String, cause: Exception? = null, code: String) : HuaweiErrorBase(
-    message,
-    cause,
-    code,
-)
+class HuaweiValidationError(
+    message: String,
+    cause: Exception? = null,
+    code: String,
+) : HuaweiErrorBase(message, cause, code)
 
-class HuaweiGenericError(message: String, cause: Exception? = null, code: String) : HuaweiErrorBase(
-    message,
-    cause,
-    code,
-)
+class HuaweiGenericError(
+    message: String,
+    cause: Exception? = null,
+    code: String,
+) : HuaweiErrorBase(message, cause, code)
 
-class HuaweiNotFoundError(message: String, cause: Exception? = null, code: String) : HuaweiErrorBase(
-    message,
-    cause,
-    code,
-)
+class HuaweiNotFoundError(
+    message: String,
+    cause: Exception? = null,
+    code: String,
+) : HuaweiErrorBase(message, cause, code)

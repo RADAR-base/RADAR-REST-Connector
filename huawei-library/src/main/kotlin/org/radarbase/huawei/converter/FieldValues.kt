@@ -22,15 +22,20 @@ class FieldValues private constructor(private val values: Map<String, JsonNode>)
 
     fun getLong(field: String): Long? = values[field]?.let { if (it.isNull) null else it.asLong() }
 
-    fun getDouble(field: String): Double? = values[field]?.let { if (it.isNull) null else it.asDouble() }
+    fun getDouble(field: String): Double? = values[field]?.let {
+        if (it.isNull) null else it.asDouble()
+    }
 
     fun getFloat(field: String): Float? = getDouble(field)?.toFloat()
 
-    fun getString(field: String): String? = values[field]?.let { if (it.isNull) null else it.asText() }
+    fun getString(field: String): String? = values[field]?.let {
+        if (it.isNull) null else it.asText()
+    }
 
     companion object {
         private const val FIELD_NAME_KEY = "fieldName"
-        private val VALUE_KEYS = listOf("integerValue", "floatValue", "longValue", "stringValue", "value")
+        private val VALUE_KEYS =
+            listOf("integerValue", "floatValue", "longValue", "stringValue", "value")
 
         fun from(node: JsonNode?): FieldValues {
             if (node == null || node.isMissingNode || node.isNull) {

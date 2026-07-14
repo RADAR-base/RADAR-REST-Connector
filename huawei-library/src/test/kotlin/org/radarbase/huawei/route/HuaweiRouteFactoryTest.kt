@@ -66,7 +66,7 @@ class HuaweiRouteFactoryTest {
                     failures += "${definition.key}: unexpected topic ${successes.first().topic}"
                 }
             } catch (e: Exception) {
-                failures += "${definition.key}: threw ${e}"
+                failures += "${definition.key}: threw $e"
             }
         }
 
@@ -149,7 +149,9 @@ class HuaweiRouteFactoryTest {
             .map(::snake)
 
     private fun snake(name: String): String =
-        Regex("([a-z0-9])([A-Z])").replace(name) { "${it.groupValues[1]}_${it.groupValues[2]}" }.lowercase()
+        Regex("([a-z0-9])([A-Z])")
+            .replace(name) { "${it.groupValues[1]}_${it.groupValues[2]}" }
+            .lowercase()
 
     companion object {
         private const val START_MILLIS = 1704067200000L // 2024-01-01T00:00:00Z
@@ -174,7 +176,8 @@ class HuaweiRouteFactoryTest {
             "steps_target", "sub_status", "systolic_pressure_avg", "systolic_pressure_max",
             "systolic_pressure_min", "threshold", "timezone", "total_calories", "type",
             "user_symptom", "value", "vo2max", "voltage_data", "wakeup_count", "wakeup_time",
-            "zone1_duration", "zone2_duration", "zone3_duration", "zone4_duration", "zone5_duration",
+            "zone1_duration", "zone2_duration", "zone3_duration", "zone4_duration",
+            "zone5_duration",
         )
     }
 }

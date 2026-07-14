@@ -24,7 +24,11 @@ abstract class HuaweiRoute(
 ) : Route {
     abstract val converters: List<HuaweiDataConverter>
 
-    protected fun createGetRequest(user: User, path: String, queryParams: Map<String, String>): Request {
+    protected fun createGetRequest(
+        user: User,
+        path: String,
+        queryParams: Map<String, String>,
+    ): Request {
         val accessToken = userRepository.getAccessToken(user)
         val urlBuilder = "$HUAWEI_API_BASE_URL/$path".toHttpUrl().newBuilder()
         queryParams.forEach { (key, value) -> urlBuilder.addQueryParameter(key, value) }
@@ -44,15 +48,27 @@ abstract class HuaweiRoute(
             .build()
     }
 
-    /** Split `[start, end)` into consecutive windows of at most [maxIntervalPerRequest], capped at [max] windows. */
-    protected fun chunkedRanges(start: Instant, end: Instant, max: Int): Sequence<Pair<Instant, Instant>> =
+    /**
+     * Split `[start, end)` into consecutive windows of at most [maxIntervalPerRequest], capped at
+     * [max] windows.
+     */
+    protected fun chunkedRanges(
+        start: Instant,
+        end: Instant,
+        max: Int,
+    ): Sequence<Pair<Instant, Instant>> =
         generateSequence(start) { it + maxIntervalPerRequest }
             .takeWhile { it < end }
             .take(max)
-            .map { rangeStart -> rangeStart to (rangeStart + maxIntervalPerRequest).coerceAtMost(end) }
+            .map { rangeStart ->
+                rangeStart to (rangeStart + maxIntervalPerRequest).coerceAtMost(end)
+            }
 
-    override fun generateRequests(user: User, start: Instant, end: Instant): Sequence<RestRequest> =
-        generateRequests(user, start, end, Int.MAX_VALUE)
+    override fun generateRequests(
+        user: User,
+        start: Instant,
+        end: Instant,
+    ): Sequence<RestRequest> = generateRequests(user, start, end, Int.MAX_VALUE)
 
     companion object {
         const val HUAWEI_API_BASE_URL = "https://health-api.cloud.huawei.com/healthkit/v1"

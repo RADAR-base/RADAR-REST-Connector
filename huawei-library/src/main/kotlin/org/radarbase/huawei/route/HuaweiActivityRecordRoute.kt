@@ -18,7 +18,8 @@ class HuaweiActivityRecordRoute(
     maxIntervalPerRequest: Duration = Duration.ofDays(30L),
 ) : HuaweiRoute(userRepository, maxIntervalPerRequest) {
 
-    override val converters: List<HuaweiDataConverter> = listOf(HuaweiActivityRecordConverter(topic))
+    override val converters: List<HuaweiDataConverter> =
+        listOf(HuaweiActivityRecordConverter(topic))
 
     override fun toString(): String = "huawei_activity_record"
 
