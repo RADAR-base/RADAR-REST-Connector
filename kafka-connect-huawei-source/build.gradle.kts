@@ -1,6 +1,11 @@
 description = "Kafka connector for Huawei Health Kit API source"
 
 repositories {
+    // Prefer a locally-published snapshot (e.g. built by hand from the RADAR-Schemas
+    // huawei_schemas branch via `./gradlew :radar-schemas-commons:publishToMavenLocal`) before
+    // falling back to remote snapshot hosts.
+    mavenLocal()
+
     // radar-schemas-commons huawei_schemas is only published as a snapshot; declare the
     // candidate snapshot hosts here so the build can resolve it regardless of which one the
     // RADAR-Schemas release pipeline currently targets.
