@@ -59,6 +59,7 @@ mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 wiremock = { module = "com.github.tomakehurst:wiremock", version.ref = "wiremock" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
+kotlin-test-junit5 = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref = "kotlin" }
 
 [plugins]
 radar-root-project = { id = "org.radarbase.radar-root-project", version.ref = "radarCommons" }

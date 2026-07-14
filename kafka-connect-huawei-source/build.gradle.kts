@@ -58,4 +58,5 @@ dependencies {
     testImplementation(libs.kafka.connect.api)
     testImplementation(libs.wiremock)
     testImplementation(libs.mockito.core)
+    testImplementation(libs.kotlin.test)
 }

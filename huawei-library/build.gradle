@@ -51,8 +51,9 @@ dependencies {
     // Use the Kotlin test library.
     testImplementation libs.kotlin.test
 
-    // Use the Kotlin JUnit integration.
-    testImplementation libs.kotlin.test.junit
+    // Use the Kotlin JUnit 5 integration (matches the JUnit Platform the radar-kotlin
+    // Gradle plugin configures the `test` task with).
+    testImplementation libs.kotlin.test.junit5
 }
 
 project.afterEvaluate {
