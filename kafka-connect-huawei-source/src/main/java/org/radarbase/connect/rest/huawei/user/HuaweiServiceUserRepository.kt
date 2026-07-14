@@ -95,7 +95,7 @@ class HuaweiServiceUserRepository : HuaweiUserRepository() {
 
         client =
             createClient(
-                baseUrl = config.getHuaweiUserRepositoryUrl(),
+                baseUrl = URLBuilder(config.getHuaweiUserRepositoryUrl().toString()).build(),
                 tokenUrl = tokenUrl,
                 clientId = config.getHuaweiUserRepositoryClientId(),
                 clientSecret = config.getHuaweiUserRepositoryClientSecret(),
@@ -237,7 +237,7 @@ class HuaweiServiceUserRepository : HuaweiUserRepository() {
         } catch (ex: HttpResponseException) {
             if (ex.statusCode == 407) {
                 credentialCaches -= user.id
-                throw UserNotAuthorizedException(ex.message)
+                throw UserNotAuthorizedException(ex.message ?: "User is not authorized")
             }
             throw ex
         }
