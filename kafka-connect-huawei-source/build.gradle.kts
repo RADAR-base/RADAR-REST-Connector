@@ -18,8 +18,10 @@ repositories {
     maven {
         url = uri("https://maven.pkg.github.com/RADAR-base/RADAR-Schemas")
         credentials {
-            username = project.findProperty("public.gpr.user") as String? ?: System.getenv("GPR_USER")
-            password = project.findProperty("public.gpr.token") as String? ?: System.getenv("GPR_TOKEN")
+            username = project.findProperty("public.gpr.user") as String?
+                ?: System.getenv("GPR_USER")
+            password = project.findProperty("public.gpr.token") as String?
+                ?: System.getenv("GPR_TOKEN")
         }
     }
 }
