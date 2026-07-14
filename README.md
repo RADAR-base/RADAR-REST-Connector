@@ -1,8 +1,8 @@
 # Kafka Connect REST Source and Fitbit Source
 
 This project contains a Kafka Connect source connector for a general REST API, for
-specific Fitbit and Oura devices. The documentation of the Kafka Connect REST source still needs to
-be done.
+specific Fitbit, Oura, and Huawei Health Kit devices. The documentation of the Kafka Connect REST
+source still needs to be done.
 
 <!-- TOC -->
 
@@ -10,6 +10,7 @@ be done.
   * [Fitbit source connector](#fitbit-source-connector)
     * [Installation](#installation)
     * [Usage](#usage)
+  * [Huawei Health Kit source connector](#huawei-health-kit-source-connector)
   * [Sentry monitoring](#sentry-monitoring)
   * [Contributing](#contributing)
 
@@ -208,9 +209,30 @@ sequenceDiagram
   connector ->> connector: Update offset times
 ```
 
+## Huawei Health Kit source connector
+
+The `kafka-connect-huawei-source` module polls the
+[Huawei Health Kit Data API](https://developer.huawei.com/consumer/en/doc/HMSCore-References/rest-overview-0000001254420693)
+for the data types documented in the
+[`radar-huawei-connector` schema specification](https://github.com/RADAR-base/RADAR-Schemas/blob/huawei_schemas/specifications/connector/radar-huawei-connector-1.0.0.yml)
+(RADAR-Schemas, `huawei_schemas` branch) — activity records, continuous/instantaneous sample
+statistics (steps, distance, calories, heart rate, SpO2, blood pressure, breathing rate, ECG,
+sleep stages, and more), health records (ambulatory blood pressure, heart rate alerts,
+hyperthermia, low SpO2 alerts, menstrual cycle, sleep), and daily summaries. It follows the same
+`rest.source.*`, `huawei.api.client`/`huawei.api.secret`, and `huawei.user.repository.*`
+configuration conventions as the Fitbit and Oura connectors above, plus one
+`huawei.<data-type>.enabled` / `huawei.<data-type>.topic` pair per Huawei data type — see
+`org.radarbase.huawei.route.HuaweiRouteFactory` for the full list of `<data-type>` keys and their
+default topic names, and `docker/source-huawei.properties.template` for a minimal example.
+
+This connector requires a
+[published `radar-schemas-commons` build containing the `huawei_schemas` branch](https://github.com/RADAR-base/RADAR-Schemas/tree/huawei_schemas)
+(currently `0.9.0-SNAPSHOT`) to be resolvable from one of the repositories declared in
+`huawei-library/build.gradle` / `kafka-connect-huawei-source/build.gradle.kts`.
+
 ## Sentry monitoring
 
-To enable Sentry monitoring for the generic REST, Fitbit, or Oura source connector service:
+To enable Sentry monitoring for the generic REST, Fitbit, Oura, or Huawei source connector service:
 
 1. Set a `SENTRY_DSN` environment variable that points to the desired Sentry DSN.
 2. (Optional) Set the `SENTRY_LOG_LEVEL` environment variable to control the minimum log level of

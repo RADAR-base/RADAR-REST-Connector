@@ -1,15 +1,17 @@
 # Architecture
 
 This document describes how RADAR-REST-Connector is put together, so that future contributors
-(human or agent) can orient themselves quickly and add new device/API integrations (e.g. Huawei
-Health Kit) consistently with the existing patterns.
+(human or agent) can orient themselves quickly and add new device/API integrations consistently
+with the existing patterns.
 
 ## What this repo is
 
 A multi-module Gradle project providing Kafka Connect **source connectors** that poll third-party
 REST APIs (wearable vendor APIs) on behalf of RADAR-base study participants and publish the
-resulting data as Avro records on Kafka topics. It currently ships two concrete connectors —
-**Fitbit** and **Oura** — built on top of a shared, generic REST-polling framework.
+resulting data as Avro records on Kafka topics. It currently ships three concrete connectors —
+**Fitbit**, **Oura**, and **Huawei Health Kit** — the latter two built on the "library + thin
+Connect glue" pattern described below; Fitbit predates that pattern and uses the older, generic
+`kafka-connect-rest-source` framework instead.
 
 ```
 RADAR-REST-Connector/
@@ -17,6 +19,8 @@ RADAR-REST-Connector/
 ├── kafka-connect-fitbit-source/   # Fitbit connector (Java), oldest/original implementation
 ├── oura-library/                  # Oura domain logic: routes, converters, requests (Kotlin, no Kafka Connect deps)
 ├── kafka-connect-oura-source/     # Oura Kafka Connect glue (Java+Kotlin), wraps oura-library
+├── huawei-library/                # Huawei domain logic: routes, converters, requests (Kotlin, no Kafka Connect deps)
+├── kafka-connect-huawei-source/   # Huawei Kafka Connect glue (Java+Kotlin), wraps huawei-library
 ├── docker/                        # Docker Compose config templates, launch/ensure scripts, log4j
 ├── scripts/REDCAP-FITBIT-AUTH-AUTO/  # Standalone Python helper for REDCap-driven Fitbit auth
 └── docker-compose.yml             # Full local Kafka stack + both connectors, for manual testing
@@ -158,6 +162,41 @@ This was a deliberate move to (a) get domain logic under unit test without spinn
 Connect, and (b) avoid the generic framework's assumptions (e.g. its polling-interval math) that
 didn't fit Oura's simpler historical/recent chunking model.
 
+### 4. Huawei Health Kit connector (`huawei-library` + `kafka-connect-huawei-source`)
+
+Structurally identical to the Oura pattern above (pure-Kotlin domain library + thin Connect glue
+module), but with two differences worth knowing about:
+
+- **Three request "shapes" instead of one.** The Huawei Health Kit Data API doesn't have a single
+  uniform per-route request shape like Oura's `GET .../{subPath}?start_date=...&end_date=...`. It
+  exposes `POST /healthkit/v1/sampleSet:polymerize` (raw sample points, or day-aggregated
+  statistics when a `groupByTime` block is added to the JSON body) for most data types, plus two
+  GET endpoints — `activityRecords` and `healthRecords` — for workout sessions and clinical-style
+  records (blood pressure sessions, heart-rate alerts, menstrual cycle, sleep). `HuaweiRoute` is
+  the shared abstract base (OAuth2-authorized request building + time-range chunking);
+  `HuaweiSampleSetRoute`, `HuaweiHealthRecordRoute`, and `HuaweiActivityRecordRoute` are the three
+  concrete route kinds.
+- **A single route registry drives both the route list and the Connect config**, instead of
+  Oura/Fitbit's one-hand-written-`ConfigDef`-entry-per-data-type approach. Huawei has ~54 data
+  types (see the `radar-huawei-connector` schema spec in RADAR-Schemas,
+  `specifications/connector/radar-huawei-connector-1.0.0.yml`), several of which reuse the same
+  Avro schema (`HuaweiStatistics` alone backs 14 different `*.statistics` topics) — hand-duplicating
+  a `ConfigDef.define(...)` block and a route-construction branch per type, Fitbit/Oura-style,
+  would mean ~110 near-identical static fields. Instead, `huawei-library`'s
+  `route/HuaweiRouteFactory.definitions` is a `List<HuaweiRouteDefinition>` (config key, default
+  topic, default enabled, and a `(UserRepository, topic) -> HuaweiRoute` builder) — the single
+  source of truth for "what Huawei data types exist." `HuaweiRestSourceConnectorConfig.conf()`
+  loops over it to generate `huawei.<key>.enabled`/`huawei.<key>.topic` `ConfigDef` entries, and
+  `HuaweiSourceTask.getRoutes()` loops over the same list filtered by that config to build the
+  actual `Route` instances — so the config and the polled routes can't drift out of sync. If you
+  add a data type to a future connector with a similarly large surface, prefer this registry
+  pattern over copy-pasting Oura's per-type `ConfigDef` blocks.
+
+Field-value key names inside `HuaweiRouteFactory`'s record builders (what JSON key a given Avro
+field is read from) are a best-effort mapping to Huawei's documented `Field` naming convention —
+verify them against a real Health Kit API response and adjust before relying on this in
+production; see the KDoc at the top of that file.
+
 ## Runtime data flow (both connectors, conceptually)
 
 ```mermaid
@@ -201,7 +240,10 @@ plus vendor-specific keys, e.g.:
   studies can disable data types they don't need.
 
 The full current list for Fitbit is documented in `README.md`; Oura's config lives in
-`OuraRestSourceConnectorConfig` (no README table yet — check the class directly).
+`OuraRestSourceConnectorConfig` (no README table yet — check the class directly). Huawei's
+per-data-type keys are generated from `HuaweiRouteFactory.definitions` (see below) rather than
+hand-written — check that list, or a running connector's `GET /connectors/<name>/config`, for the
+current set.
 
 ## Docker / deployment
 
@@ -209,43 +251,59 @@ Each connector module has its own multi-stage `Dockerfile` (Gradle build stage �
 `confluentinc/cp-kafka-connect-base`), publishing built jars plus third-party deps into
 `$CONNECT_PLUGIN_PATH/<module-name>/`. `docker/launch` and `docker/ensure` are modified Confluent
 entrypoint scripts (env-var → properties translation, Kafka-readiness wait). `docker-compose.yml`
-spins up a full local Zookeeper+Kafka+SchemaRegistry+REST-proxy cluster plus both connectors for
-manual end-to-end testing (`docker-compose up -d --build`, inspect with
+spins up a full local Zookeeper+Kafka+SchemaRegistry+REST-proxy cluster plus all three connectors
+for manual end-to-end testing (`docker-compose up -d --build`, inspect with
 `kafka-avro-console-consumer`). Sentry error monitoring is wired in via `radarKotlin { sentryEnabled = true }`
 and configured purely through `SENTRY_DSN`/`SENTRY_*` env vars — see README "Sentry monitoring".
 
 ## Testing
 
 - `kafka-connect-rest-source/src/test`, `kafka-connect-fitbit-source/src/test`,
-  `kafka-connect-oura-source/src/test` currently only contain config-parsing tests
-  (`*ConnectorConfigTest`) plus one task test — test coverage of the actual polling/conversion
-  logic is thin. `wiremock` and `mockito` are on the version catalog for HTTP-level testing but not
-  yet exercised much; `oura-library`'s pure-Kotlin design makes it the easiest place to add real
-  unit tests for new routes/converters without Kafka Connect scaffolding.
+  `kafka-connect-oura-source/src/test`, `kafka-connect-huawei-source/src/test` currently only
+  contain config-parsing tests (`*ConnectorConfigTest`) plus one task test — test coverage of the
+  actual polling/conversion logic is thin. `wiremock` and `mockito` are on the version catalog for
+  HTTP-level testing but not yet exercised much; the `oura-library`/`huawei-library` pure-Kotlin
+  design makes those the easiest place to add real unit tests for new routes/converters without
+  Kafka Connect scaffolding.
 - CI (`.github/workflows/main.yml`) runs `./gradlew assemble` and `./gradlew check` on every push/PR
   to `master`/`dev`, then builds (and on `push`, publishes) multi-arch Docker images per connector
   module via a matrix job. `release.yml` does the same on GitHub Release publish, additionally
   uploading built jars as release assets, tagged `vX.Y.Z` from `gradle.properties`/version catalog.
+- **Sandbox note:** in a network-restricted environment (no access to `packages.confluent.io`, or
+  to whichever host actually serves a given `-SNAPSHOT` dependency), only the pure-Kotlin library
+  modules (`oura-library`, `huawei-library`) may be compilable — the `kafka-connect-*-source`
+  glue modules depend on `io.confluent:kafka-connect-avro-converter` /
+  `org.apache.kafka:connect-api` from Confluent's Maven repo and won't resolve. If you hit this,
+  it's an environment limitation, not a code problem: check whether the library module alone
+  compiles before concluding the code is broken, and consider publishing a needed `-SNAPSHOT`
+  dependency to `mavenLocal()` (e.g. `gradle :radar-schemas-commons:publishToMavenLocal` from a
+  RADAR-Schemas checkout) to verify domain logic against the real generated classes.
 
-## Adding a new vendor integration (e.g. Huawei)
+## Adding a new vendor integration
 
-Follow the **Oura pattern**, not the Fitbit one:
+Follow the **Oura/Huawei pattern**, not the Fitbit one — see the Huawei section above for a
+worked example, including the route-registry technique for connectors with a large number of
+data types:
 
-1. New Gradle module `huawei-library` (pure Kotlin, mirrors `oura-library`): `user/`, `route/`,
-   `converter/`, `request/`, `offset/` packages. No Kafka Connect or OkHttp-Connect-specific types
-   here — keep it independently testable.
-2. New Gradle module `kafka-connect-huawei-source` (mirrors `kafka-connect-oura-source`):
-   `HuaweiSourceConnector`, `HuaweiSourceTask`, `HuaweiRestSourceConnectorConfig`,
-   `offset/KafkaOffsetManager`, `user/HuaweiServiceUserRepository` (Ktor-based
-   rest-source-authorizer client, copy `OuraServiceUserRepository`'s structure), plus a
-   `Dockerfile`.
+1. New Gradle module `<vendor>-library` (pure Kotlin, mirrors `oura-library`/`huawei-library`):
+   `user/`, `route/`, `converter/`, `request/`, `offset/` packages. No Kafka Connect or
+   OkHttp-Connect-specific types here — keep it independently testable.
+2. New Gradle module `kafka-connect-<vendor>-source` (mirrors `kafka-connect-oura-source`/
+   `kafka-connect-huawei-source`): `<Vendor>SourceConnector`, `<Vendor>SourceTask`,
+   `<Vendor>RestSourceConnectorConfig`, `offset/KafkaOffsetManager`,
+   `user/<Vendor>ServiceUserRepository` (Ktor-based rest-source-authorizer client, copy
+   `OuraServiceUserRepository`'s/`HuaweiServiceUserRepository`'s structure), plus a `Dockerfile`.
 3. Register both modules in `settings.gradle.kts`; add any new dependency versions to
-   `gradle/libs.versions.toml` first.
+   `gradle/libs.versions.toml` first. If the vendor's schemas are only available as a `-SNAPSHOT`,
+   add a separate version-catalog entry for it (see `radarSchemasHuawei`) so it doesn't force
+   every other module onto an unreleased version.
 4. Confirm (or add) the required Avro schemas in the external RADAR-Schemas project and bump the
-   `radarSchemas` version in the catalog once published — this repo cannot invent schemas locally.
-5. One `Route`/`Converter` pair per Huawei data type you plan to support, each independently
-   togglable via a `huawei.<type>.enabled` config flag, matching the Oura/Fitbit convention.
-6. Add `docker/source-huawei.properties.template`, a `docker-compose.yml` service entry, and a
-   README config table, following the Fitbit/Oura sections as templates.
+   catalog version once published — this repo cannot invent schemas locally.
+5. One `Route`/`Converter` per vendor data type. For a small number of data types, per-type classes
+   (Oura's approach) are fine; for a large or schema-reuse-heavy surface (Huawei's ~54 types
+   sharing a handful of Avro schemas), prefer a single registry (`HuaweiRouteFactory.definitions`)
+   that both the `ConfigDef` builder and the route-construction code iterate over.
+6. Add `docker/source-<vendor>.properties.template`, a `docker-compose.yml` service entry, and a
+   README section, following the Fitbit/Oura/Huawei sections as templates.
 7. Add the new Docker image to the `IMAGES` matrix in both `.github/workflows/main.yml` and
    `release.yml`.
