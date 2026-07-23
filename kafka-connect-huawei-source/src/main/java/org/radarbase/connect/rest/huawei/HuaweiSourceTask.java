@@ -53,6 +53,9 @@ import kotlin.streams.jdk8.StreamsKt;
 import okhttp3.OkHttpClient;
 import okhttp3.Response;
 
+/**
+ * @author yatharthranjan
+ */
 public class HuaweiSourceTask extends SourceTask {
   private static final Logger logger = LoggerFactory.getLogger(HuaweiSourceTask.class);
 

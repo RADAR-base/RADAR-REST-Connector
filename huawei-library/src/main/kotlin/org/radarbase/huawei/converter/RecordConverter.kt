@@ -22,6 +22,9 @@ import org.radarbase.huawei.request.RestRequest
 import org.slf4j.LoggerFactory
 import java.io.IOException
 
+/**
+ * @author yatharthranjan
+ */
 interface RecordConverter {
     @Throws(IOException::class)
     fun convert(

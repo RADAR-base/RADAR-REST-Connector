@@ -39,6 +39,9 @@ import kotlin.streams.jdk8.StreamsKt;
 
 import static org.radarbase.connect.rest.huawei.HuaweiRestSourceConnectorConfig.HUAWEI_USERS_CONFIG;
 
+/**
+ * @author yatharthranjan
+ */
 public class HuaweiSourceConnector extends AbstractRestSourceConnector {
 
   private static final Logger logger = LoggerFactory.getLogger(HuaweiSourceConnector.class);

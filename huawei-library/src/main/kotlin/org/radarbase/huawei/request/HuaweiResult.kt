@@ -17,6 +17,9 @@
 
 package org.radarbase.huawei.request
 
+/**
+ * @author yatharthranjan
+ */
 sealed class HuaweiResult<out T : Any> {
     data class Success<out T : Any>(val value: T) : HuaweiResult<T>()
     data class Error(val error: HuaweiError) : HuaweiResult<Nothing>()

@@ -71,6 +71,8 @@ import java.time.Instant
  * documented constants, the snake_case form of the Avro field's own name is used as a best-effort
  * default (see [snake]) — verify against a live API response and adjust the key strings in this
  * file if Huawei's actual response uses different names.
+ *
+ * @author yatharthranjan
  */
 object HuaweiRouteFactory {
 

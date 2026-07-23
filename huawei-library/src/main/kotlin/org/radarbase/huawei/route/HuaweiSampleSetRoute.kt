@@ -37,6 +37,8 @@ import java.time.Instant
  * When [groupByTimeUnit] is set, the request aggregates sample points into buckets of that size —
  * this is how Huawei's `<type>.statistics` data types are queried. When it is `null`, the endpoint
  * returns raw, un-aggregated sample points for [dataTypeName] over the requested time range.
+ *
+ * @author yatharthranjan
  */
 open class HuaweiSampleSetRoute(
     userRepository: UserRepository,

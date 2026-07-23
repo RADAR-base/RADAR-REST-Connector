@@ -36,6 +36,8 @@ private fun JsonNode.epochInstant(field: String): Instant? {
  * This single converter is reused for the large majority of Huawei Health Kit data types, since
  * they all share the same `sampleSet[].samplePoints[]` response envelope and differ only in which
  * Avro record type their field values are mapped onto.
+ *
+ * @author yatharthranjan
  */
 class HuaweiSampleSetConverter(
     private val topic: String,

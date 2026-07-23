@@ -34,6 +34,8 @@ import java.time.Instant
  * Handles OAuth2-authorized request construction (both `GET` with query parameters and `POST`
  * with a JSON body, since the Health Kit Data API mixes both styles across its endpoints) and
  * generic time-range chunking, shared by all concrete route types.
+ *
+ * @author yatharthranjan
  */
 abstract class HuaweiRoute(
     private val userRepository: UserRepository,

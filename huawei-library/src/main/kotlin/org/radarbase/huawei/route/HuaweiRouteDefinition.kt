@@ -27,6 +27,8 @@ import org.radarbase.huawei.user.UserRepository
  * Using one shared registry (see [HuaweiRouteFactory]) for both the Kafka Connect config
  * definition and the set of routes actually polled avoids hand-duplicating each of the ~54 Huawei
  * data types across a `ConfigDef` and a route-construction switch.
+ *
+ * @author yatharthranjan
  */
 data class HuaweiRouteDefinition(
     val key: String,

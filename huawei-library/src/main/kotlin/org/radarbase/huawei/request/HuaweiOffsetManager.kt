@@ -22,6 +22,9 @@ import org.radarbase.huawei.route.Route
 import org.radarbase.huawei.user.User
 import java.time.Instant
 
+/**
+ * @author yatharthranjan
+ */
 interface HuaweiOffsetManager {
 
     fun getOffset(route: Route, user: User): Offset?

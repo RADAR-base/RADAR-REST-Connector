@@ -30,6 +30,8 @@ import java.time.Instant
  * type, and a nested activity summary with pace/data/section statistics). Nested JSON structures
  * that map to free-form Avro `string` fields (pace map, data summary, section summary) are kept as
  * their raw JSON text, since their internal shape varies by activity type.
+ *
+ * @author yatharthranjan
  */
 class HuaweiActivityRecordConverter(
     private val topic: String = "connect_huawei_activity_record",

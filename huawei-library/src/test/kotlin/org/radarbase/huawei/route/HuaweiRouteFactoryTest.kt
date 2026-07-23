@@ -36,6 +36,8 @@ import kotlin.test.assertTrue
  * `healthRecords`, or `activityRecords`), and asserts the converter produces exactly one record on
  * the definition's own topic without throwing. This is the main regression test against typos in
  * the ~90 hand-written Huawei field-value key strings (and the Avro builder calls around them).
+ *
+ * @author yatharthranjan
  */
 class HuaweiRouteFactoryTest {
     private val mapper = ObjectMapper()

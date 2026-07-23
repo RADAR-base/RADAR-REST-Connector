@@ -30,6 +30,9 @@ import java.io.IOException
 import java.time.Duration
 import java.time.Instant
 
+/**
+ * @author yatharthranjan
+ */
 class HuaweiRequestGenerator(
     private val userRepository: UserRepository,
     private val huaweiOffsetManager: HuaweiOffsetManager,

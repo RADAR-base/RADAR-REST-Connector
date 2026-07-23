@@ -33,6 +33,8 @@ private fun JsonNode.epochInstant(field: String): Instant? {
  * Generic converter for `GET /healthkit/v1/healthRecords` responses: iterates every record
  * returned for the requested `subDataTypeName` and builds one Avro record per entry via
  * [buildRecord].
+ *
+ * @author yatharthranjan
  */
 class HuaweiHealthRecordConverter(
     private val topic: String,

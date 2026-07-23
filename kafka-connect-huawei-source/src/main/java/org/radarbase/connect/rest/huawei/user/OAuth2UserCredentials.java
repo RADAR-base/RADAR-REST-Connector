@@ -24,6 +24,9 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 import java.time.Duration;
 import java.time.Instant;
 
+/**
+ * @author yatharthranjan
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class OAuth2UserCredentials {
   private static final Duration DEFAULT_EXPIRY = Duration.ofHours(1);

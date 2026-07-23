@@ -17,4 +17,7 @@
 
 package org.radarbase.huawei.request
 
+/**
+ * @author yatharthranjan
+ */
 class TooManyRequestsException : RuntimeException()

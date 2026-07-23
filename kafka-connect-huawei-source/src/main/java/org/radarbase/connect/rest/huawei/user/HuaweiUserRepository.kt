@@ -22,6 +22,9 @@ import org.radarbase.huawei.user.UserNotAuthorizedException
 import org.radarbase.huawei.user.UserRepository
 import java.io.IOException
 
+/**
+ * @author yatharthranjan
+ */
 @Suppress("unused")
 abstract class HuaweiUserRepository : UserRepository {
     abstract fun initialize(config: HuaweiRestSourceConnectorConfig)

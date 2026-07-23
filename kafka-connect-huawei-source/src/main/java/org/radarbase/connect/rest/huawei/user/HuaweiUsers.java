@@ -25,6 +25,9 @@ import java.util.ArrayList;
 import java.util.List;
 import org.radarbase.huawei.user.HuaweiUser;
 
+/**
+ * @author yatharthranjan
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class HuaweiUsers {
   private final List<HuaweiUser> users;

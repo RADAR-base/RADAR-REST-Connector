@@ -31,6 +31,9 @@ import org.radarbase.huawei.user.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * @author yatharthranjan
+ */
 public class KafkaOffsetManager implements HuaweiOffsetManager {
   private static final Logger logger = LoggerFactory.getLogger(KafkaOffsetManager.class);
   private static final String TIMESTAMP_OFFSET_KEY = "timestamp";

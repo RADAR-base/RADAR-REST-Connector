@@ -40,6 +40,8 @@ import java.time.Duration
  * boolean and a `huawei.<key>.topic` string config, generated from that single shared registry
  * instead of ~110 hand-duplicated `ConfigDef` entries (one connector, one config, one canonical
  * list of Huawei data types).
+ *
+ * @author yatharthranjan
  */
 class HuaweiRestSourceConnectorConfig(
     config: ConfigDef,

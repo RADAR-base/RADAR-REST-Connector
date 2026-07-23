@@ -31,6 +31,8 @@ import java.time.Instant
  * Route backed by `GET /healthkit/v1/healthRecords`, used for the `health.record.*` data types
  * (ambulatory blood pressure sessions, heart rate alerts, hyperthermia, low SpO2 alerts,
  * menstrual cycle phases, and comprehensive sleep records).
+ *
+ * @author yatharthranjan
  */
 open class HuaweiHealthRecordRoute(
     userRepository: UserRepository,

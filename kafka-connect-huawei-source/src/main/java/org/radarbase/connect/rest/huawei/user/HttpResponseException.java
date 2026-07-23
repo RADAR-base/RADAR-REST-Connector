@@ -19,6 +19,9 @@ package org.radarbase.connect.rest.huawei.user;
 
 import java.io.IOException;
 
+/**
+ * @author yatharthranjan
+ */
 public class HttpResponseException extends IOException {
     private final int statusCode;
 

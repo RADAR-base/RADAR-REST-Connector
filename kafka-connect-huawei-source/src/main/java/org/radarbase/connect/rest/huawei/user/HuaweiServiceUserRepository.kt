@@ -72,6 +72,8 @@ import kotlin.time.Duration.Companion.seconds
  * [org.radarbase.connect.rest.oura.user.OuraServiceUserRepository]. Retrieves the list of Huawei
  * users configured for a study (`GET users?source-type=Huawei`) and their Huawei Health Kit OAuth2
  * access/refresh tokens (`users/<id>/token`).
+ *
+ * @author yatharthranjan
  */
 @Suppress("unused")
 class HuaweiServiceUserRepository : HuaweiUserRepository() {

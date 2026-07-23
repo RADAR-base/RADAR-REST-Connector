@@ -21,6 +21,9 @@ import org.radarbase.huawei.route.Route
 import org.radarbase.huawei.user.User
 import java.time.Instant
 
+/**
+ * @author yatharthranjan
+ */
 data class Offset(
     val user: User,
     val route: Route,

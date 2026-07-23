@@ -22,6 +22,9 @@ import org.radarbase.huawei.converter.TopicData
 import org.radarbase.huawei.route.Route
 import org.radarbase.huawei.user.User
 
+/**
+ * @author yatharthranjan
+ */
 interface RequestGenerator {
 
     fun requests(user: User, max: Int): Sequence<RestRequest>

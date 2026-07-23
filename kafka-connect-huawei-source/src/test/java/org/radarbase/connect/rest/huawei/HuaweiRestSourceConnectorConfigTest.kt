@@ -21,6 +21,9 @@ import org.junit.jupiter.api.Test
 import org.radarbase.huawei.route.HuaweiRouteFactory
 import kotlin.test.assertEquals
 
+/**
+ * @author yatharthranjan
+ */
 class HuaweiRestSourceConnectorConfigTest {
 
     @Test

@@ -17,6 +17,9 @@
 
 package org.radarbase.huawei.offset
 
+/**
+ * @author yatharthranjan
+ */
 data class Offsets(
     val offsets: List<Offset>,
 )

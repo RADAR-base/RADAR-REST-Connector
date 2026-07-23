@@ -17,6 +17,9 @@
 
 package org.radarbase.connect.rest.huawei.util;
 
+/**
+ * @author yatharthranjan
+ */
 public final class VersionUtil {
   private VersionUtil() {
     // utility class

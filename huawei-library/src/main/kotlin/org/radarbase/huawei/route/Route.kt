@@ -22,6 +22,9 @@ import org.radarbase.huawei.user.User
 import java.time.Duration
 import java.time.Instant
 
+/**
+ * @author yatharthranjan
+ */
 interface Route {
 
     fun generateRequests(user: User, start: Instant, end: Instant): Sequence<RestRequest>

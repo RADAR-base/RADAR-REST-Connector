@@ -25,6 +25,9 @@ import org.apache.kafka.connect.connector.Task;
 import org.apache.kafka.connect.source.SourceConnector;
 import org.radarbase.connect.rest.huawei.util.VersionUtil;
 
+/**
+ * @author yatharthranjan
+ */
 @SuppressWarnings("unused")
 public abstract class AbstractRestSourceConnector extends SourceConnector {
   protected HuaweiRestSourceConnectorConfig config;

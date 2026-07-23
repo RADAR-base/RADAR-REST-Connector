@@ -32,6 +32,8 @@ import com.fasterxml.jackson.databind.JsonNode
  *
  * Field name constants follow Huawei's public `Field` identifiers (e.g. `steps_delta`, `calories`,
  * `avg`, `max`, `min`), as documented for the on-device and REST Health Kit APIs.
+ *
+ * @author yatharthranjan
  */
 class FieldValues private constructor(private val values: Map<String, JsonNode>) {
 

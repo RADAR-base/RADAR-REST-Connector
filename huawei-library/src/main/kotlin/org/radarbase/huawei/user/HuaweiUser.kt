@@ -22,6 +22,9 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import org.radarcns.kafka.ObservationKey
 import java.time.Instant
 
+/**
+ * @author yatharthranjan
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class HuaweiUser(
     @JsonProperty("id") override val id: String,

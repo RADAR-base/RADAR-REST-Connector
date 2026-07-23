@@ -20,6 +20,9 @@ package org.radarbase.huawei.user
 import java.io.IOException
 
 /** User repository for Huawei Health Kit users. */
+/**
+ * @author yatharthranjan
+ */
 interface UserRepository {
     /**
      * Get specified user.

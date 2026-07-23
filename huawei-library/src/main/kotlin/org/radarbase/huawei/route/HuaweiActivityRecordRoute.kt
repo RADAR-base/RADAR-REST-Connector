@@ -28,6 +28,8 @@ import java.time.Instant
 /**
  * Route backed by `GET /healthkit/v1/activityRecords`, covering the Huawei Health Kit Activity
  * Records API (workout / physical-activity sessions).
+ *
+ * @author yatharthranjan
  */
 class HuaweiActivityRecordRoute(
     userRepository: UserRepository,

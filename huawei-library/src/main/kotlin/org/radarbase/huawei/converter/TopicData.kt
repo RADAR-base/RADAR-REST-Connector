@@ -20,6 +20,9 @@ package org.radarbase.huawei.converter
 import org.apache.avro.specific.SpecificRecord
 
 /** Single value for a topic.  */
+/**
+ * @author yatharthranjan
+ */
 data class TopicData(
     val topic: String,
     val key: SpecificRecord,

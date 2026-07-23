@@ -20,6 +20,9 @@ package org.radarbase.huawei.user
 import org.radarcns.kafka.ObservationKey
 import java.time.Instant
 
+/**
+ * @author yatharthranjan
+ */
 interface User {
     val id: String
     val projectId: String
