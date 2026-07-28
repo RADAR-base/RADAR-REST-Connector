@@ -31,6 +31,8 @@ import org.radarbase.connect.rest.huawei.user.HuaweiUserRepository
 import org.radarbase.huawei.route.HuaweiRouteFactory
 import java.net.MalformedURLException
 import java.net.URL
+import java.nio.file.Path
+import java.nio.file.Paths
 import java.time.Duration
 
 /**
@@ -89,6 +91,14 @@ class HuaweiRestSourceConnectorConfig(
     } catch (e: ReflectiveOperationException) {
         throw ConnectException("Invalid class. $e")
     }
+
+    /**
+     * Directory containing per-user YAML credential files, for the file-based
+     * [org.radarbase.connect.rest.huawei.user.HuaweiYamlUserRepository]. Only used if that
+     * repository is configured via [HUAWEI_USER_REPOSITORY_CONFIG].
+     */
+    fun getHuaweiUserCredentialsPath(): Path =
+        Paths.get(getString(HUAWEI_USER_CREDENTIALS_DIR_CONFIG))
 
     fun getHuaweiUserRepositoryUrl(): HttpUrl {
         var urlString = getString(HUAWEI_USER_REPOSITORY_URL_CONFIG).trim()
@@ -172,6 +182,14 @@ class HuaweiRestSourceConnectorConfig(
             "Polling interval per Huawei user per request route in seconds."
         private const val HUAWEI_USER_POLL_INTERVAL_DEFAULT = 150
         private const val HUAWEI_USER_POLL_INTERVAL_DISPLAY = "Per-user per-route polling interval."
+
+        const val HUAWEI_USER_CREDENTIALS_DIR_CONFIG = "huawei.user.dir"
+        private const val HUAWEI_USER_CREDENTIALS_DIR_DOC =
+            "Directory containing Huawei user information and credentials. Only used if a " +
+                "file-based user repository is configured."
+        private const val HUAWEI_USER_CREDENTIALS_DIR_DISPLAY = "User directory"
+        private const val HUAWEI_USER_CREDENTIALS_DIR_DEFAULT =
+            "/var/lib/kafka-connect-huawei-source/users"
 
         const val HUAWEI_USER_REPOSITORY_URL_CONFIG = "huawei.user.repository.url"
         private const val HUAWEI_USER_REPOSITORY_URL_DOC =
@@ -285,6 +303,17 @@ class HuaweiRestSourceConnectorConfig(
                     ++order,
                     Width.SHORT,
                     HUAWEI_USER_REPOSITORY_DISPLAY,
+                )
+                .define(
+                    HUAWEI_USER_CREDENTIALS_DIR_CONFIG,
+                    Type.STRING,
+                    HUAWEI_USER_CREDENTIALS_DIR_DEFAULT,
+                    Importance.LOW,
+                    HUAWEI_USER_CREDENTIALS_DIR_DOC,
+                    group,
+                    ++order,
+                    Width.SHORT,
+                    HUAWEI_USER_CREDENTIALS_DIR_DISPLAY,
                 )
                 .define(
                     HUAWEI_USER_REPOSITORY_URL_CONFIG,

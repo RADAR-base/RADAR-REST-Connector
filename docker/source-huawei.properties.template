@@ -5,6 +5,12 @@ rest.source.base.url=https://health-api.cloud.huawei.com/healthkit/v1
 rest.source.poll.interval.ms=5000
 huawei.api.client=?
 huawei.api.secret=?
+# For local testing without a rest-source-authorizer webservice, use the file-based
+# repository instead, backed by per-user YAML files under huawei.user.dir - see
+# docker/huawei-user.yml.template and the "Testing locally" section in README.md.
+#huawei.user.repository.class=org.radarbase.connect.rest.huawei.user.HuaweiYamlUserRepository
+#huawei.user.dir=/var/lib/kafka-connect-huawei-source/users
+
 huawei.user.repository.class=org.radarbase.connect.rest.huawei.user.HuaweiServiceUserRepository
 huawei.user.repository.url=http://localhost:8080/
 huawei.user.repository.client.id=radar_huawei_connector
