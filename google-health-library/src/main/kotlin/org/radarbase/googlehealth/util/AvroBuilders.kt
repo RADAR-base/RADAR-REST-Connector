@@ -9,6 +9,9 @@ import org.radarcns.push.googlehealth.GoogleHealthHeartRate
 import org.radarcns.push.googlehealth.GoogleHealthHeartRateVariability
 import org.radarcns.push.googlehealth.GoogleHealthOxygenSaturation
 import org.radarcns.push.googlehealth.GoogleHealthSteps
+import org.radarcns.push.googlehealth.GoogleHealthFloors
+import org.radarcns.push.googlehealth.GoogleHealthSedentaryPeriod
+import org.radarcns.push.googlehealth.GoogleHealthActivityLevel
 import org.radarcns.push.googlehealth.GoogleHealthDailyRestingHeartRate
 import org.radarcns.push.googlehealth.GoogleHealthDailySleepTemperatureDerivations
 import org.radarcns.push.googlehealth.GoogleHealthSleepClassic
@@ -27,6 +30,15 @@ inline fun googleHealthIrregularRhythmNotification(block: GoogleHealthIrregularR
 
 inline fun googleHealthSteps(block: GoogleHealthSteps.Builder.() -> Unit): GoogleHealthSteps =
     GoogleHealthSteps.newBuilder().apply(block).build()
+
+inline fun googleHealthFloors(block: GoogleHealthFloors.Builder.() -> Unit): GoogleHealthFloors =
+    GoogleHealthFloors.newBuilder().apply(block).build()
+
+inline fun googleHealthSedentaryPeriod(block: GoogleHealthSedentaryPeriod.Builder.() -> Unit): GoogleHealthSedentaryPeriod =
+    GoogleHealthSedentaryPeriod.newBuilder().apply(block).build()
+
+inline fun googleHealthActivityLevel(block: GoogleHealthActivityLevel.Builder.() -> Unit): GoogleHealthActivityLevel =
+    GoogleHealthActivityLevel.newBuilder().apply(block).build()
 
 inline fun googleHealthHeartRate(block: GoogleHealthHeartRate.Builder.() -> Unit): GoogleHealthHeartRate =
     GoogleHealthHeartRate.newBuilder().apply(block).build()
