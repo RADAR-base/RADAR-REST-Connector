@@ -995,7 +995,7 @@ object HuaweiRouteFactory {
 
     private fun healthRecordDefinition(
         key: String,
-        subDataTypeName: String,
+        dataTypeName: String,
         defaultTopic: String,
         buildRecord: (
             fields: FieldValues,
@@ -1006,7 +1006,7 @@ object HuaweiRouteFactory {
     ): HuaweiRouteDefinition = HuaweiRouteDefinition(key, defaultTopic) { repo, topic ->
         HuaweiHealthRecordRoute(
             userRepository = repo,
-            subDataTypeName = VENDOR_PREFIX + subDataTypeName,
+            dataTypeName = VENDOR_PREFIX + dataTypeName,
             topic = topic,
             buildRecord = buildRecord,
         )

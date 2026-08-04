@@ -36,7 +36,7 @@ import java.time.Instant
  */
 open class HuaweiHealthRecordRoute(
     userRepository: UserRepository,
-    private val subDataTypeName: String,
+    private val dataTypeName: String,
     private val topic: String,
     maxIntervalPerRequest: Duration = Duration.ofDays(30L),
     buildRecord: (
@@ -63,7 +63,7 @@ open class HuaweiHealthRecordRoute(
                 user,
                 "healthRecords",
                 mapOf(
-                    "subDataTypeName" to subDataTypeName,
+                    "dataTypeName" to dataTypeName,
                     "startTime" to rangeStart.toEpochMilli().toString(),
                     "endTime" to rangeEnd.toEpochMilli().toString(),
                 ),
