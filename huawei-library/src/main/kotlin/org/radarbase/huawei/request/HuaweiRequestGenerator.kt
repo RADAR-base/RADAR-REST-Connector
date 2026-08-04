@@ -156,31 +156,39 @@ class HuaweiRequestGenerator(
                 HuaweiRateLimitError("Rate limit reached..", TooManyRequestsException(), "429")
             }
             403 -> {
+                val body = response.body?.string() ?: "no response body"
                 logger.warn(
-                    "User {} does not have access to this Huawei Health Kit data type.",
+                    "User {} does not have access to this Huawei Health Kit data type: {}",
                     request.user,
+                    body,
                 )
                 routeNextRequest[key] = Instant.now().plus(USER_BACK_OFF_TIME)
                 HuaweiAccessForbiddenError(
-                    "Huawei Health Kit scope not granted or data not available..",
+                    "Huawei Health Kit scope not granted or data not available: $body",
                     IOException("Forbidden"),
                     "403",
                 )
             }
             401 -> {
-                logger.warn("User {} access token is expired, malformed, or revoked.", request.user)
+                val body = response.body?.string() ?: "no response body"
+                logger.warn(
+                    "User {} access token is expired, malformed, or revoked: {}",
+                    request.user,
+                    body,
+                )
                 routeNextRequest[key] = Instant.now().plus(USER_BACK_OFF_TIME)
                 HuaweiUnauthorizedAccessError(
-                    "Access token expired or revoked..",
+                    "Access token expired or revoked: $body",
                     IOException("Unauthorized"),
                     "401",
                 )
             }
             400 -> {
-                logger.warn("Client exception for request {}", request)
+                val body = response.body?.string() ?: "no response body"
+                logger.warn("Client exception for request {}: {}", request, body)
                 routeNextRequest[key] = Instant.now().plus(BACK_OFF_TIME)
                 HuaweiClientException(
-                    "Client unsupported or unauthorized..",
+                    "Client unsupported or unauthorized: $body",
                     IOException("Invalid client"),
                     "400",
                 )
