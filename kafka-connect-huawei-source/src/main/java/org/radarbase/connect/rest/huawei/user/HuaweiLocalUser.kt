@@ -69,7 +69,7 @@ class HuaweiLocalUser : User {
     @JsonProperty("oauth2")
     var oauth2Credentials: OAuth2UserCredentials = OAuth2UserCredentials()
 
-    @JsonProperty("isAuthorized")
+    @JsonProperty("authorized")
     var isAuthorizedOverride: Boolean? = null
 
     override val isAuthorized: Boolean
