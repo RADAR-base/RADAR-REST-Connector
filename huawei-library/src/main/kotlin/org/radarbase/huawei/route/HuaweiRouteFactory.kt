@@ -986,7 +986,11 @@ object HuaweiRouteFactory {
     ): HuaweiRouteDefinition = HuaweiRouteDefinition(key, defaultTopic) { repo, topic ->
         HuaweiSampleSetRoute(
             userRepository = repo,
-            dataTypeName = VENDOR_PREFIX + dataTypeSuffix,
+            // Huawei's polymerize API has no dataCollector for a literal "*.statistics" data
+            // type - ".statistics" is only this connector's/RADAR-Schemas' label for "the
+            // groupByTime-aggregated variant of the underlying raw data type", so it must be
+            // stripped from the dataTypeName actually sent on the wire.
+            dataTypeName = VENDOR_PREFIX + dataTypeSuffix.removeSuffix(".statistics"),
             topic = topic,
             groupByTimeUnit = if (dataTypeSuffix.endsWith(".statistics")) "day" else null,
             buildRecord = buildRecord,
