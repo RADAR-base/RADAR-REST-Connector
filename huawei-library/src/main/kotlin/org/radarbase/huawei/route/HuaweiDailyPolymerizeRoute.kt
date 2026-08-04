@@ -20,27 +20,29 @@ package org.radarbase.huawei.route
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.avro.specific.SpecificRecord
 import org.radarbase.huawei.converter.FieldValues
+import org.radarbase.huawei.converter.HuaweiDailyPolymerizeConverter
 import org.radarbase.huawei.converter.HuaweiDataConverter
-import org.radarbase.huawei.converter.HuaweiSampleSetConverter
 import org.radarbase.huawei.request.RestRequest
 import org.radarbase.huawei.user.User
 import org.radarbase.huawei.user.UserRepository
 import java.time.Duration
 import java.time.Instant
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 
 /**
- * Route backed by `POST /healthkit/v1/sampleSet:polymerize`, which covers the large majority of
- * raw (non-`.statistics`) Huawei Health Kit data types (all `continuous.*`, `instantaneous.*`,
- * `cgm_blood_glucose`, `active_hours`, `daily_activity_summary`, `emotion`,
- * `heart_rate_variability`, `vo2max`, `sleep.on_off_bed_record`, and `sleep_respiratory_*` types).
- * Returns raw, un-aggregated sample points for [dataTypeName] over the requested time range.
+ * Route backed by `POST /healthkit/v2/sampleSet:dailyPolymerize`, used for every Huawei
+ * `<type>.statistics` data type.
  *
- * The day-aggregated `<type>.statistics` variant of a data type is not queried through this route -
- * see [HuaweiDailyPolymerizeRoute].
+ * Huawei's `sampleSet:polymerize` endpoint (see [HuaweiSampleSetRoute]) does not accept a
+ * `groupByTime`-aggregated query for every data type - some (confirmed live: `resting_calories`)
+ * reject it with `"does not support the query mode, please use dailyPolymerize API"`. This route
+ * calls that dedicated day-granularity statistics endpoint instead, which takes a day-string range
+ * (`startDay`/`endDay`, format `yyyyMMdd`, at most 31 days apart) rather than epoch timestamps.
  *
  * @author yatharthranjan
  */
-open class HuaweiSampleSetRoute(
+open class HuaweiDailyPolymerizeRoute(
     userRepository: UserRepository,
     private val dataTypeName: String,
     private val topic: String,
@@ -54,7 +56,7 @@ open class HuaweiSampleSetRoute(
 ) : HuaweiRoute(userRepository, maxIntervalPerRequest) {
 
     override val converters: List<HuaweiDataConverter> =
-        listOf(HuaweiSampleSetConverter(topic, buildRecord))
+        listOf(HuaweiDailyPolymerizeConverter(topic, buildRecord))
 
     override fun toString(): String = "huawei_" + topic.removePrefix("connect_huawei_")
 
@@ -67,8 +69,9 @@ open class HuaweiSampleSetRoute(
         RestRequest(
             request = createPostRequest(
                 user,
-                "sampleSet:polymerize",
+                "sampleSet:dailyPolymerize",
                 buildRequestBody(rangeStart, rangeEnd),
+                baseUrl = HUAWEI_API_BASE_URL_V2,
             ),
             user = user,
             route = this,
@@ -79,13 +82,15 @@ open class HuaweiSampleSetRoute(
 
     private fun buildRequestBody(start: Instant, end: Instant): String {
         val root = MAPPER.createObjectNode()
-        root.putArray("polymerizeWith").addObject().put("dataTypeName", dataTypeName)
-        root.put("startTime", start.toEpochMilli())
-        root.put("endTime", end.toEpochMilli())
+        root.putArray("dataTypes").add(dataTypeName)
+        root.put("startDay", DAY_FORMATTER.format(start))
+        root.put("endDay", DAY_FORMATTER.format(end))
+        root.put("timeZone", "+0000")
         return MAPPER.writeValueAsString(root)
     }
 
     companion object {
         private val MAPPER = ObjectMapper()
+        private val DAY_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd").withZone(ZoneOffset.UTC)
     }
 }

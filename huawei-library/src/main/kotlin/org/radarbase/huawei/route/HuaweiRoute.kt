@@ -59,10 +59,15 @@ abstract class HuaweiRoute(
             .build()
     }
 
-    protected fun createPostRequest(user: User, path: String, jsonBody: String): Request {
+    protected fun createPostRequest(
+        user: User,
+        path: String,
+        jsonBody: String,
+        baseUrl: String = HUAWEI_API_BASE_URL,
+    ): Request {
         val accessToken = userRepository.getAccessToken(user)
         return Request.Builder()
-            .url("$HUAWEI_API_BASE_URL/$path".toHttpUrl())
+            .url("$baseUrl/$path".toHttpUrl())
             .header("Authorization", "Bearer $accessToken")
             .post(jsonBody.toRequestBody(JSON_MEDIA_TYPE))
             .build()

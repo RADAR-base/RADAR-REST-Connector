@@ -984,17 +984,28 @@ object HuaweiRouteFactory {
             timeReceived: Instant,
         ) -> SpecificRecord,
     ): HuaweiRouteDefinition = HuaweiRouteDefinition(key, defaultTopic) { repo, topic ->
-        HuaweiSampleSetRoute(
-            userRepository = repo,
-            // Huawei's polymerize API has no dataCollector for a literal "*.statistics" data
-            // type - ".statistics" is only this connector's/RADAR-Schemas' label for "the
-            // groupByTime-aggregated variant of the underlying raw data type", so it must be
-            // stripped from the dataTypeName actually sent on the wire.
-            dataTypeName = VENDOR_PREFIX + dataTypeSuffix.removeSuffix(".statistics"),
-            topic = topic,
-            groupByTimeUnit = if (dataTypeSuffix.endsWith(".statistics")) "day" else null,
-            buildRecord = buildRecord,
-        )
+        // Huawei's polymerize API rejects a groupByTime-aggregated query for at least some data
+        // types (confirmed live: "com.huawei.resting_calories does not support the query mode,
+        // please use dailyPolymerize API") - the day-aggregated ("*.statistics") variant of every
+        // data type must go through the dedicated sampleSet:dailyPolymerize endpoint instead, using
+        // the underlying raw data type name (the ".statistics" suffix is only this
+        // connector's/RADAR-Schemas' label and is never sent on the wire).
+        val rawDataTypeName = VENDOR_PREFIX + dataTypeSuffix.removeSuffix(".statistics")
+        if (dataTypeSuffix.endsWith(".statistics")) {
+            HuaweiDailyPolymerizeRoute(
+                userRepository = repo,
+                dataTypeName = rawDataTypeName,
+                topic = topic,
+                buildRecord = buildRecord,
+            )
+        } else {
+            HuaweiSampleSetRoute(
+                userRepository = repo,
+                dataTypeName = rawDataTypeName,
+                topic = topic,
+                buildRecord = buildRecord,
+            )
+        }
     }
 
     private fun healthRecordDefinition(

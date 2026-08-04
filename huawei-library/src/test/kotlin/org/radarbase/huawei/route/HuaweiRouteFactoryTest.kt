@@ -95,6 +95,7 @@ class HuaweiRouteFactoryTest {
     private fun fixtureFor(route: HuaweiRoute) = when (route) {
         is HuaweiActivityRecordRoute -> activityRecordFixture()
         is HuaweiHealthRecordRoute -> healthRecordFixture()
+        is HuaweiDailyPolymerizeRoute -> dailyPolymerizeFixture()
         is HuaweiSampleSetRoute -> sampleSetFixture()
         else -> error("Unknown route type: ${route::class}")
     }
@@ -107,6 +108,22 @@ class HuaweiRouteFactoryTest {
         val point = samplePoints.addObject()
         point.put("startTime", START_MILLIS)
         point.put("endTime", END_MILLIS)
+        point.set<ArrayNode>("value", genericValueArray())
+        return root
+    }
+
+    private fun dailyPolymerizeFixture(): ObjectNode {
+        val root = mapper.createObjectNode()
+        val groups = root.putArray("group")
+        val group = groups.addObject()
+        group.put("startTime", START_MILLIS)
+        group.put("endTime", END_MILLIS)
+        val sampleSet = group.putArray("sampleSet")
+        val collector = sampleSet.addObject()
+        val samplePoints = collector.putArray("samplePoints")
+        val point = samplePoints.addObject()
+        point.put("startTime", START_NANOS)
+        point.put("endTime", END_NANOS)
         point.set<ArrayNode>("value", genericValueArray())
         return root
     }
