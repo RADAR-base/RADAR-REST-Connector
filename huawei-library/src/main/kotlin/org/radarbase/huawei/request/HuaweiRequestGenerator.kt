@@ -212,12 +212,13 @@ class HuaweiRequestGenerator(
                 )
             }
             else -> {
-                logger.warn("Request failed: {}, {}", request, response)
+                val body = response.body?.string() ?: "unknown error"
+                logger.warn("Request failed: {}: {}", request, body)
                 routeNextRequest[key] = Instant.now().plus(BACK_OFF_TIME)
                 HuaweiGenericError(
-                    response.body?.string() ?: "unknown error",
+                    body,
                     IOException("Unknown error"),
-                    "500",
+                    response.code.toString(),
                 )
             }
         }
