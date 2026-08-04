@@ -22,16 +22,17 @@ import org.apache.avro.specific.SpecificRecord
 import org.radarbase.huawei.user.User
 import java.time.Instant
 
+/** Huawei's healthRecords v2 endpoint reports startTime/endTime in nanoseconds since the epoch. */
 private fun JsonNode.epochInstant(field: String): Instant? {
     val value = this.get(field) ?: return null
     if (value.isNull) return null
-    val millis = if (value.isTextual) value.asText().toLongOrNull() else value.asLong()
-    return millis?.let { Instant.ofEpochMilli(it) }
+    val nanos = if (value.isTextual) value.asText().toLongOrNull() else value.asLong()
+    return nanos?.let { Instant.ofEpochSecond(it / 1_000_000_000L, it % 1_000_000_000L) }
 }
 
 /**
- * Generic converter for `GET /healthkit/v1/healthRecords` responses: iterates every record
- * returned for the requested `dataTypeName` and builds one Avro record per entry via
+ * Generic converter for `GET /healthkit/v2/healthRecords` responses: iterates every record
+ * returned for the requested `dataType` and builds one Avro record per entry via
  * [buildRecord].
  *
  * @author yatharthranjan

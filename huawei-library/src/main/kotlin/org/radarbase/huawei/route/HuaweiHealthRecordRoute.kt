@@ -28,9 +28,15 @@ import java.time.Duration
 import java.time.Instant
 
 /**
- * Route backed by `GET /healthkit/v1/healthRecords`, used for the `health.record.*` data types
+ * Route backed by `GET /healthkit/v2/healthRecords`, used for the `health.record.*` data types
  * (ambulatory blood pressure sessions, heart rate alerts, hyperthermia, low SpO2 alerts,
  * menstrual cycle phases, and comprehensive sleep records).
+ *
+ * Per the official Health Kit REST API reference, this endpoint is on API version `v2` (unlike
+ * `sampleSet:polymerize`/`activityRecords`, which are on `v1`), takes the data type under the
+ * `dataType` query parameter (not `dataTypeName`), and its `startTime`/`endTime` parameters (and
+ * the `startTime`/`endTime` fields of each returned record) are in **nanoseconds** since the
+ * epoch, not milliseconds.
  *
  * @author yatharthranjan
  */
@@ -63,10 +69,11 @@ open class HuaweiHealthRecordRoute(
                 user,
                 "healthRecords",
                 mapOf(
-                    "dataTypeName" to dataTypeName,
-                    "startTime" to rangeStart.toEpochMilli().toString(),
-                    "endTime" to rangeEnd.toEpochMilli().toString(),
+                    "dataType" to dataTypeName,
+                    "startTime" to rangeStart.toEpochNanos().toString(),
+                    "endTime" to rangeEnd.toEpochNanos().toString(),
                 ),
+                baseUrl = HUAWEI_API_BASE_URL_V2,
             ),
             user = user,
             route = this,
@@ -74,4 +81,6 @@ open class HuaweiHealthRecordRoute(
             endDate = rangeEnd,
         )
     }
+
+    private fun Instant.toEpochNanos(): Long = epochSecond * 1_000_000_000L + nano.toLong()
 }

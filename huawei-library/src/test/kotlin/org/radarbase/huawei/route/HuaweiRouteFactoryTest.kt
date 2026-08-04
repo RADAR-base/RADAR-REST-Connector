@@ -115,8 +115,8 @@ class HuaweiRouteFactoryTest {
         val root = mapper.createObjectNode()
         val records = root.putArray("healthRecords")
         val record = records.addObject()
-        record.put("startTime", START_MILLIS)
-        record.put("endTime", END_MILLIS)
+        record.put("startTime", START_NANOS)
+        record.put("endTime", END_NANOS)
         record.set<ArrayNode>("value", genericValueArray())
         return root
     }
@@ -175,6 +175,8 @@ class HuaweiRouteFactoryTest {
     companion object {
         private const val START_MILLIS = 1704067200000L // 2024-01-01T00:00:00Z
         private const val END_MILLIS = 1704070800000L // 2024-01-01T01:00:00Z
+        private const val START_NANOS = START_MILLIS * 1_000_000L
+        private const val END_NANOS = END_MILLIS * 1_000_000L
 
         private val LITERAL_FIELD_KEYS = listOf(
             "active_hours", "active_hours_target", "all_sleep_time", "arrhythmia_result",

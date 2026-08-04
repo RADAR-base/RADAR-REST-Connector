@@ -47,9 +47,10 @@ abstract class HuaweiRoute(
         user: User,
         path: String,
         queryParams: Map<String, String>,
+        baseUrl: String = HUAWEI_API_BASE_URL,
     ): Request {
         val accessToken = userRepository.getAccessToken(user)
-        val urlBuilder = "$HUAWEI_API_BASE_URL/$path".toHttpUrl().newBuilder()
+        val urlBuilder = "$baseUrl/$path".toHttpUrl().newBuilder()
         queryParams.forEach { (key, value) -> urlBuilder.addQueryParameter(key, value) }
         return Request.Builder()
             .url(urlBuilder.build())
@@ -91,6 +92,7 @@ abstract class HuaweiRoute(
 
     companion object {
         const val HUAWEI_API_BASE_URL = "https://health-api.cloud.huawei.com/healthkit/v1"
+        const val HUAWEI_API_BASE_URL_V2 = "https://health-api.cloud.huawei.com/healthkit/v2"
         private val JSON_MEDIA_TYPE = "application/json; charset=utf-8".toMediaType()
         private val DEFAULT_INTERVAL_PER_REQUEST = Duration.ofDays(30L)
     }
