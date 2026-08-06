@@ -26,6 +26,8 @@ dependencies {
 
     implementation libs.jackson.datatype.jsr310
 
+    implementation libs.slf4j.api
+
     // Use the Kotlin test library.
     testImplementation libs.kotlin.test
 
