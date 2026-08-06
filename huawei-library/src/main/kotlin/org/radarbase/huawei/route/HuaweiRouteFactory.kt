@@ -222,10 +222,20 @@ object HuaweiRouteFactory {
         )
 
         add(
+            // Disabled by default: "com.huawei.daily_activity_summary" is not a real Huawei
+            // sampleSet dataTypeName (confirmed live: "no default dataCollector found"). The
+            // goal fields this route maps (stepsGoal/activeCaloriesGoal/exerciseTimeGoal/
+            // activeHoursGoal) actually belong to a completely different endpoint
+            // (GET /healthkit/v2/sampleConfigs?type=9002&id=<900200006..900200009>, "Querying
+            // Activity Goals"), and the achieved-value fields would need to come from the
+            // existing continuous/statistics routes instead. Needs a real redesign (a route that
+            // issues multiple requests and merges them) before this can work - not a simple
+            // endpoint/field-name fix like the other routes here.
             sampleSetDefinition(
                 "daily_activity_summary",
                 "daily_activity_summary",
                 "connect_huawei_daily_activity_summary",
+                enabledByDefault = false,
             ) { f, start, end, received ->
                 HuaweiDailyActivitySummary.newBuilder().apply {
                     time = start.toEpoch()
@@ -977,13 +987,18 @@ object HuaweiRouteFactory {
         key: String,
         dataTypeSuffix: String,
         defaultTopic: String,
+        enabledByDefault: Boolean = true,
         buildRecord: (
             fields: FieldValues,
             startTime: Instant,
             endTime: Instant?,
             timeReceived: Instant,
         ) -> SpecificRecord,
-    ): HuaweiRouteDefinition = HuaweiRouteDefinition(key, defaultTopic) { repo, topic ->
+    ): HuaweiRouteDefinition = HuaweiRouteDefinition(
+        key,
+        defaultTopic,
+        enabledByDefault,
+    ) { repo, topic ->
         // Huawei's polymerize API rejects a groupByTime-aggregated query for at least some data
         // types (confirmed live: "com.huawei.resting_calories does not support the query mode,
         // please use dailyPolymerize API") - the day-aggregated ("*.statistics") variant of every
