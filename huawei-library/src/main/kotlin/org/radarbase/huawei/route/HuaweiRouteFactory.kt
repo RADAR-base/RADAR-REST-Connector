@@ -222,33 +222,30 @@ object HuaweiRouteFactory {
         )
 
         add(
-            // Disabled by default: "com.huawei.daily_activity_summary" is not a real Huawei
-            // sampleSet dataTypeName (confirmed live: "no default dataCollector found"). The
-            // goal fields this route maps (stepsGoal/activeCaloriesGoal/exerciseTimeGoal/
-            // activeHoursGoal) actually belong to a completely different endpoint
-            // (GET /healthkit/v2/sampleConfigs?type=9002&id=<900200006..900200009>, "Querying
-            // Activity Goals"), and the achieved-value fields would need to come from the
-            // existing continuous/statistics routes instead. Needs a real redesign (a route that
-            // issues multiple requests and merges them) before this can work - not a simple
-            // endpoint/field-name fix like the other routes here.
+            // "com.huawei.daily_activity_summary" is itself a documented "Atomic Sampling
+            // Statistical Data Type" (per the official "Daily Activity Data" reference) queried by
+            // day via dailyPolymerize - it is not derived from a separate raw type, and it is NOT
+            // the separate sampleConfigs-based "Workout Goals" endpoint. Its field names are
+            // camelCase (matching the Avro schema field names directly), unlike most other Huawei
+            // data types' snake_case field names.
             sampleSetDefinition(
                 "daily_activity_summary",
                 "daily_activity_summary",
                 "connect_huawei_daily_activity_summary",
-                enabledByDefault = false,
+                useDailyPolymerize = true,
             ) { f, start, end, received ->
                 HuaweiDailyActivitySummary.newBuilder().apply {
                     time = start.toEpoch()
                     timeReceived = received.toEpoch()
                     endTime = end?.toEpoch()
                     steps = f.getInt("steps")
-                    activeCalories = f.getInt("calories")
-                    exerciseTime = f.getInt("exercise_time")
-                    activeHours = f.getInt("active_hours")
-                    stepsGoal = f.getInt("steps_target")
-                    activeCaloriesGoal = f.getInt("calories_target")
-                    exerciseTimeGoal = f.getInt("exercise_time_target")
-                    activeHoursGoal = f.getInt("active_hours_target")
+                    activeCalories = f.getInt("activeCalories")
+                    exerciseTime = f.getInt("exerciseTime")
+                    activeHours = f.getInt("activeHours")
+                    stepsGoal = f.getInt("stepsGoal")
+                    activeCaloriesGoal = f.getInt("activeCaloriesGoal")
+                    exerciseTimeGoal = f.getInt("exerciseTimeGoal")
+                    activeHoursGoal = f.getInt("activeHoursGoal")
                 }.build()
             },
         )
@@ -259,7 +256,7 @@ object HuaweiRouteFactory {
                 "active_hours",
                 "connect_huawei_active_hours",
             ) { f, start, end, received ->
-                f.toActiveHours(start, end, received)
+                f.toRawActiveHours(start, end, received)
             },
         )
         add(
@@ -268,7 +265,7 @@ object HuaweiRouteFactory {
                 "active_hours.statistics",
                 "connect_huawei_active_hours_statistics",
             ) { f, start, end, received ->
-                f.toActiveHours(start, end, received)
+                f.toActiveHoursStatistics(start, end, received)
             },
         )
 
@@ -296,6 +293,11 @@ object HuaweiRouteFactory {
                 "continuous_altitude_statistics",
                 "continuous.altitude.statistics",
                 "connect_huawei_continuous_altitude_statistics",
+                // Statistics variant is documented under "continuous.", but its underlying raw
+                // detailed data type is "com.huawei.instantaneous.altitude" - a different
+                // namespace, per the official "Altitude" data type reference.
+                queryDataTypeSuffix = "instantaneous.altitude",
+                useDailyPolymerize = true,
             ) { f, start, end, received ->
                 HuaweiContinuousAltitudeStatistics.newBuilder().apply {
                     time = start.toEpoch()
@@ -460,7 +462,7 @@ object HuaweiRouteFactory {
                     time = start.toEpoch()
                     timeReceived = received.toEpoch()
                     endTime = end?.toEpoch()
-                    distance = f.getDouble("distance_total")
+                    distance = f.getDouble("distance")
                 }.build()
             },
         )
@@ -816,7 +818,12 @@ object HuaweiRouteFactory {
         )
     }
 
-    private fun FieldValues.toActiveHours(
+    /**
+     * The raw `com.huawei.active_hours` data type's only documented field is `isActive` (whether
+     * that hour had at least moderate-intensity activity) - it has no moderate/high intensity
+     * minute breakdown, unlike what [toActiveHoursStatistics] reads.
+     */
+    private fun FieldValues.toRawActiveHours(
         start: Instant,
         end: Instant?,
         received: Instant,
@@ -824,9 +831,20 @@ object HuaweiRouteFactory {
         time = start.toEpoch()
         timeReceived = received.toEpoch()
         endTime = end?.toEpoch()
-        activeHours = getInt("active_hours")
-        moderateIntensityMinutes = getInt("moderate_intensity_minutes")
-        highIntensityMinutes = getInt("high_intensity_minutes")
+        activeHours = getInt("isActive")
+    }.build()
+
+    /** The `com.huawei.active_hours.statistics` data type's only documented field is `activeHours`
+     * (the number of active hours in the statistical period). */
+    private fun FieldValues.toActiveHoursStatistics(
+        start: Instant,
+        end: Instant?,
+        received: Instant,
+    ): HuaweiActiveHours = HuaweiActiveHours.newBuilder().apply {
+        time = start.toEpoch()
+        timeReceived = received.toEpoch()
+        endTime = end?.toEpoch()
+        activeHours = getInt("activeHours")
     }.build()
 
     private fun FieldValues.toContinuousActivityStatistics(
