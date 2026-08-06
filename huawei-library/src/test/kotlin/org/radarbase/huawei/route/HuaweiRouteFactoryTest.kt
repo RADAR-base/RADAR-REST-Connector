@@ -140,13 +140,13 @@ class HuaweiRouteFactoryTest {
 
     private fun activityRecordFixture(): ObjectNode {
         val root = mapper.createObjectNode()
-        val records = root.putArray("activityRecords")
+        val records = root.putArray("activityRecord")
         val record = records.addObject()
         record.put("startTime", START_MILLIS)
         record.put("endTime", END_MILLIS)
         record.put("id", "activity-1")
         record.put("name", "Run")
-        record.put("description", "Morning run")
+        record.put("desc", "Morning run")
         record.put("timeZone", "Europe/London")
         record.put("activityType", "1")
         record.put("activeTime", 1000L)

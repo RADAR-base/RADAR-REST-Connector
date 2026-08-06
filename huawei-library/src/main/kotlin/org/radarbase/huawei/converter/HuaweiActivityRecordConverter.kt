@@ -23,7 +23,7 @@ import org.radarcns.connector.huawei.HuaweiActivityRecord
 import java.time.Instant
 
 /**
- * Converts `GET /healthkit/v1/activityRecords` responses into [HuaweiActivityRecord]s.
+ * Converts `GET /healthkit/v2/activityRecords` responses into [HuaweiActivityRecord]s.
  *
  * Field names below follow the Huawei Health Kit `ActivityRecord`/`Device`/`ActivitySummary`
  * model (activity record id, name, description, time zone, activity type, device manufacturer and
@@ -39,7 +39,10 @@ class HuaweiActivityRecordConverter(
 
     override fun processRecords(root: JsonNode, user: User): Sequence<Result<TopicData>> {
         val timeReceived = Instant.now()
-        val records = root.get("activityRecords") ?: root.get("records") ?: return emptySequence()
+        val records = root.get("activityRecord")
+            ?: root.get("activityRecords")
+            ?: root.get("records")
+            ?: return emptySequence()
         return records.asSequence()
             .mapCatching { record ->
                 val startTime = record.epochInstant("startTime")
@@ -65,7 +68,7 @@ class HuaweiActivityRecordConverter(
             endTime = epochInstant("endTime")?.toEpoch()
             activityRecordId = textOrNull("id") ?: textOrNull("activityRecordId")
             name = textOrNull("name")
-            description = textOrNull("description")
+            description = textOrNull("desc") ?: textOrNull("description")
             timeZone = textOrNull("timeZone")
             activityTypeId = textOrNull("activityType") ?: textOrNull("activityTypeId")
             activeTimeMillis = longOrNull("activeTime") ?: longOrNull("activeTimeMillis")

@@ -26,7 +26,7 @@ import java.time.Duration
 import java.time.Instant
 
 /**
- * Route backed by `GET /healthkit/v1/activityRecords`, covering the Huawei Health Kit Activity
+ * Route backed by `GET /healthkit/v2/activityRecords`, covering the Huawei Health Kit Activity
  * Records API (workout / physical-activity sessions).
  *
  * @author yatharthranjan
@@ -56,6 +56,7 @@ class HuaweiActivityRecordRoute(
                     "startTime" to rangeStart.toEpochMilli().toString(),
                     "endTime" to rangeEnd.toEpochMilli().toString(),
                 ),
+                baseUrl = HUAWEI_API_BASE_URL_V2,
             ),
             user = user,
             route = this,
