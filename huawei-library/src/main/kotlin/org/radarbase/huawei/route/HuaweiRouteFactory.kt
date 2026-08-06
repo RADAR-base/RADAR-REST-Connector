@@ -422,6 +422,8 @@ object HuaweiRouteFactory {
                 "continuous_calories_burnt_total",
                 "continuous.calories.burnt.total",
                 "connect_huawei_continuous_calories_burnt_total",
+                queryDataTypeSuffix = "continuous.calories.burnt",
+                useDailyPolymerize = true,
             ) { f, start, end, received ->
                 HuaweiContinuousCaloriesBurntTotal.newBuilder().apply {
                     time = start.toEpoch()
@@ -451,6 +453,8 @@ object HuaweiRouteFactory {
                 "continuous_distance_total",
                 "continuous.distance.total",
                 "connect_huawei_continuous_distance_total",
+                queryDataTypeSuffix = "continuous.distance.delta",
+                useDailyPolymerize = true,
             ) { f, start, end, received ->
                 HuaweiContinuousDistanceTotal.newBuilder().apply {
                     time = start.toEpoch()
@@ -586,6 +590,8 @@ object HuaweiRouteFactory {
                 "continuous_steps_total",
                 "continuous.steps.total",
                 "connect_huawei_continuous_steps_total",
+                queryDataTypeSuffix = "continuous.steps.delta",
+                useDailyPolymerize = true,
             ) { f, start, end, received ->
                 HuaweiContinuousStepsTotal.newBuilder().apply {
                     time = start.toEpoch()
@@ -988,6 +994,17 @@ object HuaweiRouteFactory {
         dataTypeSuffix: String,
         defaultTopic: String,
         enabledByDefault: Boolean = true,
+        // Huawei's polymerize API rejects a groupByTime-aggregated query for at least some data
+        // types (confirmed live: "com.huawei.resting_calories does not support the query mode,
+        // please use dailyPolymerize API") - the day-aggregated ("*.statistics") variant of every
+        // data type must go through the dedicated sampleSet:dailyPolymerize endpoint instead.
+        // Likewise, "*.total" data types are never valid *request* dataTypeNames (confirmed live:
+        // "no default dataCollector found for: com.huawei.continuous.steps.total") - Huawei's own
+        // dailyPolymerize example queries the "*.delta" data type and gets a "*.total"-labelled
+        // response back, so a "*.total" route must override [queryDataTypeSuffix] to name its
+        // sibling raw/delta data type instead.
+        queryDataTypeSuffix: String = dataTypeSuffix.removeSuffix(".statistics"),
+        useDailyPolymerize: Boolean = dataTypeSuffix.endsWith(".statistics"),
         buildRecord: (
             fields: FieldValues,
             startTime: Instant,
@@ -999,14 +1016,8 @@ object HuaweiRouteFactory {
         defaultTopic,
         enabledByDefault,
     ) { repo, topic ->
-        // Huawei's polymerize API rejects a groupByTime-aggregated query for at least some data
-        // types (confirmed live: "com.huawei.resting_calories does not support the query mode,
-        // please use dailyPolymerize API") - the day-aggregated ("*.statistics") variant of every
-        // data type must go through the dedicated sampleSet:dailyPolymerize endpoint instead, using
-        // the underlying raw data type name (the ".statistics" suffix is only this
-        // connector's/RADAR-Schemas' label and is never sent on the wire).
-        val rawDataTypeName = VENDOR_PREFIX + dataTypeSuffix.removeSuffix(".statistics")
-        if (dataTypeSuffix.endsWith(".statistics")) {
+        val rawDataTypeName = VENDOR_PREFIX + queryDataTypeSuffix
+        if (useDailyPolymerize) {
             HuaweiDailyPolymerizeRoute(
                 userRepository = repo,
                 dataTypeName = rawDataTypeName,
