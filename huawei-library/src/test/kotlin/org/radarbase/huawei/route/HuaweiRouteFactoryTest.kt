@@ -209,6 +209,7 @@ class HuaweiRouteFactoryTest {
             "min_breathe_rate", "min_breathrate_baseline", "min_spo2", "off_bed_time",
             "on_off_bed_state", "predicted_calories", "prepare_sleep_time", "record_day",
             "record_id", "remarks", "sample_source", "sampling_frequency", "sleep_efficiency",
+            "saturation_avg", "saturation_last", "saturation_max", "saturation_min",
             "sleep_latency", "sleep_score", "sleep_state", "sleep_type", "sphygmus_avg",
             "sphygmus_last", "sphygmus_max", "sphygmus_min", "status", "steps", "steps_delta",
             "steps_target", "sub_status", "systolic_pressure_avg", "systolic_pressure_max",

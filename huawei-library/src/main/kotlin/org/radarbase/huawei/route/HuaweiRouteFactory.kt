@@ -558,15 +558,20 @@ object HuaweiRouteFactory {
                 "continuous_spo2_statistics",
                 "continuous.spo2.statistics",
                 "connect_huawei_continuous_spo2_statistics",
+                // Statistics variant is documented under "continuous.", but its underlying raw
+                // detailed data type is "com.huawei.instantaneous.spo2" - a different namespace,
+                // per the official "SpO2" data type reference.
+                queryDataTypeSuffix = "instantaneous.spo2",
+                useDailyPolymerize = true,
             ) { f, start, end, received ->
                 HuaweiContinuousSpo2Statistics.newBuilder().apply {
                     time = start.toEpoch()
                     timeReceived = received.toEpoch()
                     endTime = end?.toEpoch()
-                    saturationAvg = f.getDouble("avg")
-                    saturationMax = f.getDouble("max")
-                    saturationMin = f.getDouble("min")
-                    saturationLast = f.getDouble("last")
+                    saturationAvg = f.getDouble("saturation_avg")
+                    saturationMax = f.getDouble("saturation_max")
+                    saturationMin = f.getDouble("saturation_min")
+                    saturationLast = f.getDouble("saturation_last")
                 }.build()
             },
         )
