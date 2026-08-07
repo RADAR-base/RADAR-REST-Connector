@@ -1,0 +1,40 @@
+name: Publish snapshots
+
+on:
+  push:
+    branches: [ dev ]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Assert SNAPSHOT version
+        run: |
+          ./gradlew properties --no-daemon -q | grep 'version: .*-SNAPSHOT'
+
+      - name: Import GPG signing key
+        run: |
+          echo -e "${{ secrets.OSSRH_GPG_SECRET_KEY }}" | gpg --batch --import
+          gpg --list-secret-keys --keyid-format LONG
+
+      - name: Publish to Sonatype snapshots
+        env:
+          OSSRH_USER: ${{ secrets.OSSRH_USER_TOKEN_ID }}
+          OSSRH_PASSWORD: ${{ secrets.OSSRH_USER_TOKEN_SECRET }}
+        run: >-
+          ./gradlew
+          -Psigning.gnupg.keyName=${{ secrets.OSSRH_GPG_SECRET_KEY_NAME }}
+          -Psigning.gnupg.executable=gpg
+          -Psigning.gnupg.passphrase=${{ secrets.OSSRH_GPG_SECRET_KEY_PASSWORD }}
+          publish

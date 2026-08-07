@@ -1,5 +1,5 @@
 [versions]
-project = "0.7.3"
+project = "0.7.6"
 gradle = "8.14"
 kotlin = "1.9.24"
 radarCommons = "1.2.6"
@@ -15,7 +15,7 @@ sentryOpenTelemetryAgent = "8.36.0"
 # @pin Upgrade to 5.x.x requires kotlin v2 minimum
 okhttp = "4.12.0"
 firebaseAdmin = "9.8.0"
-radarSchemas = "0.8.16"
+radarSchemas = "0.8.18"
 # @pin Upgrade to 3.x.x requires kotlin v2 minimum
 ktor = "2.3.13"
 wiremock = "3.0.1"
@@ -60,3 +60,4 @@ kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version
 radar-root-project = { id = "org.radarbase.radar-root-project", version.ref = "radarCommons" }
 radar-dependency-management = { id = "org.radarbase.radar-dependency-management", version.ref = "radarCommons" }
 radar-kotlin = { id = "org.radarbase.radar-kotlin", version.ref = "radarCommons" }
+radar-publishing = { id = "org.radarbase.radar-publishing", version.ref = "radarCommons" }
