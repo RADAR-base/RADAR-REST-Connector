@@ -1,86 +1,50 @@
 package org.radarbase.googlehealth.util
 
-import org.radarcns.connector.fitbit.FitbitActivityHeartRate
-import org.radarcns.connector.fitbit.FitbitActivityLogRecord
-import org.radarcns.connector.fitbit.FitbitBreathingRate
-import org.radarcns.connector.fitbit.FitbitIntradayCalories
-import org.radarcns.connector.fitbit.FitbitIntradayHeartRate
-import org.radarcns.connector.fitbit.FitbitIntradayHeartRateVariability
-import org.radarcns.connector.fitbit.FitbitIntradaySpo2
-import org.radarcns.connector.fitbit.FitbitIntradaySteps
-import org.radarcns.connector.fitbit.FitbitRestingHeartRate
-import org.radarcns.connector.fitbit.FitbitSkinTemperature
-import org.radarcns.connector.fitbit.FitbitSleepClassic
-import org.radarcns.connector.fitbit.FitbitSleepStage
+import org.radarcns.push.googlehealth.GoogleHealthExerciseHeartRate
+import org.radarcns.push.googlehealth.GoogleHealthExercise
+import org.radarcns.push.googlehealth.GoogleHealthRespiratoryRateSleepSummary
+import org.radarcns.push.googlehealth.GoogleHealthTotalCalories
+import org.radarcns.push.googlehealth.GoogleHealthHeartRate
+import org.radarcns.push.googlehealth.GoogleHealthHeartRateVariability
+import org.radarcns.push.googlehealth.GoogleHealthOxygenSaturation
+import org.radarcns.push.googlehealth.GoogleHealthSteps
+import org.radarcns.push.googlehealth.GoogleHealthDailyRestingHeartRate
+import org.radarcns.push.googlehealth.GoogleHealthDailySleepTemperatureDerivations
+import org.radarcns.push.googlehealth.GoogleHealthSleepClassic
+import org.radarcns.push.googlehealth.GoogleHealthSleepStage
 
-inline fun intradaySteps(
-    block: FitbitIntradaySteps.Builder.() -> Unit,
-): FitbitIntradaySteps {
-    return FitbitIntradaySteps.newBuilder().apply(block).build()
-}
+inline fun googleHealthSteps(block: GoogleHealthSteps.Builder.() -> Unit): GoogleHealthSteps =
+    GoogleHealthSteps.newBuilder().apply(block).build()
 
-inline fun intradayHeartRate(
-    block: FitbitIntradayHeartRate.Builder.() -> Unit,
-): FitbitIntradayHeartRate {
-    return FitbitIntradayHeartRate.newBuilder().apply(block).build()
-}
+inline fun googleHealthHeartRate(block: GoogleHealthHeartRate.Builder.() -> Unit): GoogleHealthHeartRate =
+    GoogleHealthHeartRate.newBuilder().apply(block).build()
 
-inline fun intradayHeartRateVariability(
-    block: FitbitIntradayHeartRateVariability.Builder.() -> Unit,
-): FitbitIntradayHeartRateVariability {
-    return FitbitIntradayHeartRateVariability.newBuilder().apply(block).build()
-}
+inline fun googleHealthHeartRateVariability(block: GoogleHealthHeartRateVariability.Builder.() -> Unit): GoogleHealthHeartRateVariability =
+    GoogleHealthHeartRateVariability.newBuilder().apply(block).build()
 
-inline fun intradaySpo2(
-    block: FitbitIntradaySpo2.Builder.() -> Unit,
-): FitbitIntradaySpo2 {
-    return FitbitIntradaySpo2.newBuilder().apply(block).build()
-}
+inline fun googleHealthOxygenSaturation(block: GoogleHealthOxygenSaturation.Builder.() -> Unit): GoogleHealthOxygenSaturation =
+    GoogleHealthOxygenSaturation.newBuilder().apply(block).build()
 
-inline fun restingHeartRate(
-    block: FitbitRestingHeartRate.Builder.() -> Unit,
-): FitbitRestingHeartRate {
-    return FitbitRestingHeartRate.newBuilder().apply(block).build()
-}
+inline fun googleHealthDailyRestingHeartRate(block: GoogleHealthDailyRestingHeartRate.Builder.() -> Unit): GoogleHealthDailyRestingHeartRate =
+    GoogleHealthDailyRestingHeartRate.newBuilder().apply(block).build()
 
-inline fun breathingRate(
-    block: FitbitBreathingRate.Builder.() -> Unit,
-): FitbitBreathingRate {
-    return FitbitBreathingRate.newBuilder().apply(block).build()
-}
+inline fun googleHealthRespiratoryRateSleepSummary(block: GoogleHealthRespiratoryRateSleepSummary.Builder.() -> Unit): GoogleHealthRespiratoryRateSleepSummary =
+    GoogleHealthRespiratoryRateSleepSummary.newBuilder().apply(block).build()
 
-inline fun skinTemperature(
-    block: FitbitSkinTemperature.Builder.() -> Unit,
-): FitbitSkinTemperature {
-    return FitbitSkinTemperature.newBuilder().apply(block).build()
-}
+inline fun googleHealthDailySleepTemperatureDerivations(block: GoogleHealthDailySleepTemperatureDerivations.Builder.() -> Unit): GoogleHealthDailySleepTemperatureDerivations =
+    GoogleHealthDailySleepTemperatureDerivations.newBuilder().apply(block).build()
 
-inline fun sleepClassic(
-    block: FitbitSleepClassic.Builder.() -> Unit,
-): FitbitSleepClassic {
-    return FitbitSleepClassic.newBuilder().apply(block).build()
-}
+inline fun googleHealthSleepClassic(block: GoogleHealthSleepClassic.Builder.() -> Unit): GoogleHealthSleepClassic =
+    GoogleHealthSleepClassic.newBuilder().apply(block).build()
 
-inline fun sleepStage(
-    block: FitbitSleepStage.Builder.() -> Unit,
-): FitbitSleepStage {
-    return FitbitSleepStage.newBuilder().apply(block).build()
-}
+inline fun googleHealthSleepStage(block: GoogleHealthSleepStage.Builder.() -> Unit): GoogleHealthSleepStage =
+    GoogleHealthSleepStage.newBuilder().apply(block).build()
 
-inline fun activityLogRecord(
-    block: FitbitActivityLogRecord.Builder.() -> Unit,
-): FitbitActivityLogRecord {
-    return FitbitActivityLogRecord.newBuilder().apply(block).build()
-}
+inline fun activityLogRecord(block: GoogleHealthExercise.Builder.() -> Unit): GoogleHealthExercise =
+    GoogleHealthExercise.newBuilder().apply(block).build()
 
-inline fun activityHeartRate(
-    block: FitbitActivityHeartRate.Builder.() -> Unit,
-): FitbitActivityHeartRate {
-    return FitbitActivityHeartRate.newBuilder().apply(block).build()
-}
+inline fun exerciseHeartRate(block: GoogleHealthExerciseHeartRate.Builder.() -> Unit): GoogleHealthExerciseHeartRate =
+    GoogleHealthExerciseHeartRate.newBuilder().apply(block).build()
 
-inline fun intradayCalories(
-    block: FitbitIntradayCalories.Builder.() -> Unit,
-): FitbitIntradayCalories {
-    return FitbitIntradayCalories.newBuilder().apply(block).build()
-}
+inline fun googleHealthTotalCalories(block: GoogleHealthTotalCalories.Builder.() -> Unit): GoogleHealthTotalCalories =
+    GoogleHealthTotalCalories.newBuilder().apply(block).build()

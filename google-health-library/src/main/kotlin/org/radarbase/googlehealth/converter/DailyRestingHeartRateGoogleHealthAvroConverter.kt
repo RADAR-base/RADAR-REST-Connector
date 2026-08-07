@@ -19,7 +19,7 @@ package org.radarbase.googlehealth.converter
 import com.fasterxml.jackson.databind.JsonNode
 import org.apache.avro.specific.SpecificRecord
 import org.radarbase.googlehealth.user.User
-import org.radarbase.googlehealth.util.restingHeartRate
+import org.radarbase.googlehealth.util.googleHealthDailyRestingHeartRate
 
 class DailyRestingHeartRateGoogleHealthAvroConverter(topic: String) :
     GoogleHealthAvroConverter(topic) {
@@ -36,7 +36,7 @@ class DailyRestingHeartRateGoogleHealthAvroConverter(topic: String) :
             dateNode["month"].asInt(),
             dateNode["day"].asInt(),
         )
-        val record = restingHeartRate {
+        val record = googleHealthDailyRestingHeartRate {
             date = isoDate
             timeReceived = nowEpochSeconds()
             restingHeartRate = bpm

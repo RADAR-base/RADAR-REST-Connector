@@ -19,7 +19,7 @@ package org.radarbase.googlehealth.converter
 import com.fasterxml.jackson.databind.JsonNode
 import org.apache.avro.specific.SpecificRecord
 import org.radarbase.googlehealth.user.User
-import org.radarbase.googlehealth.util.intradaySteps
+import org.radarbase.googlehealth.util.googleHealthSteps
 
 class StepsGoogleHealthAvroConverter(topic: String) : GoogleHealthAvroConverter(topic) {
     override fun convertDataPoint(
@@ -29,7 +29,7 @@ class StepsGoogleHealthAvroConverter(topic: String) : GoogleHealthAvroConverter(
         val data = point["steps"] ?: return emptyList()
         val (start, end) = parseInterval(data) ?: return emptyList()
         val count = data["count"]?.asInt() ?: return emptyList()
-        val record = intradaySteps {
+        val record = googleHealthSteps {
             time = epochSeconds(start)
             timeReceived = nowEpochSeconds()
             timeInterval = (end.epochSecond - start.epochSecond).toInt().coerceAtLeast(0)

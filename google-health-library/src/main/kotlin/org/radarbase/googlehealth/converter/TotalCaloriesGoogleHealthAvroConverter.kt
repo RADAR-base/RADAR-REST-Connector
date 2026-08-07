@@ -19,7 +19,7 @@ package org.radarbase.googlehealth.converter
 import com.fasterxml.jackson.databind.JsonNode
 import org.apache.avro.specific.SpecificRecord
 import org.radarbase.googlehealth.user.User
-import org.radarbase.googlehealth.util.intradayCalories
+import org.radarbase.googlehealth.util.googleHealthTotalCalories
 import java.time.Instant
 
 class TotalCaloriesGoogleHealthAvroConverter(topic: String) : GoogleHealthAvroConverter(topic) {
@@ -29,15 +29,12 @@ class TotalCaloriesGoogleHealthAvroConverter(topic: String) : GoogleHealthAvroCo
     ): List<Pair<SpecificRecord, SpecificRecord>> {
         val start = point["startTime"]?.asText()?.let(Instant::parse) ?: return emptyList()
         val end = point["endTime"]?.asText()?.let(Instant::parse) ?: return emptyList()
-        val kilocalories = point["totalCalories"]?.get("kcalSum")?.doubleValue()
-            ?: return emptyList()
-        val record = intradayCalories {
+        val kilocalories = point["totalCalories"]?.get("kcalSum")?.doubleValue() ?: return emptyList()
+        val record = googleHealthTotalCalories {
             time = epochSeconds(start)
             timeReceived = nowEpochSeconds()
             timeInterval = (end.epochSecond - start.epochSecond).toInt().coerceAtLeast(0)
             calories = kilocalories
-            level = 0
-            mets = 0.0
         }
         return listOf(user.observationKey to record)
     }

@@ -19,7 +19,7 @@ package org.radarbase.googlehealth.converter
 import com.fasterxml.jackson.databind.JsonNode
 import org.apache.avro.specific.SpecificRecord
 import org.radarbase.googlehealth.user.User
-import org.radarbase.googlehealth.util.activityHeartRate
+import org.radarbase.googlehealth.util.exerciseHeartRate
 import org.radarbase.googlehealth.util.activityLogRecord
 
 class ExerciseGoogleHealthAvroConverter(topic: String) : GoogleHealthAvroConverter(topic) {
@@ -40,10 +40,11 @@ class ExerciseGoogleHealthAvroConverter(topic: String) : GoogleHealthAvroConvert
         val energyKj = caloriesKcal?.let { (it * KCAL_TO_KJ).toFloat() }
         val stepCount = metrics?.get("steps")?.takeIf { !it.isNull }?.asInt()
         val avgHr = metrics?.get("averageHeartRateBeatsPerMinute")?.takeIf { !it.isNull }?.asInt()
-        val avgHeartRate = avgHr?.let { activityHeartRate { mean = it } }
+        val avgHeartRate = avgHr?.let { exerciseHeartRate { mean = it } }
         val exerciseType = data["exerciseType"]?.asText()
-        val activityId = (point["name"]?.asText() ?: exerciseType ?: "")
-            .hashCode().toLong()
+
+        val activityId = point["dataPointName"]?.asText()?.substringAfterLast('/')?.toLongOrNull()
+            ?: throw IllegalStateException("Exercise data point has no usable dataPointName log id: $point")
         val record = activityLogRecord {
             time = epochSeconds(start)
             timeReceived = nowEpochSeconds()
