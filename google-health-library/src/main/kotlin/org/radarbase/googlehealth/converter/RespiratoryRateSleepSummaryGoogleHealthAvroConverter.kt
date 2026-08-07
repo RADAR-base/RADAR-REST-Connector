@@ -29,22 +29,21 @@ class RespiratoryRateSleepSummaryGoogleHealthAvroConverter(topic: String) :
     ): List<Pair<SpecificRecord, SpecificRecord>> {
         val data = point["respiratoryRateSleepSummary"] ?: return emptyList()
         val time = parseSampleTime(data) ?: return emptyList()
-        val deep = data["deepSleepStats"]?.get("breathsPerMinute")?.floatValue() ?: UNAVAILABLE
-        val full = data["fullSleepStats"]?.get("breathsPerMinute")?.floatValue() ?: UNAVAILABLE
-        val light = data["lightSleepStats"]?.get("breathsPerMinute")?.floatValue() ?: UNAVAILABLE
-        val rem = data["remSleepStats"]?.get("breathsPerMinute")?.floatValue() ?: UNAVAILABLE
+        val deep = data["deepSleepStats"]?.get("breathsPerMinute")
+        val full = data["fullSleepStats"]?.get("breathsPerMinute")
+        val light = data["lightSleepStats"]?.get("breathsPerMinute")
+        val rem = data["remSleepStats"]?.get("breathsPerMinute")
+
+        if (listOf(deep, full, light, rem).any { it != null && !it.isNumber }) return emptyList()
+
         val record = googleHealthRespiratoryRateSleepSummary {
             this.time = epochSeconds(time)
             timeReceived = nowEpochSeconds()
-            lightSleep = light
-            deepSleep = deep
-            remSleep = rem
-            fullSleep = full
+            lightSleep = light?.floatValue()
+            deepSleep = deep?.floatValue()
+            remSleep = rem?.floatValue()
+            fullSleep = full?.floatValue()
         }
         return listOf(user.observationKey to record)
-    }
-
-    companion object {
-        private const val UNAVAILABLE = 0.0f
     }
 }

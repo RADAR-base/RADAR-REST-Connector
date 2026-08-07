@@ -29,7 +29,7 @@ class OxygenSaturationGoogleHealthAvroConverter(topic: String) :
     ): List<Pair<SpecificRecord, SpecificRecord>> {
         val data = point["oxygenSaturation"] ?: return emptyList()
         val time = parseSampleTime(data) ?: return emptyList()
-        val pct = data["percentage"]?.floatValue() ?: return emptyList()
+        val pct = data["percentage"]?.takeIf { it.isNumber }?.floatValue() ?: return emptyList()
         val record = googleHealthOxygenSaturation {
             this.time = epochSeconds(time)
             timeReceived = nowEpochSeconds()

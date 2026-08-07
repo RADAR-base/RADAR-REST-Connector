@@ -19,8 +19,10 @@ package org.radarbase.googlehealth.converter
 import com.fasterxml.jackson.databind.JsonNode
 import org.apache.avro.specific.SpecificRecord
 import org.radarbase.googlehealth.user.User
-import org.radarbase.googlehealth.util.exerciseHeartRate
-import org.radarbase.googlehealth.util.activityLogRecord
+import org.radarbase.googlehealth.util.googleHealthExerciseHeartRate
+import org.radarbase.googlehealth.util.googleHealthExercise
+import org.radarbase.googlehealth.util.googleHealthSource
+import java.time.Instant
 
 class ExerciseGoogleHealthAvroConverter(topic: String) : GoogleHealthAvroConverter(topic) {
     override fun convertDataPoint(
@@ -33,42 +35,77 @@ class ExerciseGoogleHealthAvroConverter(topic: String) : GoogleHealthAvroConvert
             data["interval"]?.get("startUtcOffset")?.asText(),
         )
         val durationSec = (end.epochSecond - start.epochSecond).toFloat().coerceAtLeast(0.0f)
+        val activeDurationSec = data["activeDuration"]?.asText()
+            ?.let { parseDurationSeconds(it).toFloat() } ?: durationSec
+        val lastModified = data["updateTime"]?.asText()
+            ?.let { runCatching { Instant.parse(it) }.getOrNull() } ?: end
         val metrics = data["metricsSummary"]
-        val distanceKm = metrics?.get("distanceMillimeters")?.takeIf { !it.isNull }
-            ?.asDouble()?.let { it.toFloat() / 1_000_000f }
-        val caloriesKcal = metrics?.get("caloriesKcal")?.takeIf { !it.isNull }?.asDouble()
-        val energyKj = caloriesKcal?.let { (it * KCAL_TO_KJ).toFloat() }
-        val stepCount = metrics?.get("steps")?.takeIf { !it.isNull }?.asInt()
-        val avgHr = metrics?.get("averageHeartRateBeatsPerMinute")?.takeIf { !it.isNull }?.asInt()
-        val avgHeartRate = avgHr?.let { exerciseHeartRate { mean = it } }
-        val exerciseType = data["exerciseType"]?.asText()
 
-        val activityId = point["dataPointName"]?.asText()?.substringAfterLast('/')?.toLongOrNull()
-            ?: throw IllegalStateException("Exercise data point has no usable dataPointName log id: $point")
-        val record = activityLogRecord {
+        val distanceKm = metrics?.get("distanceMillimeters")?.takeIf { !it.isNull }
+            ?.asText()?.toDoubleOrNull()?.let { it.toFloat() / 1_000_000f }
+
+        val caloriesKcal = metrics?.get("caloriesKcal")?.takeIf { !it.isNull }?.asText()?.toDoubleOrNull()
+        val energyKj = caloriesKcal?.let { (it * KCAL_TO_KJ).toFloat() }
+        val stepCount = metrics?.get("steps")?.takeIf { !it.isNull }?.asText()?.toIntOrNull()
+
+        val speedKmh = metrics?.get("averageSpeedMillimetersPerSecond")?.takeIf { !it.isNull }
+            ?.asText()?.toDoubleOrNull()?.let { it * MM_PER_S_TO_KM_PER_H }
+
+        val avgHr = metrics?.get("averageHeartRateBeatsPerMinute")?.takeIf { !it.isNull }?.asText()?.toIntOrNull()
+        val zones = metrics?.get("heartRateZoneDurations")?.takeIf { !it.isNull }
+        val avgHeartRate = if (avgHr != null || zones != null) {
+            googleHealthExerciseHeartRate {
+                mean = avgHr
+                durationLight = zones?.get("lightTime")?.asText()?.let { parseDurationSeconds(it) }
+                durationModerate = zones?.get("moderateTime")?.asText()?.let { parseDurationSeconds(it) }
+                durationVigorous = zones?.get("vigorousTime")?.asText()?.let { parseDurationSeconds(it) }
+                durationPeak = zones?.get("peakTime")?.asText()?.let { parseDurationSeconds(it) }
+            }
+        } else {
+            null
+        }
+        val exerciseType = data["exerciseType"]?.asText()
+        val dataSource = point["dataSource"]?.takeIf { !it.isNull }
+        val device = dataSource?.get("device")
+        val exerciseSource = dataSource?.let {
+            googleHealthSource {
+                name = device?.get("displayName")?.asText()
+                formFactor = device?.get("formFactor")?.asText()
+                manufacturer = device?.get("manufacturer")?.asText()
+                platform = it["platform"]?.asText()
+            }
+        }
+
+        val activityId = (point["name"] ?: point["dataPointName"])?.asText()
+            ?.substringAfterLast('/')?.toLongOrNull()
+            ?: run {
+                logger.warn("Dropping exercise data point with no usable log id for user={}", user.versionedId)
+                return emptyList()
+            }
+
+        val record = googleHealthExercise {
             time = epochSeconds(start)
             timeReceived = nowEpochSeconds()
             timeZoneOffset = offsetSeconds
-            timeLastModified = epochSeconds(end)
+            timeLastModified = epochSeconds(lastModified)
             duration = durationSec
-            durationActive = durationSec
+            durationActive = activeDurationSec
             id = activityId
             name = data["displayName"]?.asText() ?: exerciseType
-            logType = point["dataSource"]?.get("recordingMethod")?.asText()
-            type = null
-            source = null
-            manualDataEntry = null
+            logType = dataSource?.get("recordingMethod")?.asText()
+            type = exerciseType
+            source = exerciseSource
             energy = energyKj
-            levels = null
             heartRate = avgHeartRate
             steps = stepCount
             distance = distanceKm
-            speed = null
+            speed = speedKmh
         }
         return listOf(user.observationKey to record)
     }
 
     companion object {
         private const val KCAL_TO_KJ = 4.1868
+        private const val MM_PER_S_TO_KM_PER_H = 0.0036
     }
 }
