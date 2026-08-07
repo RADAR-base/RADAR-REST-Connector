@@ -1,6 +1,6 @@
 package org.radarbase.dexcom.route
 
-import org.radarbase.dexcom.converter.DexcomEGVConverter
+import org.radarbase.dexcom.converter.DexcomDataConverter
 import org.radarbase.dexcom.user.UserRepository
 
 class DexcomEGVRoute(
@@ -10,5 +10,5 @@ class DexcomEGVRoute(
 
     override fun toString(): String = "dexcom_egv"
 
-    override val converters = listOf(DexcomEGVConverter())
+    override val converters: List<DexcomDataConverter> = listOf(DexcomEGVConverter())
 }
