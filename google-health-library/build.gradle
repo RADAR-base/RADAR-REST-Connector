@@ -1,12 +1,4 @@
-
-group = 'org.radarbase'
-version = '1.0.0'
-
-apply plugin: 'maven-publish'
-
-repositories {
-    mavenCentral()
-}
+description = "Google Health library with utility components to be used in RADAR-Pushendpoint"
 
 dependencies {
     implementation libs.kotlin.stdlib
@@ -26,17 +18,4 @@ dependencies {
     testImplementation libs.kotlin.test
 
     testImplementation libs.kotlin.test.junit
-}
-
-project.afterEvaluate {
-    publishing {
-        publications {
-            library(MavenPublication) {
-                setGroupId "$group"
-                setArtifactId "google-health-library"
-                version "$version"
-                from components.java
-            }
-        }
-    }
 }

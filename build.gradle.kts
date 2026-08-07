@@ -1,9 +1,11 @@
 import org.radarbase.gradle.plugin.radarKotlin
+import org.radarbase.gradle.plugin.radarPublishing
 
 plugins {
     alias(libs.plugins.radar.root.project)
     alias(libs.plugins.radar.dependency.management)
     alias(libs.plugins.radar.kotlin) apply false
+    alias(libs.plugins.radar.publishing) apply false
 }
 
 repositories {
@@ -17,8 +19,40 @@ radarRootProject {
     gradleVersion.set(libs.versions.gradle)
 }
 
+val githubRepoName = "RADAR-base/RADAR-REST-Connector"
+val githubProjectUrl = "https://github.com/$githubRepoName"
+
+val publishedSubprojects = setOf("google-health-library")
+
 subprojects {
     apply(plugin = "org.radarbase.radar-kotlin")
+
+    if (name in publishedSubprojects) {
+        apply(plugin = "org.radarbase.radar-publishing")
+        radarPublishing {
+            githubUrl.set(githubProjectUrl)
+            developers {
+                developer {
+                    id.set("yatharthranjan")
+                    name.set("Yatharth Ranjan")
+                    email.set("yatharth.ranjan@kcl.ac.uk")
+                    organization.set("King's College London")
+                }
+                developer {
+                    id.set("mpgxvii")
+                    name.set("Pauline Conde")
+                    email.set("mpgxvii@gmail.com")
+                    organization.set("King's College London")
+                }
+                developer {
+                    id.set("this-Aditya")
+                    name.set("Aditya Mishra")
+                    email.set("aditya.mishra@kcl.ac.uk")
+                    organization.set("King's College London")
+                }
+            }
+        }
+    }
 
     // --- Vulnerability fixes start ---
     dependencies {
