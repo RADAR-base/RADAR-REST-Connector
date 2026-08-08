@@ -67,8 +67,8 @@ public class FitbitIntradayStepsAvroConverter extends FitbitAvroConverter {
     ZonedDateTime startDate = request.getDateRange().end();
 
     return iterableToStream(dataset)
+        .filter(activity -> activity.get("value") != null && activity.get("value").asInt() != 0)
         .map(tryOrNull(activity -> {
-
           Instant time = startDate
               .with(LocalTime.parse(activity.get("time").asText()))
               .toInstant();
