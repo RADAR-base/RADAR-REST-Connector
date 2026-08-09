@@ -1,6 +1,7 @@
 package org.radarbase.dexcom.route
 
 import org.radarbase.dexcom.converter.DexcomDataConverter
+import org.radarbase.dexcom.converter.DexcomEGVConverter
 import org.radarbase.dexcom.user.UserRepository
 
 class DexcomEGVRoute(
