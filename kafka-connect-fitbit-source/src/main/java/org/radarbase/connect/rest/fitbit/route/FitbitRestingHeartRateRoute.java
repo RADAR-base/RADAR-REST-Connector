@@ -17,21 +17,18 @@
 
 package org.radarbase.connect.rest.fitbit.route;
 
-import static java.time.ZoneOffset.UTC;
-import static java.time.temporal.ChronoUnit.DAYS;
-
 import io.confluent.connect.avro.AvroData;
-
-import java.time.Duration;
-import java.time.ZonedDateTime;
-import java.util.stream.Stream;
-
 import org.radarbase.connect.rest.fitbit.converter.FitbitRestingHeartRateAvroConverter;
 import org.radarbase.connect.rest.fitbit.request.FitbitRequestGenerator;
 import org.radarbase.connect.rest.fitbit.request.FitbitRestRequest;
 import org.radarbase.connect.rest.fitbit.user.User;
 import org.radarbase.connect.rest.fitbit.user.UserRepository;
-import org.radarbase.connect.rest.fitbit.util.DateRange;
+
+import java.time.Duration;
+import java.util.stream.Stream;
+
+import static java.time.ZoneOffset.UTC;
+import static java.time.temporal.ChronoUnit.DAYS;
 
 public class FitbitRestingHeartRateRoute extends FitbitPollingRoute {
   private static final Duration RESTING_HEART_RATE_POLL_INTERVAL = Duration.ofDays(1);
@@ -46,16 +43,12 @@ public class FitbitRestingHeartRateRoute extends FitbitPollingRoute {
 
   @Override
   protected Stream<FitbitRestRequest> createRequests(User user) {
-    // Important: resting heart rate is queried at the resolution of a single
-    // day, so the offset for the next request will be set to the next day.
-    ZonedDateTime startDate = this.getOffset(user).plus(ONE_DAY)
-        .atZone(UTC)
-        .truncatedTo(DAYS);
-    // Note: the date range of startDate to now() is not correct, but will ensure that in case of empty
-    // results, the HISTORICAL_TIME_DAYS retry inactivation in requestEmpty() of FitbitPollingRoute.java
-    // will never be used.
-    return Stream.of(newRequest(user, new DateRange(startDate, ZonedDateTime.now(UTC)),
-        user.getExternalUserId(), DATE_FORMAT.format(startDate)));
+    return startDateGenerator(
+        getOffset(user).plus(ONE_DAY).atZone(UTC).truncatedTo(DAYS).toInstant()
+    ).map(
+        dateRange -> newRequest(user, dateRange,
+        user.getExternalUserId(), DATE_FORMAT.format(dateRange.start()))
+    );
   }
 
   @Override
