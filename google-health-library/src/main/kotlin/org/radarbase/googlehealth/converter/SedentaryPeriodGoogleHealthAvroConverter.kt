@@ -23,8 +23,11 @@ import org.radarbase.googlehealth.util.googleHealthSedentaryPeriod
 
 /**
  * Converts `sedentary-period` data points: stretches during which the user was not moving while
- * wearing the device. Google documents `interval` as this type's only field, so the record carries
- * the interval alone.
+ * wearing the device. Google groups each unbroken run of sedentary time into one point, so the
+ * points vary in length from minutes to hours and only cover the sedentary parts of the day.
+ * `activity-level` carries the same signal per minute, see
+ * [ActivityLevelGoogleHealthAvroConverter]. Google documents `interval` as this type's only field,
+ * so the record carries the start and end of that interval alone.
  */
 class SedentaryPeriodGoogleHealthAvroConverter(topic: String) : GoogleHealthAvroConverter(topic) {
     override fun convertDataPoint(
@@ -35,8 +38,8 @@ class SedentaryPeriodGoogleHealthAvroConverter(topic: String) : GoogleHealthAvro
         val (start, end) = parseInterval(data) ?: return emptyList()
         val record = googleHealthSedentaryPeriod {
             time = epochSeconds(start)
+            endTime = epochSeconds(end)
             timeReceived = nowEpochSeconds()
-            timeInterval = (end.epochSecond - start.epochSecond).toInt().coerceAtLeast(0)
         }
         return listOf(user.observationKey to record)
     }

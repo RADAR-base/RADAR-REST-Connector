@@ -36,8 +36,8 @@ class FloorsGoogleHealthAvroConverter(topic: String) : GoogleHealthAvroConverter
         val count = data["count"]?.asInt() ?: return emptyList()
         val record = googleHealthFloors {
             time = epochSeconds(start)
+            endTime = epochSeconds(end)
             timeReceived = nowEpochSeconds()
-            timeInterval = (end.epochSecond - start.epochSecond).toInt().coerceAtLeast(0)
             floors = count
         }
         return listOf(user.observationKey to record)

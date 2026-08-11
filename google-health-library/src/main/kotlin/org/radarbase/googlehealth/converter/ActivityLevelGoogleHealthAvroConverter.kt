@@ -23,7 +23,9 @@ import org.radarbase.googlehealth.util.googleHealthActivityLevel
 import org.radarcns.push.googlehealth.GoogleHealthActivityLevelType
 
 /**
- * Converts `activity-level` data points: the activity level the user sustained over an interval.
+ * Converts `activity-level` data points: the activity level the user sustained over an interval,
+ * one minute long in practice, reported for every interval of the day. The sedentary intervals are
+ * also reported grouped into longer periods, see [SedentaryPeriodGoogleHealthAvroConverter].
  */
 class ActivityLevelGoogleHealthAvroConverter(topic: String) : GoogleHealthAvroConverter(topic) {
     override fun convertDataPoint(
@@ -41,12 +43,18 @@ class ActivityLevelGoogleHealthAvroConverter(topic: String) : GoogleHealthAvroCo
         return listOf(user.observationKey to record)
     }
 
-    /** Google's `ACTIVITY_LEVEL_TYPE_UNSPECIFIED` and any future symbol map to `UNKNOWN`. */
+    /**
+     * Google's `ACTIVITY_LEVEL_TYPE_UNSPECIFIED` is kept as its own symbol, it means Google itself
+     * did not classify the interval. Any other symbol, including ones Google adds later, is
+     * `UNKNOWN`.
+     */
     private fun mapLevel(text: String?): GoogleHealthActivityLevelType = when (text) {
         "SEDENTARY" -> GoogleHealthActivityLevelType.SEDENTARY
         "LIGHTLY_ACTIVE" -> GoogleHealthActivityLevelType.LIGHTLY_ACTIVE
         "MODERATELY_ACTIVE" -> GoogleHealthActivityLevelType.MODERATELY_ACTIVE
         "VERY_ACTIVE" -> GoogleHealthActivityLevelType.VERY_ACTIVE
+        "ACTIVITY_LEVEL_TYPE_UNSPECIFIED" ->
+            GoogleHealthActivityLevelType.ACTIVITY_LEVEL_TYPE_UNSPECIFIED
         else -> GoogleHealthActivityLevelType.UNKNOWN
     }
 }
