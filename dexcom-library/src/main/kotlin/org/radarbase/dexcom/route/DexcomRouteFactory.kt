@@ -8,6 +8,7 @@ object DexcomRouteFactory {
         return listOf(
             DexcomEGVRoute(userRepository),
             DexcomEventsRoute(userRepository),
+            DexcomCalibrationsRoute(userRepository),
         )
     }
 }
