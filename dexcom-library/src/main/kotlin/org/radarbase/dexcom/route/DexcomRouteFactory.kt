@@ -9,6 +9,7 @@ object DexcomRouteFactory {
             DexcomEGVRoute(userRepository),
             DexcomEventsRoute(userRepository),
             DexcomCalibrationsRoute(userRepository),
+            DexcomAlertsRoute(userRepository),
         )
     }
 }
