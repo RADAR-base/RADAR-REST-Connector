@@ -6,7 +6,8 @@ object DexcomRouteFactory {
     
     fun getRoutes(userRepository: UserRepository): List<DexcomRoute> {
         return listOf(
-            DexcomEGVRoute(userRepository), 
+            DexcomEGVRoute(userRepository),
+            DexcomEventsRoute(userRepository),
         )
     }
 }
