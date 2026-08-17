@@ -37,8 +37,16 @@ public class DexcomRestSourceConnectorConfig extends AbstractConfig {
 
   private DexcomUserRepository userRepository;
 
+  public DexcomRestSourceConnectorConfig(ConfigDef config, Map<?, ?> originals, boolean doLog) {
+    super(config, originals, doLog);
+  }
+
+  public DexcomRestSourceConnectorConfig(Map<?, ?> originals, boolean doLog) {
+    this(conf(), originals, doLog);
+  }
+
   public DexcomRestSourceConnectorConfig(Map<?, ?> originals) {
-    super(conf(), originals);
+    this(originals, true);
   }
 
   public static ConfigDef conf() {
