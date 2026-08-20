@@ -20,6 +20,7 @@ import org.radarbase.dexcom.route.DexcomRoute;
 public class DexcomRestSourceConnectorConfig extends AbstractConfig {
 
   private static final String DEXCOM_EGV_ENABLED_CONFIG = "dexcom.egv.enabled";
+  private static final String DEXCOM_CALIBRATION_ENABLED_CONFIG = "dexcom.calibration.enabled";
   static final String SOURCE_URL_CONFIG = "rest.source.base.url";
   public static final String DEXCOM_USERS_CONFIG = "dexcom.users";
   public static final String DEXCOM_API_CLIENT_CONFIG = "dexcom.api.client";
@@ -73,7 +74,8 @@ public class DexcomRestSourceConnectorConfig extends AbstractConfig {
             Importance.MEDIUM,
             "...")
         .define(DEXCOM_USER_REPOSITORY_TOKEN_URL_CONFIG, Type.STRING, "", Importance.MEDIUM, "...")
-        .define(DEXCOM_EGV_ENABLED_CONFIG, Type.BOOLEAN, true, Importance.LOW, "...");
+        .define(DEXCOM_EGV_ENABLED_CONFIG, Type.BOOLEAN, true, Importance.LOW, "...")
+        .define(DEXCOM_CALIBRATION_ENABLED_CONFIG, Type.BOOLEAN, true, Importance.LOW, "...");
   }
 
   public List<String> getDexcomUsers() {
@@ -121,6 +123,10 @@ public class DexcomRestSourceConnectorConfig extends AbstractConfig {
 
   public boolean getDexcomEgvEnabled() {
     return getBoolean(DEXCOM_EGV_ENABLED_CONFIG);
+  }
+
+  public boolean getDexcomCalibrationEnabled() {
+    return getBoolean(DEXCOM_CALIBRATION_ENABLED_CONFIG);
   }
 
   /**
