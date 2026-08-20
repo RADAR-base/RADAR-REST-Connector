@@ -24,6 +24,7 @@ public class DexcomRestSourceConnectorConfig extends AbstractConfig {
   private static final String DEXCOM_EVENT_ENABLED_CONFIG = "dexcom.event.enabled";
   private static final String DEXCOM_ALERT_ENABLED_CONFIG = "dexcom.alert.enabled";
   private static final String DEXCOM_DATA_RANGE_ENABLED_CONFIG = "dexcom.datarange.enabled";
+  private static final String DEXCOM_DEVICE_ENABLED_CONFIG = "dexcom.device.enabled";
   static final String SOURCE_URL_CONFIG = "rest.source.base.url";
   public static final String DEXCOM_USERS_CONFIG = "dexcom.users";
   public static final String DEXCOM_API_CLIENT_CONFIG = "dexcom.api.client";
@@ -81,7 +82,8 @@ public class DexcomRestSourceConnectorConfig extends AbstractConfig {
         .define(DEXCOM_CALIBRATION_ENABLED_CONFIG, Type.BOOLEAN, true, Importance.LOW, "...")
         .define(DEXCOM_EVENT_ENABLED_CONFIG, Type.BOOLEAN, true, Importance.LOW, "...")
         .define(DEXCOM_ALERT_ENABLED_CONFIG, Type.BOOLEAN, true, Importance.LOW, "...")
-        .define(DEXCOM_DATA_RANGE_ENABLED_CONFIG, Type.BOOLEAN, true, Importance.LOW, "...");
+        .define(DEXCOM_DATA_RANGE_ENABLED_CONFIG, Type.BOOLEAN, true, Importance.LOW, "...")
+        .define(DEXCOM_DEVICE_ENABLED_CONFIG, Type.BOOLEAN, true, Importance.LOW, "...");
   }
 
   public List<String> getDexcomUsers() {
@@ -145,6 +147,10 @@ public class DexcomRestSourceConnectorConfig extends AbstractConfig {
 
   public boolean getDexcomDataRangeEnabled() {
     return getBoolean(DEXCOM_DATA_RANGE_ENABLED_CONFIG);
+  }
+
+  public boolean getDexcomDeviceEnabled() {
+    return getBoolean(DEXCOM_DEVICE_ENABLED_CONFIG);
   }
 
   /**
