@@ -41,6 +41,7 @@ import org.radarbase.dexcom.request.DexcomErrorBase;
 import org.radarbase.dexcom.request.DexcomRequestGenerator;
 import org.radarbase.dexcom.request.DexcomResult;
 import org.radarbase.dexcom.request.RestRequest;
+import org.radarbase.dexcom.route.DexcomAlertsRoute;
 import org.radarbase.dexcom.route.DexcomCalibrationsRoute;
 import org.radarbase.dexcom.route.DexcomEGVRoute;
 import org.radarbase.dexcom.route.DexcomEventsRoute;
@@ -85,6 +86,9 @@ public class DexcomSourceTask extends SourceTask {
     }
     if (config.getDexcomEventEnabled()) {
       routes.add(new DexcomEventsRoute(userRepository, apiBaseUrl));
+    }
+    if (config.getDexcomAlertEnabled()) {
+      routes.add(new DexcomAlertsRoute(userRepository, apiBaseUrl));
     }
     return routes;
   }
