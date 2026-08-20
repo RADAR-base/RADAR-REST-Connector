@@ -36,6 +36,8 @@ public class OAuth2UserCredentials {
   @JsonProperty
   private Instant expiresAt;
 
+  public OAuth2UserCredentials() {
+  }
 
   public OAuth2UserCredentials(String refreshToken, String accessToken, Long expiresIn) {
     this.refreshToken = refreshToken;
