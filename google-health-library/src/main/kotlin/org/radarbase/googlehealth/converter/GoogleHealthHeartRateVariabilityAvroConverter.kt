@@ -29,7 +29,9 @@ class GoogleHealthHeartRateVariabilityAvroConverter(topic: String) :
     ): List<Pair<SpecificRecord, SpecificRecord>> {
         val data = point["heartRateVariability"] ?: return emptyList()
         val time = parseSampleTime(data) ?: return emptyList()
-        val rmssd = data["rootMeanSquareOfSuccessiveDifferencesMilliseconds"]?.takeIf { it.isNumber }?.floatValue()
+        val rmssd = data["rootMeanSquareOfSuccessiveDifferencesMilliseconds"]?.takeIf {
+            it.isNumber
+        }?.floatValue()
             ?: return emptyList()
         val record = googleHealthHeartRateVariability {
             this.time = epochSeconds(time)

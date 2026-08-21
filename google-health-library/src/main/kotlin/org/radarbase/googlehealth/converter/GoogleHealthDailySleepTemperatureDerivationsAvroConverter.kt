@@ -28,8 +28,12 @@ class GoogleHealthDailySleepTemperatureDerivationsAvroConverter(topic: String) :
         user: User,
     ): List<Pair<SpecificRecord, SpecificRecord>> {
         val data = point["dailySleepTemperatureDerivations"] ?: return emptyList()
-        val nightly = data["nightlyTemperatureCelsius"]?.takeIf { it.isNumber }?.floatValue() ?: return emptyList()
-        val baseline = data["baselineTemperatureCelsius"]?.takeIf { it.isNumber }?.floatValue() ?: return emptyList()
+        val nightly = data["nightlyTemperatureCelsius"]?.takeIf {
+            it.isNumber
+        }?.floatValue() ?: return emptyList()
+        val baseline = data["baselineTemperatureCelsius"]?.takeIf {
+            it.isNumber
+        }?.floatValue() ?: return emptyList()
         // `date` is the civil date (in the user's timezone) the derivation is for — emit it
         // directly as a yyyy-MM-dd string, like DailyRestingHeartRate, rather than as a
         // UTC-midnight instant that could shift to the wrong local day downstream.

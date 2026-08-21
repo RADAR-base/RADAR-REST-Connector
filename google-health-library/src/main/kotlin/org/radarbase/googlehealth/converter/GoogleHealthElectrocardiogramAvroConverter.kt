@@ -46,11 +46,13 @@ class GoogleHealthElectrocardiogramAvroConverter(topic: String) : GoogleHealthAv
                     "for user=${user.versionedId}",
             )
         val samples = data["waveformSamples"]?.takeIf { it.isArray } ?: return emptyList()
-        val frequency = data["samplingFrequencyHertz"]?.takeIf { !it.isNull }?.asInt()?.takeIf { it > 0 }
+        val frequency = data["samplingFrequencyHertz"]?.takeIf { !it.isNull }?.asInt()
+            ?.takeIf { it > 0 }
             ?: return emptyList()
 
         val device = data["medicalDeviceInfo"]
-        val beatsPerMinuteAvg = data["beatsPerMinuteAvg"]?.takeIf { !it.isNull }?.asText()?.toIntOrNull()
+        val beatsPerMinuteAvg = data["beatsPerMinuteAvg"]?.takeIf { !it.isNull }?.asText()
+            ?.toIntOrNull()
         val scalingFactor = data["millivoltsScalingFactor"]?.takeIf { !it.isNull }?.asInt()
         val leadNumber = data["leadNumber"]?.takeIf { !it.isNull }?.asInt()
         val deviceModel = device?.get("deviceModel")?.asText()
