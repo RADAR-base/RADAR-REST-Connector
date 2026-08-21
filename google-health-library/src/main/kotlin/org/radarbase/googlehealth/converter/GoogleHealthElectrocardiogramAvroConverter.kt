@@ -20,7 +20,10 @@ import com.fasterxml.jackson.databind.JsonNode
 import org.apache.avro.specific.SpecificRecord
 import org.radarbase.googlehealth.user.User
 import org.radarbase.googlehealth.util.googleHealthElectrocardiogram
+import java.io.IOException
 import java.time.Instant
+import java.util.stream.Collectors
+import java.util.stream.IntStream
 
 /**
  * Emits one record per ECG waveform sample. Sample i is timed at the reading start plus
@@ -29,7 +32,7 @@ import java.time.Instant
  * metadata (heart rate, sampling parameters, device info) is repeated on every sample's record,
  * linked by the shared reading id.
  */
-class ElectrocardiogramGoogleHealthAvroConverter(topic: String) : GoogleHealthAvroConverter(topic) {
+class GoogleHealthElectrocardiogramAvroConverter(topic: String) : GoogleHealthAvroConverter(topic) {
     override fun convertDataPoint(
         point: JsonNode,
         user: User,
@@ -38,16 +41,18 @@ class ElectrocardiogramGoogleHealthAvroConverter(topic: String) : GoogleHealthAv
         val start = data["interval"]?.get("startTime")?.asText()
             ?.let { runCatching { Instant.parse(it) }.getOrNull() } ?: return emptyList()
         val id = (point["name"] ?: point["dataPointName"])?.asText()?.substringAfterLast('/')
-            ?: run {
-                logger.warn("Dropping electrocardiogram data point with no usable id for user={}", user.versionedId)
-                return emptyList()
-            }
+            ?: throw IOException(
+                "Electrocardiogram data point has no name or dataPointName to derive an id from " +
+                    "for user=${user.versionedId}",
+            )
         val samples = data["waveformSamples"]?.takeIf { it.isArray } ?: return emptyList()
-        val frequency = data["samplingFrequencyHertz"]?.takeIf { !it.isNull }?.asInt()?.takeIf { it > 0 }
+        val frequency = data["samplingFrequencyHertz"]?.takeIf { !it.isNull }?.asInt()
+            ?.takeIf { it > 0 }
             ?: return emptyList()
 
         val device = data["medicalDeviceInfo"]
-        val beatsPerMinuteAvg = data["beatsPerMinuteAvg"]?.takeIf { !it.isNull }?.asText()?.toIntOrNull()
+        val beatsPerMinuteAvg = data["beatsPerMinuteAvg"]?.takeIf { !it.isNull }?.asText()
+            ?.toIntOrNull()
         val scalingFactor = data["millivoltsScalingFactor"]?.takeIf { !it.isNull }?.asInt()
         val leadNumber = data["leadNumber"]?.takeIf { !it.isNull }?.asInt()
         val deviceModel = device?.get("deviceModel")?.asText()
@@ -56,12 +61,19 @@ class ElectrocardiogramGoogleHealthAvroConverter(topic: String) : GoogleHealthAv
 
         val startSec = epochSeconds(start)
         val received = nowEpochSeconds()
-        return samples.mapIndexed { i, sampleNode ->
+        val sampleCount = samples.size()
+        if (sampleCount == 0) return emptyList()
+
+        // A single reading carries thousands of samples (~7500 at 30 s / 250 Hz), each needing
+        // its own record. Every iteration only reads the parsed JSON tree and builds an
+        // independent Avro record, so the work spreads safely over the common pool; the stream
+        // stays ordered, keeping the samples in acquisition order.
+        return IntStream.range(0, sampleCount).parallel().mapToObj { i ->
             val record = googleHealthElectrocardiogram {
                 time = startSec + i.toDouble() / frequency
                 timeReceived = received
                 this.id = id
-                sample = sampleNode.asInt()
+                sample = samples[i].asInt()
                 this.beatsPerMinuteAvg = beatsPerMinuteAvg
                 this.samplingFrequencyHertz = frequency
                 this.millivoltsScalingFactor = scalingFactor
@@ -71,6 +83,6 @@ class ElectrocardiogramGoogleHealthAvroConverter(topic: String) : GoogleHealthAv
                 this.featureVersion = featureVersion
             }
             user.observationKey to record
-        }
+        }.collect(Collectors.toList())
     }
 }

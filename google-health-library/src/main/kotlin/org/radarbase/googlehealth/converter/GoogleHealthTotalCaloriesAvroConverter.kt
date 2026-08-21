@@ -19,22 +19,23 @@ package org.radarbase.googlehealth.converter
 import com.fasterxml.jackson.databind.JsonNode
 import org.apache.avro.specific.SpecificRecord
 import org.radarbase.googlehealth.user.User
-import org.radarbase.googlehealth.util.googleHealthHeartRateVariability
+import org.radarbase.googlehealth.util.googleHealthTotalCalories
+import java.time.Instant
 
-class HeartRateVariabilityGoogleHealthAvroConverter(topic: String) :
-    GoogleHealthAvroConverter(topic) {
+class GoogleHealthTotalCaloriesAvroConverter(topic: String) : GoogleHealthAvroConverter(topic) {
     override fun convertDataPoint(
         point: JsonNode,
         user: User,
     ): List<Pair<SpecificRecord, SpecificRecord>> {
-        val data = point["heartRateVariability"] ?: return emptyList()
-        val time = parseSampleTime(data) ?: return emptyList()
-        val rmssd = data["rootMeanSquareOfSuccessiveDifferencesMilliseconds"]?.takeIf { it.isNumber }?.floatValue()
+        val start = point["startTime"]?.asText()?.let(Instant::parse) ?: return emptyList()
+        val end = point["endTime"]?.asText()?.let(Instant::parse) ?: return emptyList()
+        val kilocalories = point["totalCalories"]?.get("kcalSum")?.doubleValue()
             ?: return emptyList()
-        val record = googleHealthHeartRateVariability {
-            this.time = epochSeconds(time)
+        val record = googleHealthTotalCalories {
+            time = epochSeconds(start)
             timeReceived = nowEpochSeconds()
-            this.rmssd = rmssd
+            timeInterval = (end.epochSecond - start.epochSecond).toInt().coerceAtLeast(0)
+            calories = kilocalories
         }
         return listOf(user.observationKey to record)
     }

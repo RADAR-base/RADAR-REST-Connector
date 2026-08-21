@@ -19,22 +19,26 @@ package org.radarbase.googlehealth.converter
 import com.fasterxml.jackson.databind.JsonNode
 import org.apache.avro.specific.SpecificRecord
 import org.radarbase.googlehealth.user.User
-import org.radarbase.googlehealth.util.googleHealthTotalCalories
-import java.time.Instant
+import org.radarbase.googlehealth.util.googleHealthFloors
 
-class TotalCaloriesGoogleHealthAvroConverter(topic: String) : GoogleHealthAvroConverter(topic) {
+/**
+ * Converts `floors` data points: elevation gained over an interval.
+ * Google documents `count` as an int64, serialised as a JSON string, `asInt` parses either form.
+ * The type supports true zeros, so a `count` of 0 is a real observation and is kept.
+ */
+class GoogleHealthFloorsAvroConverter(topic: String) : GoogleHealthAvroConverter(topic) {
     override fun convertDataPoint(
         point: JsonNode,
         user: User,
     ): List<Pair<SpecificRecord, SpecificRecord>> {
-        val start = point["startTime"]?.asText()?.let(Instant::parse) ?: return emptyList()
-        val end = point["endTime"]?.asText()?.let(Instant::parse) ?: return emptyList()
-        val kilocalories = point["totalCalories"]?.get("kcalSum")?.doubleValue() ?: return emptyList()
-        val record = googleHealthTotalCalories {
+        val data = point["floors"] ?: return emptyList()
+        val (start, end) = parseInterval(data) ?: return emptyList()
+        val count = data["count"]?.asInt() ?: return emptyList()
+        val record = googleHealthFloors {
             time = epochSeconds(start)
+            endTime = epochSeconds(end)
             timeReceived = nowEpochSeconds()
-            timeInterval = (end.epochSecond - start.epochSecond).toInt().coerceAtLeast(0)
-            calories = kilocalories
+            floors = count
         }
         return listOf(user.observationKey to record)
     }

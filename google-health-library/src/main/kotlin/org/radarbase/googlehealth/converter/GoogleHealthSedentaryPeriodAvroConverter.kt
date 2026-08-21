@@ -19,21 +19,27 @@ package org.radarbase.googlehealth.converter
 import com.fasterxml.jackson.databind.JsonNode
 import org.apache.avro.specific.SpecificRecord
 import org.radarbase.googlehealth.user.User
-import org.radarbase.googlehealth.util.googleHealthHeartRate
+import org.radarbase.googlehealth.util.googleHealthSedentaryPeriod
 
-class HeartRateGoogleHealthAvroConverter(topic: String) : GoogleHealthAvroConverter(topic) {
+/**
+ * Converts `sedentary-period` data points: stretches during which the user was not moving while
+ * wearing the device. Google groups each unbroken run of sedentary time into one point, so the
+ * points vary in length from minutes to hours and only cover the sedentary parts of the day.
+ * `activity-level` carries the same signal per minute, see
+ * [GoogleHealthActivityLevelAvroConverter]. Google documents `interval` as this type's only field,
+ * so the record carries the start and end of that interval alone.
+ */
+class GoogleHealthSedentaryPeriodAvroConverter(topic: String) : GoogleHealthAvroConverter(topic) {
     override fun convertDataPoint(
         point: JsonNode,
         user: User,
     ): List<Pair<SpecificRecord, SpecificRecord>> {
-        val data = point["heartRate"] ?: return emptyList()
-        val time = parseSampleTime(data) ?: return emptyList()
-        val bpm = data["beatsPerMinute"]?.asInt() ?: return emptyList()
-        val record = googleHealthHeartRate {
-            this.time = epochSeconds(time)
+        val data = point["sedentaryPeriod"] ?: return emptyList()
+        val (start, end) = parseInterval(data) ?: return emptyList()
+        val record = googleHealthSedentaryPeriod {
+            time = epochSeconds(start)
+            endTime = epochSeconds(end)
             timeReceived = nowEpochSeconds()
-            timeInterval = 1
-            heartRate = bpm
         }
         return listOf(user.observationKey to record)
     }
