@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import org.apache.avro.specific.SpecificRecord
 import org.radarbase.googlehealth.user.User
 import org.radarbase.googlehealth.util.googleHealthIrregularRhythmNotification
+import java.io.IOException
 import java.time.Instant
 
 /**
@@ -28,17 +29,17 @@ import java.time.Instant
  * plus the context of its parent window (start/end, positive) and session (start), with the
  * device metadata repeated, linked by the shared notification id.
  */
-class IrregularRhythmNotificationGoogleHealthAvroConverter(topic: String) : GoogleHealthAvroConverter(topic) {
+class GoogleHealthIrregularRhythmNotificationAvroConverter(topic: String) : GoogleHealthAvroConverter(topic) {
     override fun convertDataPoint(
         point: JsonNode,
         user: User,
     ): List<Pair<SpecificRecord, SpecificRecord>> {
         val data = point["irregularRhythmNotification"] ?: return emptyList()
         val id = (point["name"] ?: point["dataPointName"])?.asText()?.substringAfterLast('/')
-            ?: run {
-                logger.warn("Dropping irregularRhythmNotification data point with no usable id for user={}", user.versionedId)
-                return emptyList()
-            }
+            ?: throw IOException(
+                "Irregular rhythm notification data point has no name or dataPointName to derive " +
+                    "an id from for user=${user.versionedId}",
+            )
         val windows = data["alertWindows"]?.takeIf { it.isArray } ?: return emptyList()
 
         val device = data["medicalDeviceInfo"]

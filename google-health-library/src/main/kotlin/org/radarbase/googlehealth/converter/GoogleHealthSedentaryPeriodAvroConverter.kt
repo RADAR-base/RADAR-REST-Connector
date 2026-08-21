@@ -19,30 +19,27 @@ package org.radarbase.googlehealth.converter
 import com.fasterxml.jackson.databind.JsonNode
 import org.apache.avro.specific.SpecificRecord
 import org.radarbase.googlehealth.user.User
-import org.radarbase.googlehealth.util.googleHealthRespiratoryRateSleepSummary
+import org.radarbase.googlehealth.util.googleHealthSedentaryPeriod
 
-class RespiratoryRateSleepSummaryGoogleHealthAvroConverter(topic: String) :
-    GoogleHealthAvroConverter(topic) {
+/**
+ * Converts `sedentary-period` data points: stretches during which the user was not moving while
+ * wearing the device. Google groups each unbroken run of sedentary time into one point, so the
+ * points vary in length from minutes to hours and only cover the sedentary parts of the day.
+ * `activity-level` carries the same signal per minute, see
+ * [GoogleHealthActivityLevelAvroConverter]. Google documents `interval` as this type's only field,
+ * so the record carries the start and end of that interval alone.
+ */
+class GoogleHealthSedentaryPeriodAvroConverter(topic: String) : GoogleHealthAvroConverter(topic) {
     override fun convertDataPoint(
         point: JsonNode,
         user: User,
     ): List<Pair<SpecificRecord, SpecificRecord>> {
-        val data = point["respiratoryRateSleepSummary"] ?: return emptyList()
-        val time = parseSampleTime(data) ?: return emptyList()
-        val deep = data["deepSleepStats"]?.get("breathsPerMinute")
-        val full = data["fullSleepStats"]?.get("breathsPerMinute")
-        val light = data["lightSleepStats"]?.get("breathsPerMinute")
-        val rem = data["remSleepStats"]?.get("breathsPerMinute")
-
-        if (listOf(deep, full, light, rem).any { it != null && !it.isNumber }) return emptyList()
-
-        val record = googleHealthRespiratoryRateSleepSummary {
-            this.time = epochSeconds(time)
+        val data = point["sedentaryPeriod"] ?: return emptyList()
+        val (start, end) = parseInterval(data) ?: return emptyList()
+        val record = googleHealthSedentaryPeriod {
+            time = epochSeconds(start)
+            endTime = epochSeconds(end)
             timeReceived = nowEpochSeconds()
-            lightSleep = light?.floatValue()
-            deepSleep = deep?.floatValue()
-            remSleep = rem?.floatValue()
-            fullSleep = full?.floatValue()
         }
         return listOf(user.observationKey to record)
     }

@@ -19,22 +19,30 @@ package org.radarbase.googlehealth.converter
 import com.fasterxml.jackson.databind.JsonNode
 import org.apache.avro.specific.SpecificRecord
 import org.radarbase.googlehealth.user.User
-import org.radarbase.googlehealth.util.googleHealthTotalCalories
-import java.time.Instant
+import org.radarbase.googlehealth.util.googleHealthRespiratoryRateSleepSummary
 
-class TotalCaloriesGoogleHealthAvroConverter(topic: String) : GoogleHealthAvroConverter(topic) {
+class GoogleHealthRespiratoryRateSleepSummaryAvroConverter(topic: String) :
+    GoogleHealthAvroConverter(topic) {
     override fun convertDataPoint(
         point: JsonNode,
         user: User,
     ): List<Pair<SpecificRecord, SpecificRecord>> {
-        val start = point["startTime"]?.asText()?.let(Instant::parse) ?: return emptyList()
-        val end = point["endTime"]?.asText()?.let(Instant::parse) ?: return emptyList()
-        val kilocalories = point["totalCalories"]?.get("kcalSum")?.doubleValue() ?: return emptyList()
-        val record = googleHealthTotalCalories {
-            time = epochSeconds(start)
+        val data = point["respiratoryRateSleepSummary"] ?: return emptyList()
+        val time = parseSampleTime(data) ?: return emptyList()
+        val deep = data["deepSleepStats"]?.get("breathsPerMinute")
+        val full = data["fullSleepStats"]?.get("breathsPerMinute")
+        val light = data["lightSleepStats"]?.get("breathsPerMinute")
+        val rem = data["remSleepStats"]?.get("breathsPerMinute")
+
+        if (listOf(deep, full, light, rem).any { it != null && !it.isNumber }) return emptyList()
+
+        val record = googleHealthRespiratoryRateSleepSummary {
+            this.time = epochSeconds(time)
             timeReceived = nowEpochSeconds()
-            timeInterval = (end.epochSecond - start.epochSecond).toInt().coerceAtLeast(0)
-            calories = kilocalories
+            lightSleep = light?.floatValue()
+            deepSleep = deep?.floatValue()
+            remSleep = rem?.floatValue()
+            fullSleep = full?.floatValue()
         }
         return listOf(user.observationKey to record)
     }

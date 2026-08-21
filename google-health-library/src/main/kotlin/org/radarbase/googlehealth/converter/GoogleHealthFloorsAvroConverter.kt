@@ -19,27 +19,26 @@ package org.radarbase.googlehealth.converter
 import com.fasterxml.jackson.databind.JsonNode
 import org.apache.avro.specific.SpecificRecord
 import org.radarbase.googlehealth.user.User
-import org.radarbase.googlehealth.util.googleHealthSedentaryPeriod
+import org.radarbase.googlehealth.util.googleHealthFloors
 
 /**
- * Converts `sedentary-period` data points: stretches during which the user was not moving while
- * wearing the device. Google groups each unbroken run of sedentary time into one point, so the
- * points vary in length from minutes to hours and only cover the sedentary parts of the day.
- * `activity-level` carries the same signal per minute, see
- * [ActivityLevelGoogleHealthAvroConverter]. Google documents `interval` as this type's only field,
- * so the record carries the start and end of that interval alone.
+ * Converts `floors` data points: elevation gained over an interval.
+ * Google documents `count` as an int64, serialised as a JSON string, `asInt` parses either form.
+ * The type supports true zeros, so a `count` of 0 is a real observation and is kept.
  */
-class SedentaryPeriodGoogleHealthAvroConverter(topic: String) : GoogleHealthAvroConverter(topic) {
+class GoogleHealthFloorsAvroConverter(topic: String) : GoogleHealthAvroConverter(topic) {
     override fun convertDataPoint(
         point: JsonNode,
         user: User,
     ): List<Pair<SpecificRecord, SpecificRecord>> {
-        val data = point["sedentaryPeriod"] ?: return emptyList()
+        val data = point["floors"] ?: return emptyList()
         val (start, end) = parseInterval(data) ?: return emptyList()
-        val record = googleHealthSedentaryPeriod {
+        val count = data["count"]?.asInt() ?: return emptyList()
+        val record = googleHealthFloors {
             time = epochSeconds(start)
             endTime = epochSeconds(end)
             timeReceived = nowEpochSeconds()
+            floors = count
         }
         return listOf(user.observationKey to record)
     }

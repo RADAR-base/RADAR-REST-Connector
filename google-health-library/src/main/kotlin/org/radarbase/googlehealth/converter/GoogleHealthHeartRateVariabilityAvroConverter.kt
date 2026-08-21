@@ -21,7 +21,7 @@ import org.apache.avro.specific.SpecificRecord
 import org.radarbase.googlehealth.user.User
 import org.radarbase.googlehealth.util.googleHealthHeartRateVariability
 
-class HeartRateVariabilityGoogleHealthAvroConverter(topic: String) :
+class GoogleHealthHeartRateVariabilityAvroConverter(topic: String) :
     GoogleHealthAvroConverter(topic) {
     override fun convertDataPoint(
         point: JsonNode,

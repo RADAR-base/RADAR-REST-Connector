@@ -21,7 +21,7 @@ import org.apache.avro.specific.SpecificRecord
 import org.radarbase.googlehealth.user.User
 import org.radarbase.googlehealth.util.googleHealthDailySleepTemperatureDerivations
 
-class DailySleepTemperatureDerivationsGoogleHealthAvroConverter(topic: String) :
+class GoogleHealthDailySleepTemperatureDerivationsAvroConverter(topic: String) :
     GoogleHealthAvroConverter(topic) {
     override fun convertDataPoint(
         point: JsonNode,

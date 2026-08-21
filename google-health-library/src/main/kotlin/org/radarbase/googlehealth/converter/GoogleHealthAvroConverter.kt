@@ -21,6 +21,7 @@ import org.apache.avro.specific.SpecificRecord
 import org.radarbase.googlehealth.user.User
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.io.IOException
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -31,6 +32,7 @@ abstract class GoogleHealthAvroConverter(override val topic: String) : AvroConve
 
     protected val logger: Logger = LoggerFactory.getLogger(javaClass)
 
+    @Throws(IOException::class)
     abstract fun convertDataPoint(
         point: JsonNode,
         user: User,

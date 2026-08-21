@@ -19,33 +19,32 @@ package org.radarbase.googlehealth.converter
 import com.fasterxml.jackson.databind.JsonNode
 import org.apache.avro.specific.SpecificRecord
 import org.radarbase.googlehealth.user.User
-import org.radarbase.googlehealth.util.googleHealthSleepClassic
-import org.radarcns.push.googlehealth.GoogleHealthSleepClassicLevel
+import org.radarbase.googlehealth.util.googleHealthSleepStage
+import org.radarcns.push.googlehealth.GoogleHealthSleepStageLevel
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
-class SleepClassicGoogleHealthAvroConverter(topic: String) : GoogleHealthAvroConverter(topic) {
+class GoogleHealthSleepStageAvroConverter(topic: String) : GoogleHealthAvroConverter(topic) {
     override fun convertDataPoint(
         point: JsonNode,
         user: User,
     ): List<Pair<SpecificRecord, SpecificRecord>> {
         val data = point["sleep"] ?: return emptyList()
         val stages = data["stages"]?.takeIf { it.isArray } ?: return emptyList()
-        if (SleepSession.familyOf(data) != SleepSessionFamily.CLASSIC) return emptyList()
+        if (SleepSession.familyOf(data) != SleepSessionFamily.STAGES) return emptyList()
         val timeReceived = nowEpochSeconds()
         return stages.mapNotNull { stage ->
             val stageType = stage["type"]?.asText() ?: return@mapNotNull null
-            if (stageType !in CLASSIC_FAMILY) return@mapNotNull null
+            if (stageType !in STAGES_FAMILY) return@mapNotNull null
             val start = stage["startTime"]?.asText()
                 ?.let { runCatching { Instant.parse(it) }.getOrNull() } ?: return@mapNotNull null
             val end = stage["endTime"]?.asText()
                 ?.let { runCatching { Instant.parse(it) }.getOrNull() } ?: return@mapNotNull null
-            // Render in the stage's own UTC offset so dateTime is the device's local wall clock
-            // (like Fitbit), not UTC. Google derives its civil fields the same way (physical + offset).
+
             val startZone = ZoneOffset.ofTotalSeconds(parseUtcOffsetSeconds(stage["startUtcOffset"]?.asText()))
-            val record = googleHealthSleepClassic {
+            val record = googleHealthSleepStage {
                 dateTime = LOCAL_FMT.format(LocalDateTime.ofInstant(start, startZone))
                 this.timeReceived = timeReceived
                 duration = (end.epochSecond - start.epochSecond).toInt().coerceAtLeast(0)
@@ -55,15 +54,16 @@ class SleepClassicGoogleHealthAvroConverter(topic: String) : GoogleHealthAvroCon
         }
     }
 
-    private fun mapLevel(text: String?): GoogleHealthSleepClassicLevel = when (text) {
-        "ASLEEP" -> GoogleHealthSleepClassicLevel.ASLEEP
-        "RESTLESS" -> GoogleHealthSleepClassicLevel.RESTLESS
-        "AWAKE" -> GoogleHealthSleepClassicLevel.AWAKE
-        else -> GoogleHealthSleepClassicLevel.UNKNOWN
+    private fun mapLevel(text: String?): GoogleHealthSleepStageLevel = when (text) {
+        "DEEP" -> GoogleHealthSleepStageLevel.DEEP
+        "LIGHT" -> GoogleHealthSleepStageLevel.LIGHT
+        "REM" -> GoogleHealthSleepStageLevel.REM
+        "AWAKE" -> GoogleHealthSleepStageLevel.AWAKE
+        else -> GoogleHealthSleepStageLevel.UNKNOWN
     }
 
     companion object {
         private val LOCAL_FMT: DateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
-        private val CLASSIC_FAMILY = setOf("ASLEEP", "RESTLESS", "AWAKE")
+        private val STAGES_FAMILY = setOf("DEEP", "LIGHT", "REM", "AWAKE")
     }
 }

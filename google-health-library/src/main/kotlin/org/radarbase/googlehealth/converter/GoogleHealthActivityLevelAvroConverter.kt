@@ -25,9 +25,9 @@ import org.radarcns.push.googlehealth.GoogleHealthActivityLevelType
 /**
  * Converts `activity-level` data points: the activity level the user sustained over an interval,
  * one minute long in practice, reported for every interval of the day. The sedentary intervals are
- * also reported grouped into longer periods, see [SedentaryPeriodGoogleHealthAvroConverter].
+ * also reported grouped into longer periods, see [GoogleHealthSedentaryPeriodAvroConverter].
  */
-class ActivityLevelGoogleHealthAvroConverter(topic: String) : GoogleHealthAvroConverter(topic) {
+class GoogleHealthActivityLevelAvroConverter(topic: String) : GoogleHealthAvroConverter(topic) {
     override fun convertDataPoint(
         point: JsonNode,
         user: User,
