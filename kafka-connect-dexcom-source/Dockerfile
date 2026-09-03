@@ -1,0 +1,61 @@
+# Copyright 2018 The Hyve
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+FROM --platform=$BUILDPLATFORM gradle:8.14-jdk17 AS builder
+
+RUN mkdir /code
+WORKDIR /code
+
+ENV GRADLE_USER_HOME=/code/.gradlecache \
+  GRADLE_OPTS="-Dorg.gradle.vfs.watch=false -Djdk.lang.Process.launchMechanism=vfork"
+
+COPY ./gradle/libs.versions.toml /code/gradle/
+COPY ./build.gradle.kts ./settings.gradle.kts ./gradle.properties /code/
+COPY kafka-connect-dexcom-source/build.gradle.kts /code/kafka-connect-dexcom-source/
+COPY dexcom-library/build.gradle /code/dexcom-library/
+
+RUN gradle downloadDependencies copyDependencies
+
+COPY ./kafka-connect-dexcom-source/src/ /code/kafka-connect-dexcom-source/src
+COPY ./dexcom-library/src/ /code/dexcom-library/src
+
+RUN gradle jar
+
+FROM confluentinc/cp-kafka-connect-base:7.8.7
+
+
+LABEL org.opencontainers.image.authors="pauline.conde@kcl.ac.uk"
+
+LABEL description="Kafka Dexcom REST API Source connector"
+
+ENV CONNECT_PLUGIN_PATH="/usr/share/java/kafka-connect/plugins" \
+  WAIT_FOR_KAFKA="1"
+
+# To isolate the classpath from the plugin path as recommended
+COPY --from=builder /code/kafka-connect-dexcom-source/build/third-party/*.jar ${CONNECT_PLUGIN_PATH}/kafka-connect-dexcom-source/
+COPY --from=builder /code/dexcom-library/build/third-party/*.jar ${CONNECT_PLUGIN_PATH}/kafka-connect-dexcom-source/
+
+COPY --from=builder /code/kafka-connect-dexcom-source/build/libs/*.jar ${CONNECT_PLUGIN_PATH}/kafka-connect-dexcom-source/
+COPY --from=builder /code/dexcom-library/build/libs/*.jar ${CONNECT_PLUGIN_PATH}/kafka-connect-dexcom-source/
+
+# Load topics validator
+COPY  --chown=appuser:appuser ./docker/ensure /etc/confluent/docker/ensure
+
+# Load modified launcher
+COPY  --chown=appuser:appuser ./docker/launch /etc/confluent/docker/launch
+
+# Overwrite the log4j configuration to include Sentry monitoring.
+COPY ./docker/log4j.properties.template /etc/confluent/docker/log4j.properties.template
+# Copy Sentry monitoring jars.
+COPY --from=builder /code/kafka-connect-dexcom-source/build/third-party/sentry-* /etc/kafka-connect/jars
