@@ -3,6 +3,9 @@ package org.radarbase.dexcom.converter
 import com.fasterxml.jackson.databind.JsonNode
 import org.radarbase.dexcom.user.User
 import org.radarcns.connector.dexcom.DexcomCalibration
+import org.radarcns.connector.dexcom.DexcomDisplayDevice
+import org.radarcns.connector.dexcom.DexcomTransmitterGeneration
+import org.radarcns.connector.dexcom.DexcomTransmitterGenerationVariant
 import java.time.Instant
 
 class DexcomCalibrationsConverter(
@@ -16,7 +19,9 @@ class DexcomCalibrationsConverter(
             ?: return emptySequence()
         return array.asSequence()
             .mapCatching {
-                val systemTimeInstant = DexcomEGVConverter.parseDexcomTime(it.get("systemTime").asText())
+                val systemTimeInstant = DexcomEGVConverter.parseDexcomTime(
+                    it.get("systemTime").asText(),
+                )
                 TopicData(
                     key = user.observationKey,
                     topic = topic,
@@ -29,17 +34,45 @@ class DexcomCalibrationsConverter(
     private fun JsonNode.toDexcomCalibration(systemTimeInstant: Instant): DexcomCalibration =
         DexcomCalibration.newBuilder().apply {
             recordId = get("recordId").asText()
-            systemTime = systemTimeInstant.epochSecond.toDouble()
+            time = systemTimeInstant.epochSecond.toDouble()
             displayTime = textOrNull("displayTime")
             unit = textOrNull("unit")
             value = intOrNull("value")
-            displayDevice = textOrNull("displayDevice")
-            transmitterId = textOrNull("transmitterId")
+            displayDevice = parseDisplayDevice(textOrNull("displayDevice"))
+            transmitterId = textOrNull("transmitterId").orEmpty()
             transmitterTicks = longOrNull("transmitterTicks")
-            transmitterGeneration = textOrNull("transmitterGeneration")
-            transmitterGenerationVariant = textOrNull("transmitterGenerationVariant")
+            transmitterGeneration = parseTransmitterGeneration(textOrNull("transmitterGeneration"))
+            transmitterGenerationVariant =
+                parseTransmitterGenerationVariant(textOrNull("transmitterGenerationVariant"))
             timeReceived = System.currentTimeMillis() / 1000.0
         }.build()
+
+    private fun parseTransmitterGeneration(value: String?): DexcomTransmitterGeneration =
+        when (value?.lowercase()) {
+            "g6" -> DexcomTransmitterGeneration.G6
+            "g6+" -> DexcomTransmitterGeneration.G6_PLUS
+            "g6pro" -> DexcomTransmitterGeneration.G6_PRO
+            "g7" -> DexcomTransmitterGeneration.G7
+            else -> DexcomTransmitterGeneration.UNKNOWN
+        }
+
+    private fun parseTransmitterGenerationVariant(value: String?): DexcomTransmitterGenerationVariant =
+        when (value?.lowercase()) {
+            "d1+" -> DexcomTransmitterGenerationVariant.D1_PLUS
+            "g6" -> DexcomTransmitterGenerationVariant.G6
+            "g7" -> DexcomTransmitterGenerationVariant.G7
+            "g715day" -> DexcomTransmitterGenerationVariant.G7_15_DAY
+            else -> DexcomTransmitterGenerationVariant.UNKNOWN
+        }
+
+    private fun parseDisplayDevice(value: String?): DexcomDisplayDevice? =
+        when (value?.lowercase()) {
+            null -> null
+            "receiver" -> DexcomDisplayDevice.RECEIVER
+            "ios" -> DexcomDisplayDevice.IOS
+            "android" -> DexcomDisplayDevice.ANDROID
+            else -> DexcomDisplayDevice.UNKNOWN
+        }
 
     private fun JsonNode.textOrNull(field: String): String? =
         get(field)?.takeIf { !it.isNull }?.asText()
