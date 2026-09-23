@@ -117,11 +117,6 @@ object HuaweiRouteFactory {
             "connect_huawei_continuous_body_temperature_rest_statistics",
         ),
         Triple(
-            "continuous_body_temperature_statistics",
-            "continuous.body.temperature.statistics",
-            "connect_huawei_continuous_body_temperature_statistics",
-        ),
-        Triple(
             "continuous_calories_bmr_statistics",
             "continuous.calories.bmr.statistics",
             "connect_huawei_continuous_calories_bmr_statistics",
@@ -140,11 +135,6 @@ object HuaweiRouteFactory {
             "continuous_power_statistics",
             "continuous.power.statistics",
             "connect_huawei_continuous_power_statistics",
-        ),
-        Triple(
-            "continuous_skin_temperature_statistics",
-            "continuous.skin.temperature.statistics",
-            "connect_huawei_continuous_skin_temperature_statistics",
         ),
         Triple(
             "continuous_speed_statistics",
@@ -338,6 +328,11 @@ object HuaweiRouteFactory {
                 "continuous_breathe_rate_statistics",
                 "continuous.breathe_rate.statistics",
                 "connect_huawei_continuous_breathe_rate_statistics",
+                // Statistics variant is documented under "continuous.", but its underlying raw
+                // detailed data type is "com.huawei.instantaneous.breathe_rate" - the same
+                // namespace mismatch already confirmed for SpO2/Altitude.
+                queryDataTypeSuffix = "instantaneous.breathe_rate",
+                useDailyPolymerize = true,
             ) { f, start, end, received ->
                 HuaweiContinuousBreatheRateStatistics.newBuilder().apply {
                     time = start.toEpoch()
@@ -379,6 +374,43 @@ object HuaweiRouteFactory {
         genericStatisticsTypes.forEach { (key, dataType, topic) ->
             add(
                 sampleSetDefinition(key, dataType, topic) { f, start, end, received ->
+                    HuaweiStatistics.newBuilder().apply {
+                        populateCommon(
+                            start,
+                            end,
+                            received,
+                            f,
+                        )
+                    }.build()
+                },
+            )
+        }
+
+        // Statistics variants whose "continuous."-labelled name doesn't match their underlying
+        // raw detailed data type's namespace (it's "instantaneous." instead) - the same mismatch
+        // already confirmed live for SpO2 and Altitude - so they need an explicit
+        // queryDataTypeSuffix override rather than the generic loop above.
+        listOf(
+            Triple(
+                "continuous_body_temperature_statistics",
+                "continuous.body.temperature.statistics",
+                "connect_huawei_continuous_body_temperature_statistics",
+            ) to "instantaneous.body.temperature",
+            Triple(
+                "continuous_skin_temperature_statistics",
+                "continuous.skin.temperature.statistics",
+                "connect_huawei_continuous_skin_temperature_statistics",
+            ) to "instantaneous.skin.temperature",
+        ).forEach { (definition, rawDataType) ->
+            val (key, dataType, topic) = definition
+            add(
+                sampleSetDefinition(
+                    key,
+                    dataType,
+                    topic,
+                    queryDataTypeSuffix = rawDataType,
+                    useDailyPolymerize = true,
+                ) { f, start, end, received ->
                     HuaweiStatistics.newBuilder().apply {
                         populateCommon(
                             start,
