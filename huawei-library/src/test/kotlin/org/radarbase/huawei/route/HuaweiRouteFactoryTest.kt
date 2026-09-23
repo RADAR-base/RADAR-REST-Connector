@@ -182,12 +182,6 @@ class HuaweiRouteFactoryTest {
         (HuaweiHealthRecordDynamicBp::class.java.getField("SCHEMA$").get(null) as Schema).fields
             .map { it.name() }
             .filterNot { it in setOf("time", "timeReceived", "endTime") }
-            .map(::snake)
-
-    private fun snake(name: String): String =
-        Regex("([a-z0-9])([A-Z])")
-            .replace(name) { "${it.groupValues[1]}_${it.groupValues[2]}" }
-            .lowercase()
 
     companion object {
         private const val START_MILLIS = 1704067200000L // 2024-01-01T00:00:00Z
@@ -197,26 +191,27 @@ class HuaweiRouteFactoryTest {
 
         private val LITERAL_FIELD_KEYS = listOf(
             "active_hours", "active_hours_target", "activeCalories", "activeHours",
-            "activeCaloriesGoal", "activeHoursGoal", "all_sleep_time", "arrhythmia_result",
+            "activeCaloriesGoal", "activeHoursGoal", "allSleepTime", "arrhythmia_result",
             "arrhythmia_type", "ascent_total", "avg", "avg_breathe_rate", "avg_heart_rate",
-            "awake_time", "calories", "calories_target", "calories_total", "correlate_mealtime",
-            "correlate_sleep", "count", "deep_sleep_part", "deep_sleep_time", "descent_total",
-            "diastolic_pressure_avg", "diastolic_pressure_max", "diastolic_pressure_min",
-            "distance", "distance_delta", "distance_total", "dream_time", "duration", "emotion",
-            "event_name", "exercise_time", "exercise_time_target", "exerciseTime",
-            "exerciseTimeGoal", "exercise_type", "extend_data", "fall_asleep_time", "go_bed_time",
-            "heart_rate_variability_rmssd", "high_body_temperature_alarm", "isActive", "last",
-            "level", "light_sleep_time", "max", "max_breathe_rate", "max_breathrate_baseline",
-            "max_spo2", "meal", "min", "min_breathe_rate", "min_breathrate_baseline", "min_spo2",
-            "off_bed_time", "on_off_bed_state", "predicted_calories", "prepare_sleep_time",
-            "record_day", "record_id", "remarks", "sample_source", "sampling_frequency",
-            "sleep_efficiency", "saturation_avg", "saturation_last", "saturation_max",
-            "saturation_min", "sleep_latency", "sleep_score", "sleep_state", "sleep_type",
+            "avgHeartRate", "awakeTime", "calories", "calories_target", "calories_total",
+            "correlate_mealtime", "correlate_sleep", "count", "deepSleepPart", "deepSleepTime",
+            "descent_total", "diastolic_pressure_avg", "diastolic_pressure_max",
+            "diastolic_pressure_min", "distance", "distance_delta", "distance_total",
+            "dreamTime", "duration", "emotion", "event_name", "exercise_time",
+            "exercise_time_target", "exerciseTime", "exerciseTimeGoal", "exercise_type",
+            "extendData", "fallAsleepTime", "goBedTime", "heart_rate_variability_rmssd",
+            "highBodyTemperatureAlarm", "isActive", "last", "level", "lightSleepTime", "max",
+            "max_breathe_rate", "max_breathrate_baseline", "maxHeartRate", "maxSpO2", "meal",
+            "min", "min_breathe_rate", "min_breathrate_baseline", "minHeartRate", "minSpO2",
+            "offBedTime", "on_off_bed_state", "predicted_calories", "prepareSleepTime",
+            "recordDay", "record_id", "remarks", "sample_source", "sampling_frequency",
+            "sleepEfficiency", "saturation_avg", "saturation_last", "saturation_max",
+            "saturation_min", "sleepLatency", "sleepScore", "sleep_state", "sleepType",
             "sphygmus_avg", "sphygmus_last", "sphygmus_max", "sphygmus_min", "status", "steps",
-            "steps_delta", "steps_target", "stepsGoal", "sub_status", "systolic_pressure_avg",
-            "systolic_pressure_max", "systolic_pressure_min", "threshold", "timezone",
+            "steps_delta", "steps_target", "stepsGoal", "subStatus", "systolic_pressure_avg",
+            "systolic_pressure_max", "systolic_pressure_min", "threshold", "timeZone",
             "total_calories", "type", "user_symptom", "value", "vo2max", "voltage_data",
-            "wakeup_count", "wakeup_time", "zone1_duration", "zone2_duration", "zone3_duration",
+            "wakeupCount", "wakeupTime", "zone1_duration", "zone2_duration", "zone3_duration",
             "zone4_duration", "zone5_duration",
         )
     }

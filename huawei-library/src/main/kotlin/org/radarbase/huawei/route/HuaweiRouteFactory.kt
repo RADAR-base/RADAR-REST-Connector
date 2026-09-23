@@ -80,14 +80,6 @@ object HuaweiRouteFactory {
 
     private fun Instant.toEpoch(): Double = toEpochMilli() / 1000.0
 
-    /** Best-effort camelCase -> snake_case conversion for deriving a Huawei field key from an Avro field name. */
-    private fun snake(name: String): String =
-        SNAKE_CASE_BOUNDARY.replace(
-            name,
-        ) { "${it.groupValues[1]}_${it.groupValues[2]}" }.lowercase()
-
-    private val SNAKE_CASE_BOUNDARY = Regex("([a-z0-9])([A-Z])")
-
     private fun HuaweiStatistics.Builder.populateCommon(
         startTime: Instant,
         endTime: Instant?,
@@ -687,7 +679,7 @@ object HuaweiRouteFactory {
                     time = start.toEpoch()
                     timeReceived = received.toEpoch()
                     endTime = end?.toEpoch()
-                    highBodyTemperatureAlarm = f.getFloat("high_body_temperature_alarm")
+                    highBodyTemperatureAlarm = f.getFloat("highBodyTemperatureAlarm")
                 }.build()
             },
         )
@@ -702,8 +694,8 @@ object HuaweiRouteFactory {
                     timeReceived = received.toEpoch()
                     endTime = end?.toEpoch()
                     threshold = f.getFloat("threshold")
-                    maxSpO2 = f.getFloat("max_spo2")
-                    minSpO2 = f.getFloat("min_spo2")
+                    maxSpO2 = f.getFloat("maxSpO2")
+                    minSpO2 = f.getFloat("minSpO2")
                 }.build()
             },
         )
@@ -717,11 +709,11 @@ object HuaweiRouteFactory {
                     time = start.toEpoch()
                     timeReceived = received.toEpoch()
                     endTime = end?.toEpoch()
-                    recordday = f.getInt("record_day")
+                    recordday = f.getInt("recordDay")
                     status = f.getInt("status")
-                    substatus = f.getInt("sub_status")
+                    substatus = f.getInt("subStatus")
                     remarks = f.getString("remarks")
-                    timezone = f.getString("timezone")
+                    timezone = f.getString("timeZone")
                 }.build()
             },
         )
@@ -735,22 +727,22 @@ object HuaweiRouteFactory {
                     time = start.toEpoch()
                     timeReceived = received.toEpoch()
                     endTime = end?.toEpoch()
-                    fallAsleepTime = f.getLong("fall_asleep_time")
-                    wakeupTime = f.getLong("wakeup_time")
-                    lightSleepTime = f.getInt("light_sleep_time")
-                    deepSleepTime = f.getInt("deep_sleep_time")
-                    dreamTime = f.getInt("dream_time")
-                    awakeTime = f.getInt("awake_time")
-                    allSleepTime = f.getInt("all_sleep_time")
-                    wakeupCount = f.getInt("wakeup_count")
-                    deepSleepPart = f.getInt("deep_sleep_part")
-                    sleepScore = f.getInt("sleep_score")
-                    sleepLatency = f.getInt("sleep_latency")
-                    sleepEfficiency = f.getInt("sleep_efficiency")
-                    goBedTime = f.getLong("go_bed_time")
-                    sleepType = f.getInt("sleep_type")
-                    prepareSleepTime = f.getLong("prepare_sleep_time")
-                    offBedTime = f.getLong("off_bed_time")
+                    fallAsleepTime = f.getLong("fallAsleepTime")
+                    wakeupTime = f.getLong("wakeupTime")
+                    lightSleepTime = f.getInt("lightSleepTime")
+                    deepSleepTime = f.getInt("deepSleepTime")
+                    dreamTime = f.getInt("dreamTime")
+                    awakeTime = f.getInt("awakeTime")
+                    allSleepTime = f.getInt("allSleepTime")
+                    wakeupCount = f.getInt("wakeupCount")
+                    deepSleepPart = f.getInt("deepSleepPart")
+                    sleepScore = f.getInt("sleepScore")
+                    sleepLatency = f.getInt("sleepLatency")
+                    sleepEfficiency = f.getInt("sleepEfficiency")
+                    goBedTime = f.getLong("goBedTime")
+                    sleepType = f.getInt("sleepType")
+                    prepareSleepTime = f.getLong("prepareSleepTime")
+                    offBedTime = f.getLong("offBedTime")
                 }.build()
             },
         )
@@ -907,9 +899,9 @@ object HuaweiRouteFactory {
         timeReceived = received.toEpoch()
         endTime = end?.toEpoch()
         threshold = getDouble("threshold")
-        avgHeartRate = getDouble("avg_heart_rate")
-        maxHeartRate = getDouble("max_heart_rate")
-        minHeartRate = getDouble("min_heart_rate")
+        avgHeartRate = getDouble("avgHeartRate")
+        maxHeartRate = getDouble("maxHeartRate")
+        minHeartRate = getDouble("minHeartRate")
     }.build()
 
     /**
@@ -924,14 +916,14 @@ object HuaweiRouteFactory {
         received: Instant,
     ): HuaweiHealthRecordDynamicBp {
         val f = this
-        fun i(name: String) = f.getInt(snake(name))
-        fun d(name: String) = f.getDouble(snake(name))
-        fun l(name: String) = f.getLong(snake(name))
+        fun i(name: String) = f.getInt(name)
+        fun d(name: String) = f.getDouble(name)
+        fun l(name: String) = f.getLong(name)
         return HuaweiHealthRecordDynamicBp.newBuilder().apply {
             time = start.toEpoch()
             timeReceived = received.toEpoch()
             endTime = end?.toEpoch()
-            planId = f.getString(snake("planId"))
+            planId = f.getString("planId")
             planStartTime = l("planStartTime")
             planEndTime = l("planEndTime")
             planActualTime = l("planActualTime")
@@ -1034,7 +1026,7 @@ object HuaweiRouteFactory {
             coefDiastolicBpWakeTwo = d("coefDiastolicBpWakeTwo")
             coefHeartRateWakeTwo = d("coefHeartRateWakeTwo")
 
-            extendData = f.getString("extend_data")
+            extendData = f.getString("extendData")
         }.build()
     }
 
