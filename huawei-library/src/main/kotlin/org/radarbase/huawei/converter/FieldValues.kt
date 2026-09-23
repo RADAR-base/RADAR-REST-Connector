@@ -37,18 +37,23 @@ import com.fasterxml.jackson.databind.JsonNode
  */
 class FieldValues private constructor(private val values: Map<String, JsonNode>) {
 
-    fun getInt(field: String): Int? = values[field]?.let { if (it.isNull) null else it.asInt() }
+    /*
+     * Every accessor accepts one or more candidate keys and returns the first one present, so a
+     * field whose casing Huawei's docs don't pin down unambiguously can list both spellings.
+     */
 
-    fun getLong(field: String): Long? = values[field]?.let { if (it.isNull) null else it.asLong() }
+    fun getInt(vararg fields: String): Int? = scalar(fields)?.asInt()
 
-    fun getDouble(field: String): Double? = values[field]?.let {
-        if (it.isNull) null else it.asDouble()
-    }
+    fun getLong(vararg fields: String): Long? = scalar(fields)?.asLong()
 
-    fun getFloat(field: String): Float? = getDouble(field)?.toFloat()
+    fun getDouble(vararg fields: String): Double? = scalar(fields)?.asDouble()
 
-    fun getString(field: String): String? = values[field]?.let {
-        if (it.isNull) null else it.asText()
+    fun getFloat(vararg fields: String): Float? = getDouble(*fields)?.toFloat()
+
+    /** Textual fields are returned as-is; array/object-valued fields (e.g. the ECG voltage sample
+     * list) are returned as their JSON serialization rather than Jackson's empty `asText()`. */
+    fun getString(vararg fields: String): String? = lookup(fields)?.let {
+        if (it.isContainerNode) it.toString() else it.asText()
     }
 
     /**
@@ -56,18 +61,43 @@ class FieldValues private constructor(private val values: Map<String, JsonNode>)
      * as an object whose keys are stringified (Avro maps require string keys). Best-effort: the
      * exact wire shape of a Huawei map-typed field is not confirmed against a live API response
      * (Huawei's typed-value array uses `integerValue`/`floatValue`/`stringValue`/`longValue` for
-     * scalars, so `mapValue` is assumed by the same `<type>Value` convention) - verify and adjust
-     * if this doesn't match what the API actually returns.
+     * scalars, so `mapValue` is assumed by the same `<type>Value` convention). Accepts a plain
+     * `{"key": 1}` object, an object of typed values `{"key": {"integerValue": 1}}`, or an array of
+     * `{"key": ..., "value": ...}` entries.
      */
-    fun getIntMap(field: String): Map<String, Int>? = values[field]
-        ?.takeIf { it.isObject }
-        ?.properties()
-        ?.associate { (key, value) -> key to value.asInt() }
+    fun getIntMap(vararg fields: String): Map<String, Int>? {
+        val node = lookup(fields) ?: return null
+        return when {
+            node.isObject -> node.properties().mapNotNull { (key, value) ->
+                unwrap(value)?.let { key to it.asInt() }
+            }.toMap()
+            node.isArray -> node.mapNotNull { entry ->
+                val key = entry.get("key")?.takeUnless { it.isNull }?.asText()
+                    ?: return@mapNotNull null
+                unwrap(entry.get("value"))?.let { key to it.asInt() }
+            }.toMap()
+            else -> null
+        }
+    }
+
+    private fun lookup(fields: Array<out String>): JsonNode? =
+        fields.firstNotNullOfOrNull { field -> values[field]?.takeUnless { it.isNull } }
+
+    private fun scalar(fields: Array<out String>): JsonNode? =
+        lookup(fields)?.takeIf { it.isValueNode }
 
     companion object {
         private const val FIELD_NAME_KEY = "fieldName"
         private val VALUE_KEYS =
             listOf("integerValue", "floatValue", "longValue", "stringValue", "mapValue", "value")
+
+        /** Unwraps a typed-value wrapper (`{"integerValue": 1}`) to its value; returns other
+         * nodes unchanged. */
+        private fun unwrap(node: JsonNode?): JsonNode? {
+            if (node == null || node.isNull || node.isMissingNode) return null
+            if (!node.isObject) return node
+            return VALUE_KEYS.firstNotNullOfOrNull { key -> node.get(key) } ?: node
+        }
 
         fun from(node: JsonNode?): FieldValues {
             if (node == null || node.isMissingNode || node.isNull) {
@@ -77,7 +107,11 @@ class FieldValues private constructor(private val values: Map<String, JsonNode>)
                 val map = LinkedHashMap<String, JsonNode>()
                 node.forEach { entry ->
                     val name = entry.get(FIELD_NAME_KEY)?.asText() ?: return@forEach
+                    // Prefer the known typed-value keys; fall back to whatever other single
+                    // property the entry carries, in case Huawei uses a type name not listed here.
                     val value = VALUE_KEYS.firstNotNullOfOrNull { key -> entry.get(key) }
+                        ?: entry.properties().firstOrNull { (key, _) -> key != FIELD_NAME_KEY }
+                            ?.value
                     if (value != null) {
                         map[name] = value
                     }

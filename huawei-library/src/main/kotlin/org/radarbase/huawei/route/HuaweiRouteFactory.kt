@@ -65,12 +65,10 @@ import java.time.Instant
  * specification's `doc` strings (prefixed with the vendor namespace `com.huawei.`), which in turn
  * describe the Huawei Health Kit REST Data API's own data type identifiers.
  *
- * Field-value key names used in the record builders are Huawei Health Kit `Field` identifiers
- * (snake_case, matching the on-device HiHealth SDK's public `Field.FIELD_*` constant family, e.g.
- * `steps_delta`, `calories`, `avg`/`max`/`min`/`last`). Where a field is not among Huawei's widely
- * documented constants, the snake_case form of the Avro field's own name is used as a best-effort
- * default (see [snake]) — verify against a live API response and adjust the key strings in this
- * file if Huawei's actual response uses different names.
+ * Field-value key names used in the record builders are the `fieldName`s documented in Huawei's
+ * per-data-type references. Their casing is not consistent across data types (e.g. `steps_delta`
+ * and `sleep_state` but `emotionStatus` and `onOffBedState`), so each key is taken from its own data
+ * type's reference; keys not documented there are marked best-effort.
  *
  * @author yatharthranjan
  */
@@ -93,16 +91,12 @@ object HuaweiRouteFactory {
         max = fields.getDouble("max")
         min = fields.getDouble("min")
         last = fields.getDouble("last")
-        count = fields.getInt("count")
+        // Stress statistics documents its count as "measure_count".
+        count = fields.getInt("count", "measure_count")
     }
 
     /** Data types that reuse the generic [HuaweiStatistics] schema: (config key, Huawei data type name, default topic). */
     private val genericStatisticsTypes = listOf(
-        Triple(
-            "continuous_body_fat_rate_statistics",
-            "continuous.body.fat.rate.statistics",
-            "connect_huawei_continuous_body_fat_rate_statistics",
-        ),
         Triple(
             "continuous_body_temperature_rest_statistics",
             "continuous.body.temperature.rest.statistics",
@@ -117,11 +111,6 @@ object HuaweiRouteFactory {
             "continuous_exercise_heart_rate_statistics",
             "continuous.exercise_heart_rate.statistics",
             "connect_huawei_continuous_exercise_heart_rate_statistics",
-        ),
-        Triple(
-            "continuous_heart_rate_statistics",
-            "continuous.heart_rate.statistics",
-            "connect_huawei_continuous_heart_rate_statistics",
         ),
         Triple(
             "continuous_power_statistics",
@@ -294,6 +283,9 @@ object HuaweiRouteFactory {
                 "continuous_blood_glucose_statistics",
                 "continuous.blood_glucose.statistics",
                 "connect_huawei_continuous_blood_glucose_statistics",
+                // Raw detailed type is "com.huawei.instantaneous.blood_glucose" per the official
+                // "Blood Glucose" reference.
+                queryDataTypeSuffix = "instantaneous.blood_glucose",
             ) { f, start, end, received ->
                 HuaweiContinuousBloodGlucoseStatistics.newBuilder().apply {
                     time = start.toEpoch()
@@ -325,11 +317,12 @@ object HuaweiRouteFactory {
                     time = start.toEpoch()
                     timeReceived = received.toEpoch()
                     endTime = end?.toEpoch()
-                    maxBreatheRate = f.getInt("max_breathe_rate")
-                    minBreatheRate = f.getInt("min_breathe_rate")
-                    avgBreatheRate = f.getInt("avg_breathe_rate")
-                    minBreathrateBaseline = f.getInt("min_breathrate_baseline")
-                    maxBreathrateBaseline = f.getInt("max_breathrate_baseline")
+                    // camelCase per the official "Respiratory Rate" data type reference.
+                    maxBreatheRate = f.getInt("maxBreatheRate")
+                    minBreatheRate = f.getInt("minBreatheRate")
+                    avgBreatheRate = f.getInt("avgBreatheRate")
+                    minBreathrateBaseline = f.getInt("minBreathrateBaseline")
+                    maxBreathrateBaseline = f.getInt("maxBreathrateBaseline")
                 }.build()
             },
         )
@@ -339,6 +332,9 @@ object HuaweiRouteFactory {
                 "continuous_body_blood_pressure_statistics",
                 "continuous.body.blood_pressure.statistics",
                 "connect_huawei_continuous_body_blood_pressure_statistics",
+                // Raw detailed type is "com.huawei.instantaneous.blood_pressure" per the official
+                // "Blood Pressure" reference.
+                queryDataTypeSuffix = "instantaneous.blood_pressure",
             ) { f, start, end, received ->
                 HuaweiContinuousBodyBloodPressureStatistics.newBuilder().apply {
                     time = start.toEpoch()
@@ -374,10 +370,15 @@ object HuaweiRouteFactory {
         }
 
         // Statistics variants whose "continuous."-labelled name doesn't match their underlying
-        // raw detailed data type's namespace (it's "instantaneous." instead) - the same mismatch
-        // already confirmed live for SpO2 and Altitude - so they need an explicit
-        // queryDataTypeSuffix override rather than the generic loop above.
+        // raw detailed data type's namespace (it's "instantaneous." instead, per the official
+        // Health Sampling references) - so they need an explicit queryDataTypeSuffix override
+        // rather than the generic loop above.
         listOf(
+            Triple(
+                "continuous_heart_rate_statistics",
+                "continuous.heart_rate.statistics",
+                "connect_huawei_continuous_heart_rate_statistics",
+            ) to "instantaneous.heart_rate",
             Triple(
                 "continuous_body_temperature_statistics",
                 "continuous.body.temperature.statistics",
@@ -412,6 +413,29 @@ object HuaweiRouteFactory {
 
         add(
             sampleSetDefinition(
+                "continuous_body_fat_rate_statistics",
+                "continuous.body.fat.rate.statistics",
+                "connect_huawei_continuous_body_fat_rate_statistics",
+                // Huawei has no separate body fat data type: per the official "Weight" reference,
+                // body fat percentage is part of com.huawei.instantaneous.body_weight, whose daily
+                // statistics carry it as avg/max/min_body_fat_rate (avg/max/min/last there are the
+                // weight itself).
+                queryDataTypeSuffix = "instantaneous.body_weight",
+                useDailyPolymerize = true,
+            ) { f, start, end, received ->
+                HuaweiStatistics.newBuilder().apply {
+                    time = start.toEpoch()
+                    timeReceived = received.toEpoch()
+                    endTime = end?.toEpoch()
+                    avg = f.getDouble("avg_body_fat_rate")
+                    max = f.getDouble("max_body_fat_rate")
+                    min = f.getDouble("min_body_fat_rate")
+                }.build()
+            },
+        )
+
+        add(
+            sampleSetDefinition(
                 "continuous_calories_burnt",
                 "continuous.calories.burnt",
                 "connect_huawei_continuous_calories_burnt",
@@ -429,6 +453,10 @@ object HuaweiRouteFactory {
                 "continuous_calories_consumed",
                 "continuous.calories.consumed",
                 "connect_huawei_continuous_calories_consumed",
+                // Rejected live with "no default dataCollector found for:
+                // com.huawei.continuous.calories.consumed" and absent from Huawei's data type
+                // references, so disabled unless explicitly enabled.
+                enabledByDefault = false,
             ) { f, start, end, received ->
                 HuaweiContinuousCaloriesBurnt.newBuilder().apply {
                     time = start.toEpoch()
@@ -496,13 +524,15 @@ object HuaweiRouteFactory {
                     time = start.toEpoch()
                     timeReceived = received.toEpoch()
                     endTime = end?.toEpoch()
+                    // The official "ECG" reference only documents "ecg_type" and "voltage_datas"
+                    // (a list, serialized here as JSON); the remaining keys are best-effort.
                     ecgRecordId = f.getString("record_id")
                     averageHeartRate = f.getInt("avg_heart_rate")
                     ecgArrhythmiaType = f.getInt("arrhythmia_type")
                     ecgArrhythmiaResult = f.getInt("arrhythmia_result")
                     userSymptom = f.getString("user_symptom")
                     samplingFrequency = f.getInt("sampling_frequency")
-                    voltageData = f.getString("voltage_data")
+                    voltageData = f.getString("voltage_datas", "voltage_data")
                 }.build()
             },
         )
@@ -637,7 +667,7 @@ object HuaweiRouteFactory {
                 HuaweiEmotion.newBuilder().apply {
                     time = start.toEpoch()
                     timeReceived = received.toEpoch()
-                    emotionStatus = f.getInt("emotion")
+                    emotionStatus = f.getInt("emotionStatus")
                 }.build()
             },
         )
@@ -756,7 +786,12 @@ object HuaweiRouteFactory {
                 HuaweiHeartRateVariability.newBuilder().apply {
                     time = start.toEpoch()
                     timeReceived = received.toEpoch()
-                    heartRateVariabilityRmssd = f.getInt("heart_rate_variability_rmssd")
+                    // The official reference's field column is truncated to "...tRateVariabilityRMSSD";
+                    // the doc's value range is (0, 200] ms, so fractional values are truncated.
+                    heartRateVariabilityRmssd = f.getInt(
+                        "heartRateVariabilityRMSSD",
+                        "heartRateVariabilityRmssd",
+                    )
                 }.build()
             },
         )
@@ -771,8 +806,8 @@ object HuaweiRouteFactory {
                     time = start.toEpoch()
                     timeReceived = received.toEpoch()
                     endTime = end?.toEpoch()
-                    predictedCalories = f.getFloat("predicted_calories")
-                    totalCalories = f.getFloat("total_calories")
+                    predictedCalories = f.getFloat("predictedCalories")
+                    totalCalories = f.getFloat("totalCalories")
                 }.build()
             },
         )
@@ -786,7 +821,7 @@ object HuaweiRouteFactory {
                 HuaweiSleepOnOffBedRecord.newBuilder().apply {
                     time = start.toEpoch()
                     timeReceived = received.toEpoch()
-                    onOffBedState = f.getInt("on_off_bed_state")
+                    onOffBedState = f.getInt("onOffBedState")
                 }.build()
             },
         )
@@ -816,7 +851,7 @@ object HuaweiRouteFactory {
                     time = start.toEpoch()
                     timeReceived = received.toEpoch()
                     endTime = end?.toEpoch()
-                    eventname = f.getInt("event_name")
+                    eventname = f.getInt("eventName")
                 }.build()
             },
         )
@@ -906,9 +941,8 @@ object HuaweiRouteFactory {
 
     /**
      * The 24h ambulatory blood pressure monitoring record has ~80 numeric fields, all following
-     * the same `<stat><Metric><Period>` naming (e.g. `avgSystolicBpAll`, `maxHeartRateWake`).
-     * [snake] derives each Huawei field key mechanically from the Avro field name to avoid
-     * hand-transcribing ~80 near-identical key strings.
+     * the same `<stat><Metric><Period>` naming (e.g. `avgSystolicBpAll`, `maxHeartRateWake`), which
+     * Huawei uses verbatim as its camelCase field keys.
      */
     private fun FieldValues.toHealthRecordDynamicBp(
         start: Instant,

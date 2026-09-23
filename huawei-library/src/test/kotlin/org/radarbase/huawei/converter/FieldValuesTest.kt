@@ -58,6 +58,43 @@ class FieldValuesTest {
     }
 
     @Test
+    fun `falls back to later candidate keys and serializes list values`() {
+        val node = mapper.readTree(
+            """
+            [
+              {"fieldName": "heartRateVariabilityRmssd", "integerValue": 42},
+              {"fieldName": "voltage_datas", "value": [1.5, -2.0]},
+              {"fieldName": "custom", "doubleValue": 7.5}
+            ]
+            """.trimIndent(),
+        )
+        val fields = FieldValues.from(node)
+
+        assertEquals(42, fields.getInt("heartRateVariabilityRMSSD", "heartRateVariabilityRmssd"))
+        assertEquals("[1.5,-2.0]", fields.getString("voltage_datas"))
+        assertNull(fields.getInt("voltage_datas"))
+        assertEquals(7.5, fields.getDouble("custom"))
+    }
+
+    @Test
+    fun `parses map-typed values`() {
+        val node = mapper.readTree(
+            """
+            [
+              {"fieldName": "plain", "mapValue": {"1": 10, "2": 20}},
+              {"fieldName": "typed", "mapValue": {"1": {"integerValue": 5}}},
+              {"fieldName": "entries", "mapValue": [{"key": "3", "value": {"integerValue": 7}}]}
+            ]
+            """.trimIndent(),
+        )
+        val fields = FieldValues.from(node)
+
+        assertEquals(mapOf("1" to 10, "2" to 20), fields.getIntMap("plain"))
+        assertEquals(mapOf("1" to 5), fields.getIntMap("typed"))
+        assertEquals(mapOf("3" to 7), fields.getIntMap("entries"))
+    }
+
+    @Test
     fun `handles missing or null root node`() {
         val fields = FieldValues.from(null)
 
