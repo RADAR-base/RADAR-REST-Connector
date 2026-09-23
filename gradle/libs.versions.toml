@@ -5,9 +5,8 @@ kotlin = "1.9.24"
 radarCommons = "1.2.6"
 confluent = "7.8.1"
 avro = "1.12.1"
-# @pin Upgrade to 2.21.x requires kotlin v2 minimum
-jackson = "2.20.2"
-jacksonAnnotations = "2.20"
+jackson = "2.21.4"
+jacksonAnnotations = "2.21"
 log4j2 = "2.23.1"
 slf4j = "2.0.17"
 sentryLog4j = "1.7.30"
@@ -18,9 +17,11 @@ firebaseAdmin = "9.8.0"
 radarSchemas = "0.8.18"
 # @pin Upgrade to 3.x.x requires kotlin v2 minimum
 ktor = "2.3.13"
-wiremock = "3.0.1"
+wiremock = "3.13.2"
 mockito = "5.23.0"
-netty = "4.2.10.Final"
+netty = "4.2.17.Final"
+# Forced transitive override for firebase-admin, see build.gradle.kts.
+httpcore5 = "5.4.3"
 commonsLang3 = "3.20.0"
 lz4 = "1.10.1"
 
@@ -52,7 +53,9 @@ netty-handler-proxy = { module = "io.netty:netty-handler-proxy", version.ref = "
 netty-handler = { module = "io.netty:netty-handler", version.ref = "netty" }
 commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "commonsLang3" }
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
-wiremock = { module = "com.github.tomakehurst:wiremock", version.ref = "wiremock" }
+wiremock = { module = "org.wiremock:wiremock", version.ref = "wiremock" }
+httpcore5 = { module = "org.apache.httpcomponents.core5:httpcore5", version.ref = "httpcore5" }
+httpcore5-h2 = { module = "org.apache.httpcomponents.core5:httpcore5-h2", version.ref = "httpcore5" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
 
