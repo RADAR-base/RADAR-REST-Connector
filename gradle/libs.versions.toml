@@ -1,8 +1,8 @@
 [versions]
 project = "0.7.6"
 gradle = "8.14"
-kotlin = "1.9.24"
-radarCommons = "1.2.6"
+kotlin = "2.3.20"
+radarCommons = "1.2.8"
 confluent = "7.8.1"
 avro = "1.12.1"
 jackson = "2.21.4"
@@ -14,7 +14,7 @@ sentryOpenTelemetryAgent = "8.36.0"
 # @pin Upgrade to 5.x.x requires kotlin v2 minimum
 okhttp = "4.12.0"
 firebaseAdmin = "9.8.0"
-radarSchemas = "0.8.18"
+radarSchemas = "0.9.1"
 # @pin Upgrade to 3.x.x requires kotlin v2 minimum
 ktor = "2.3.13"
 wiremock = "3.13.2"
