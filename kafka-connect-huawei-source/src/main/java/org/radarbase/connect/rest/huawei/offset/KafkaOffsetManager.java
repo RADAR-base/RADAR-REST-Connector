@@ -21,7 +21,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.concurrent.ConcurrentHashMap;
 import static java.time.temporal.ChronoUnit.NANOS;
 import org.apache.kafka.connect.storage.OffsetStorageReader;
 import org.radarbase.huawei.offset.Offset;
@@ -40,7 +40,7 @@ public class KafkaOffsetManager implements HuaweiOffsetManager {
   private static final Duration ONE_NANO = NANOS.getDuration();
 
   private final OffsetStorageReader offsetStorageReader;
-  private Map<String, Instant> offsets;
+  private final Map<String, Instant> offsets = new ConcurrentHashMap<>();
 
   public KafkaOffsetManager(OffsetStorageReader offsetStorageReader) {
     this.offsetStorageReader = offsetStorageReader;
@@ -48,11 +48,11 @@ public class KafkaOffsetManager implements HuaweiOffsetManager {
 
   public void initialize(List<Map<String, Object>> partitions) {
     if (this.offsetStorageReader != null) {
-      this.offsets = this.offsetStorageReader.offsets(partitions).entrySet().stream()
-          .filter(e -> e.getValue() != null && e.getValue().containsKey(TIMESTAMP_OFFSET_KEY))
-          .collect(Collectors.toMap(
-              e -> e.getKey().get("user") + "-" + e.getKey().get("route"),
-              e -> Instant.ofEpochSecond(((Number) e.getValue().get(TIMESTAMP_OFFSET_KEY)).longValue())));
+      this.offsetStorageReader.offsets(partitions).entrySet().stream()
+          .filter(e -> e.getValue() != null && e.getValue().get(TIMESTAMP_OFFSET_KEY) instanceof Number)
+          .forEach(e -> offsets.put(
+              e.getKey().get("user") + "-" + e.getKey().get("route"),
+              Instant.ofEpochSecond(((Number) e.getValue().get(TIMESTAMP_OFFSET_KEY)).longValue())));
     } else {
       logger.warn("Offset storage reader is null, will resume from an empty state.");
     }

@@ -40,10 +40,11 @@ interface HuaweiDataConverter : RecordConverter {
         request: RestRequest,
         headers: Headers,
         data: ByteArray,
-    ): List<TopicData> {
-        val node = JSON_READER.readTree(data)
+    ): List<TopicData> = convert(request, JSON_READER.readTree(data))
 
-        return this.processRecords(node, request.user)
+    /** Convert an already-parsed response body, logging and skipping records that fail. */
+    fun convert(request: RestRequest, root: JsonNode): List<TopicData> =
+        this.processRecords(root, request.user)
             .mapNotNull { r ->
                 r.fold(
                     { it },
@@ -54,7 +55,6 @@ interface HuaweiDataConverter : RecordConverter {
                 )
             }
             .toList()
-    }
 
     fun Instant.toEpoch(): Double = this.toEpochMilli() / 1000.0
 }

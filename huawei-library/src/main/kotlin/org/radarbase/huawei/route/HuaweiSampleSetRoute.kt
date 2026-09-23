@@ -31,7 +31,7 @@ import java.time.Instant
 /**
  * Route backed by `POST /healthkit/v1/sampleSet:polymerize`, which covers the large majority of
  * raw (non-`.statistics`) Huawei Health Kit data types (all `continuous.*`, `instantaneous.*`,
- * `cgm_blood_glucose`, `active_hours`, `daily_activity_summary`, `emotion`,
+ * `cgm_blood_glucose`, `active_hours`, `emotion`,
  * `heart_rate_variability`, `vo2max`, `sleep.on_off_bed_record`, and `sleep_respiratory_*` types).
  * Returns raw, un-aggregated sample points for [dataTypeName] over the requested time range.
  *

@@ -24,6 +24,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -68,6 +70,8 @@ public class HuaweiSourceTask extends SourceTask {
   private static final String TIMESTAMP_OFFSET_KEY = "timestamp";
   private static final long TIMEOUT = 60000L;
   private int routeStartIndex = 0;
+  private final CountDownLatch stopLatch = new CountDownLatch(1);
+  private boolean lastPollHadRecords = false;
 
   public void initialize(HuaweiRestSourceConnectorConfig config, OffsetStorageReader offsetStorageReader) {
     this.baseClient = new OkHttpClient();
@@ -136,7 +140,8 @@ public class HuaweiSourceTask extends SourceTask {
           SchemaAndValue avro = avroData.toConnectData(r.getValue().getSchema(), r.getValue());
           SchemaAndValue key = avroData.toConnectData(r.getKey().getSchema(), r.getKey());
           Map<String, Object> partition = getPartition(req.getRoute().toString(), req.getUser());
-          Map<String, ?> offset = Collections.singletonMap(TIMESTAMP_OFFSET_KEY, r.getOffset());
+          // Stored offsets mark where to resume: just after this record's start time (seconds).
+          Map<String, ?> offset = Collections.singletonMap(TIMESTAMP_OFFSET_KEY, r.getOffset() + 1);
 
           return new SourceRecord(partition, offset, r.getTopic(),
                 key.schema(), key.value(), avro.schema(), avro.value());
@@ -167,15 +172,19 @@ public class HuaweiSourceTask extends SourceTask {
 
   @Override
   public List<SourceRecord> poll() throws InterruptedException {
+    // Only wait between polls when there is nothing left to catch up on, and wake up as soon
+    // as the task is stopped.
+    if (!lastPollHadRecords && stopLatch.await(TIMEOUT, TimeUnit.MILLISECONDS)) {
+      return null;
+    }
+
     long requestsGenerated = 0;
     List<SourceRecord> sourceRecords = Collections.emptyList();
 
-    do {
-      Thread.sleep(TIMEOUT);
-
+    try {
       Iterator<? extends RestRequest> requestIterator = this.requests().iterator();
 
-      while (sourceRecords.isEmpty() && requestIterator.hasNext()) {
+      while (sourceRecords.isEmpty() && stopLatch.getCount() > 0 && requestIterator.hasNext()) {
         RestRequest request = requestIterator.next();
 
         logger.info("Requesting for user {}, url: {}", request.getUser().getUserId(), request.getRequest().url());
@@ -184,12 +193,16 @@ public class HuaweiSourceTask extends SourceTask {
         try {
           sourceRecords = this.handleRequest(request)
               .collect(Collectors.toList());
-        } catch (IOException ex) {
+        } catch (IOException | RuntimeException ex) {
           logger.warn("Failed to make request: {}", ex.toString());
         }
       }
-    } while (sourceRecords.isEmpty());
+    } catch (Exception ex) {
+      // Never let a failure to list users or build requests kill the task; retry next poll.
+      logger.error("Failed to generate Huawei requests: {}", ex.toString(), ex);
+    }
 
+    lastPollHadRecords = !sourceRecords.isEmpty();
     logger.info("Processed {} records from {} URLs", sourceRecords.size(), requestsGenerated);
 
     return sourceRecords;
@@ -198,6 +211,7 @@ public class HuaweiSourceTask extends SourceTask {
   @Override
   public void stop() {
     logger.debug("Stopping source task");
+    stopLatch.countDown();
   }
 
   @Override

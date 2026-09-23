@@ -50,4 +50,10 @@ interface UserRepository {
      */
     @Throws(IOException::class, UserNotAuthorizedException::class)
     fun getAccessToken(user: User): String
+
+    /**
+     * Discard any cached access token of given user, e.g. after the Huawei API rejected it with
+     * HTTP 401 before its advertised expiry, so the next [getAccessToken] call fetches a new one.
+     */
+    fun invalidateAccessToken(user: User) {}
 }

@@ -204,6 +204,10 @@ class HuaweiServiceUserRepository : HuaweiUserRepository() {
         }
     }
 
+    override fun invalidateAccessToken(user: User) {
+        credentialCaches -= user.id
+    }
+
     @Throws(IOException::class, UserNotAuthorizedException::class)
     override fun refreshAccessToken(user: User): String {
         if (!user.isAuthorized) {

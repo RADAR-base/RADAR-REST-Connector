@@ -75,6 +75,11 @@ public class OAuth2UserCredentials {
         .minus(EXPIRY_TIME_MARGIN);
   }
 
+  /** Mark the access token as expired, so it is refreshed before its next use. */
+  public void invalidateAccessToken() {
+    expiresAt = Instant.EPOCH;
+  }
+
   @JsonIgnore
   public boolean isAccessTokenExpired() {
     return expiresAt == null || Instant.now().isAfter(expiresAt);
