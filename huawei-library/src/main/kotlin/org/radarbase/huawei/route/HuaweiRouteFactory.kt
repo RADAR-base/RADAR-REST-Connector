@@ -531,11 +531,10 @@ object HuaweiRouteFactory {
                     time = start.toEpoch()
                     timeReceived = received.toEpoch()
                     endTime = end?.toEpoch()
-                    zone1Duration = f.getInt("zone1_duration")
-                    zone2Duration = f.getInt("zone2_duration")
-                    zone3Duration = f.getInt("zone3_duration")
-                    zone4Duration = f.getInt("zone4_duration")
-                    zone5Duration = f.getInt("zone5_duration")
+                    // Huawei reports this as a single Map<exercise_type, minutes> field ("intensity"),
+                    // not per-heart-rate-zone durations - see FieldValues.getIntMap for the wire-shape
+                    // caveat.
+                    intensityMap = f.getIntMap("intensity")
                 }.build()
             },
         )

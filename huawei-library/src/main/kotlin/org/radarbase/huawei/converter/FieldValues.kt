@@ -51,10 +51,23 @@ class FieldValues private constructor(private val values: Map<String, JsonNode>)
         if (it.isNull) null else it.asText()
     }
 
+    /**
+     * Reads a `Map<Integer, Integer>`-typed field (e.g. Huawei's exercise-type-to-duration map),
+     * as an object whose keys are stringified (Avro maps require string keys). Best-effort: the
+     * exact wire shape of a Huawei map-typed field is not confirmed against a live API response
+     * (Huawei's typed-value array uses `integerValue`/`floatValue`/`stringValue`/`longValue` for
+     * scalars, so `mapValue` is assumed by the same `<type>Value` convention) - verify and adjust
+     * if this doesn't match what the API actually returns.
+     */
+    fun getIntMap(field: String): Map<String, Int>? = values[field]
+        ?.takeIf { it.isObject }
+        ?.properties()
+        ?.associate { (key, value) -> key to value.asInt() }
+
     companion object {
         private const val FIELD_NAME_KEY = "fieldName"
         private val VALUE_KEYS =
-            listOf("integerValue", "floatValue", "longValue", "stringValue", "value")
+            listOf("integerValue", "floatValue", "longValue", "stringValue", "mapValue", "value")
 
         fun from(node: JsonNode?): FieldValues {
             if (node == null || node.isMissingNode || node.isNull) {
