@@ -186,10 +186,6 @@ object HuaweiRouteFactory {
                     time = start.toEpoch()
                     timeReceived = received.toEpoch()
                     level = f.getDouble("level")
-                    avg = f.getInt("avg")
-                    max = f.getInt("max")
-                    min = f.getInt("min")
-                    last = f.getInt("last")
                 }.build()
             },
         )
@@ -202,7 +198,6 @@ object HuaweiRouteFactory {
                 HuaweiCgmBloodGlucose.newBuilder().apply {
                     time = start.toEpoch()
                     timeReceived = received.toEpoch()
-                    level = f.getDouble("level")
                     avg = f.getInt("avg")
                     max = f.getInt("max")
                     min = f.getInt("min")
