@@ -32,7 +32,7 @@ class HuaweiRestSourceConnectorConfigTest {
     }
 
     @Test
-    fun `enabled topics default to every registered data type`() {
+    fun `enabled topics default to every data type enabled by default`() {
         val config = HuaweiRestSourceConnectorConfig(
             mutableMapOf(
                 "huawei.api.client" to "client",
@@ -43,9 +43,9 @@ class HuaweiRestSourceConnectorConfigTest {
 
         val enabled = config.enabledTopics()
 
-        assertEquals(HuaweiRouteFactory.definitions.size, enabled.size)
         HuaweiRouteFactory.definitions.forEach { definition ->
-            assertEquals(definition.defaultTopic, enabled[definition.key])
+            val expected = definition.defaultTopic.takeIf { definition.enabledByDefault }
+            assertEquals(expected, enabled[definition.key], definition.key)
         }
     }
 

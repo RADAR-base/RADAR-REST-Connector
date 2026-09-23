@@ -23,7 +23,6 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import okhttp3.FormBody
-import okhttp3.Headers
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.radarbase.connect.rest.huawei.HuaweiRestSourceConnectorConfig
@@ -36,7 +35,6 @@ import java.nio.file.Path
 import java.nio.file.StandardCopyOption
 import java.time.Duration
 import java.time.Instant
-import java.util.Base64
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantLock
@@ -58,14 +56,17 @@ class HuaweiYamlUserRepository : HuaweiUserRepository() {
     private val users = ConcurrentHashMap<String, LockedUser>()
     private val nextFetch = AtomicReference(Instant.EPOCH)
     private lateinit var credentialsDir: Path
-    private lateinit var clientCredentials: Headers
+    private lateinit var clientId: String
+    private lateinit var clientSecret: String
+    private var containedUsers: Set<String> = emptySet()
 
     override fun initialize(config: HuaweiRestSourceConnectorConfig) {
         credentialsDir = config.getHuaweiUserCredentialsPath()
+        // Each task is assigned a subset of users (by versioned ID); empty means all users.
+        containedUsers = config.getHuaweiUsers().toHashSet()
         Files.createDirectories(credentialsDir)
-        val credentialString = "${config.getHuaweiClient()}:${config.getHuaweiClientSecret()}"
-        val credentialsBase64 = Base64.getEncoder().encodeToString(credentialString.toByteArray())
-        clientCredentials = Headers.headersOf("Authorization", "Basic $credentialsBase64")
+        clientId = config.getHuaweiClient()
+        clientSecret = config.getHuaweiClientSecret()
     }
 
     override operator fun get(key: String): User? {
@@ -78,7 +79,12 @@ class HuaweiYamlUserRepository : HuaweiUserRepository() {
             applyPendingUpdates()
         }
         return users.values.asSequence()
-            .filter { it.locked { u -> u.oauth2Credentials.hasRefreshToken() } }
+            .filter {
+                it.locked { u ->
+                    u.oauth2Credentials.hasRefreshToken() &&
+                        (containedUsers.isEmpty() || u.versionedId in containedUsers)
+                }
+            }
             .map { it.locked { u -> u.copy() } }
     }
 
@@ -91,6 +97,10 @@ class HuaweiYamlUserRepository : HuaweiUserRepository() {
             if (!u.oauth2Credentials.isAccessTokenExpired) u.oauth2Credentials.accessToken else null
         }
         return current ?: refreshAccessToken(user)
+    }
+
+    override fun invalidateAccessToken(user: User) {
+        users[user.id]?.update { it.oauth2Credentials.invalidateAccessToken() }
     }
 
     @Throws(IOException::class, UserNotAuthorizedException::class)
@@ -107,7 +117,7 @@ class HuaweiYamlUserRepository : HuaweiUserRepository() {
 
         actual.update { u ->
             u.oauth2Credentials = OAuth2UserCredentials(newRefreshToken, accessToken, expiresIn)
-            store(actual.path, u)
+            store(actual, u)
         }
         return accessToken
     }
@@ -130,25 +140,51 @@ class HuaweiYamlUserRepository : HuaweiUserRepository() {
     }
 
     private fun forceUpdateUsers() {
-        try {
+        val paths = try {
             Files.walk(credentialsDir).use { walker ->
-                val newUsers = walker
+                walker
                     .filter {
                         Files.isRegularFile(it) &&
                             it.fileName.toString().lowercase().endsWith(".yml")
                     }
-                    .map { path ->
-                        LockedUser(
-                            YAML_READER.readValue(path.toFile(), HuaweiLocalUser::class.java),
-                            path,
-                        )
-                    }
-                    .collect(Collectors.toMap({ it.locked { u -> u.id } }, { it }))
-                users.keys.retainAll(newUsers.keys)
-                newUsers.forEach { (id, u) -> users.putIfAbsent(id, u) }
+                    .sorted()
+                    .collect(Collectors.toList())
             }
         } catch (ex: IOException) {
             logger.error("Failed to read user directory: {}", ex.toString())
+            return
+        }
+        val newUsers = LinkedHashMap<String, LockedUser>()
+        paths.forEach { path ->
+            // A single malformed or unreadable file must not hide every other user.
+            val lockedUser = try {
+                LockedUser(
+                    YAML_READER.readValue(path.toFile(), HuaweiLocalUser::class.java),
+                    path,
+                    Files.getLastModifiedTime(path).toInstant(),
+                )
+            } catch (ex: IOException) {
+                logger.error("Failed to read user file {}: {}", path, ex.toString())
+                return@forEach
+            }
+            val id = lockedUser.user.id
+            val existing = newUsers.putIfAbsent(id, lockedUser)
+            if (existing != null) {
+                logger.warn(
+                    "Ignoring {}: user ID {} already defined in {}",
+                    path,
+                    id,
+                    existing.path,
+                )
+            }
+        }
+        users.keys.retainAll(newUsers.keys)
+        // Keep in-memory state (e.g. freshly refreshed tokens) unless the file was edited since it
+        // was last read or written here, e.g. to add a new refresh token.
+        newUsers.forEach { (id, u) ->
+            users.merge(id, u) { old, new ->
+                if (new.modifiedAt > old.modifiedAt || new.path != old.path) new else old
+            }
         }
     }
 
@@ -158,10 +194,13 @@ class HuaweiYamlUserRepository : HuaweiUserRepository() {
         }
         val request = Request.Builder()
             .url(HUAWEI_TOKEN_URL)
-            .headers(clientCredentials)
             .post(
+                // Huawei's OAuth 2.0 token endpoint takes the client credentials as form
+                // parameters, not as HTTP Basic authentication.
                 FormBody.Builder()
                     .add("grant_type", "refresh_token")
+                    .add("client_id", clientId)
+                    .add("client_secret", clientSecret)
                     .add("refresh_token", refreshToken)
                     .build(),
             )
@@ -172,7 +211,9 @@ class HuaweiYamlUserRepository : HuaweiUserRepository() {
             return when {
                 response.isSuccessful && body != null -> JSON_READER.readTree(body)
                 response.code == 400 || response.code == 401 ->
-                    throw UserNotAuthorizedException("Refresh token is no longer valid.")
+                    throw UserNotAuthorizedException(
+                        "Refresh token was rejected (HTTP ${response.code}): $body",
+                    )
                 else -> throw IOException(
                     "Failed to request refresh token, HTTP status ${response.code}" +
                         (body?.let { " and content $it" } ?: ""),
@@ -181,12 +222,16 @@ class HuaweiYamlUserRepository : HuaweiUserRepository() {
         }
     }
 
-    private fun store(path: Path, user: HuaweiLocalUser) {
+    private fun store(lockedUser: LockedUser, user: HuaweiLocalUser) {
+        val path = lockedUser.path
         try {
-            val temp = Files.createTempFile(user.id, ".tmp")
+            // Temp file next to the target (not ending in .yml, so it is never read as a user),
+            // so the move is a same-directory rename.
+            val temp = Files.createTempFile(path.parent, ".${user.id}", ".tmp")
             try {
                 Files.newOutputStream(temp).use { out -> YAML_WRITER.writeValue(out, user) }
                 Files.move(temp, path, StandardCopyOption.REPLACE_EXISTING)
+                lockedUser.modifiedAt = Files.getLastModifiedTime(path).toInstant()
             } finally {
                 Files.deleteIfExists(temp)
             }
@@ -196,7 +241,11 @@ class HuaweiYamlUserRepository : HuaweiUserRepository() {
     }
 
     /** Guards a mutable [HuaweiLocalUser] against concurrent read/refresh/store. */
-    private class LockedUser(val user: HuaweiLocalUser, val path: Path) {
+    private class LockedUser(
+        val user: HuaweiLocalUser,
+        val path: Path,
+        @Volatile var modifiedAt: Instant,
+    ) {
         private val lock = ReentrantLock()
 
         fun <V> locked(block: (HuaweiLocalUser) -> V): V {

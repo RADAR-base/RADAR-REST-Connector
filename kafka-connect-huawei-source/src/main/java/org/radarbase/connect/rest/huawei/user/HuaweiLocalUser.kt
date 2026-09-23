@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import org.radarbase.huawei.user.User
 import org.radarcns.kafka.ObservationKey
 import java.time.Instant
+import java.util.Objects
 
 /**
  * A single user's Huawei Health Kit credentials, read from (and written back to) a local YAML
@@ -99,6 +100,29 @@ class HuaweiLocalUser : User {
         copy.isAuthorizedOverride = isAuthorizedOverride
         return copy
     }
+
+    /**
+     * Equality covers the user's identity and polling configuration, but not its OAuth2 tokens or
+     * [createdAt] (which defaults to the read time when absent from the file): the connector
+     * compares user sets to decide whether tasks need reconfiguring, and a token refresh must
+     * not trigger that.
+     */
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is HuaweiLocalUser) return false
+        return id == other.id &&
+            projectId == other.projectId &&
+            userId == other.userId &&
+            sourceId == other.sourceId &&
+            externalId == other.externalId &&
+            startDate == other.startDate &&
+            endDate == other.endDate &&
+            serviceUserId == other.serviceUserId &&
+            version == other.version &&
+            isAuthorizedOverride == other.isAuthorizedOverride
+    }
+
+    override fun hashCode(): Int = Objects.hash(id, projectId, userId, sourceId, version)
 
     override fun toString(): String = "HuaweiLocalUser(id='$id', versionedId='$versionedId')"
 }
