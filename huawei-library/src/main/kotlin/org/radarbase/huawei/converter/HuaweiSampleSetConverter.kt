@@ -22,20 +22,19 @@ import org.apache.avro.specific.SpecificRecord
 import org.radarbase.huawei.user.User
 import java.time.Instant
 
-private fun JsonNode.epochInstant(field: String): Instant? {
-    val value = this.get(field) ?: return null
-    if (value.isNull) return null
-    val millis = if (value.isTextual) value.asText().toLongOrNull() else value.asLong()
-    return millis?.let { Instant.ofEpochMilli(it) }
-}
-
 /**
- * Generic converter for `sampleSet:polymerize` responses: iterates every sample point of every
- * data-type group in the response and builds one Avro record per point via [buildRecord].
+ * Generic converter for `sampleSet:polymerize` and `sampleSet:dailyPolymerize` responses:
+ * iterates every sample point of every sample set in the response and builds one Avro record per
+ * point via [buildRecord].
+ *
+ * Huawei wraps sample sets in a `group[]` array (one entry per aggregation bucket or day), each
+ * holding `sampleSet[].samplePoints[]`. A bare top-level `sampleSet[]` is also accepted. Sample
+ * point times are nanoseconds in Huawei's examples, while group times are milliseconds; units are
+ * inferred per value (see [epochInstant]).
  *
  * This single converter is reused for the large majority of Huawei Health Kit data types, since
- * they all share the same `sampleSet[].samplePoints[]` response envelope and differ only in which
- * Avro record type their field values are mapped onto.
+ * they all share the same response envelope and differ only in which Avro record type their field
+ * values are mapped onto.
  *
  * @author yatharthranjan
  */
@@ -51,12 +50,7 @@ class HuaweiSampleSetConverter(
 
     override fun processRecords(root: JsonNode, user: User): Sequence<Result<TopicData>> {
         val timeReceived = Instant.now()
-        val sampleSets = root.get("sampleSet") ?: root.get("sampleSets") ?: return emptySequence()
-        return sampleSets.asSequence()
-            .flatMap { group ->
-                val points = group.get("samplePoints") ?: group.get("samplePoint")
-                points?.asSequence() ?: emptySequence()
-            }
+        return root.samplePoints()
             .mapCatching { point ->
                 val startTime = point.epochInstant("startTime")
                     ?: error("Huawei sample point is missing startTime")
@@ -69,5 +63,24 @@ class HuaweiSampleSetConverter(
                     value = buildRecord(fieldValues, startTime, endTime, timeReceived),
                 )
             }
+    }
+
+    companion object {
+        private fun JsonNode.child(vararg names: String): JsonNode? =
+            names.firstNotNullOfOrNull { name -> get(name)?.takeIf { it.isArray } }
+
+        /** All sample points in a (daily) polymerize response, with or without `group[]`. */
+        internal fun JsonNode.samplePoints(): Sequence<JsonNode> {
+            val sampleSets = child("group", "groups")
+                ?.asSequence()
+                ?.flatMap { group ->
+                    group.child("sampleSet", "sampleSets")?.asSequence().orEmpty()
+                }
+                ?: child("sampleSet", "sampleSets")?.asSequence()
+                ?: emptySequence()
+            return sampleSets.flatMap { sampleSet ->
+                sampleSet.child("samplePoints", "samplePoint")?.asSequence().orEmpty()
+            }
+        }
     }
 }

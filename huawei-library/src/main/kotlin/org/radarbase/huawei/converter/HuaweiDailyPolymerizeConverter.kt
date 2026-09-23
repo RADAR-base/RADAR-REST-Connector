@@ -17,54 +17,22 @@
 
 package org.radarbase.huawei.converter
 
-import com.fasterxml.jackson.databind.JsonNode
 import org.apache.avro.specific.SpecificRecord
-import org.radarbase.huawei.user.User
 import java.time.Instant
 
-/** Sample points inside `sampleSet:dailyPolymerize`'s response report their times in nanoseconds. */
-private fun JsonNode.epochNanoInstant(field: String): Instant? {
-    val value = this.get(field) ?: return null
-    if (value.isNull) return null
-    val nanos = if (value.isTextual) value.asText().toLongOrNull() else value.asLong()
-    return nanos?.let { Instant.ofEpochSecond(it / 1_000_000_000L, it % 1_000_000_000L) }
-}
-
 /**
- * Converter for `POST /healthkit/v2/sampleSet:dailyPolymerize` responses: unlike
- * `sampleSet:polymerize`, each day's result is wrapped in a `group[]` entry containing its own
- * `sampleSet[].samplePoints[]`, so this walks two levels of nesting instead of one before reaching
- * the same `{"fieldName": ..., "value": ...}` point shape used elsewhere.
+ * Converter for `POST /healthkit/v2/sampleSet:dailyPolymerize` responses. Each day's result is
+ * wrapped in a `group[]` entry containing its own `sampleSet[].samplePoints[]`, which
+ * [HuaweiSampleSetConverter] already handles, so this only exists to name the endpoint.
  *
  * @author yatharthranjan
  */
 class HuaweiDailyPolymerizeConverter(
-    private val topic: String,
-    private val buildRecord: (
+    topic: String,
+    buildRecord: (
         fields: FieldValues,
         startTime: Instant,
         endTime: Instant?,
         timeReceived: Instant,
     ) -> SpecificRecord,
-) : HuaweiDataConverter {
-
-    override fun processRecords(root: JsonNode, user: User): Sequence<Result<TopicData>> {
-        val timeReceived = Instant.now()
-        val groups = root.get("group") ?: return emptySequence()
-        return groups.asSequence()
-            .flatMap { group -> group.get("sampleSet")?.asSequence() ?: emptySequence() }
-            .flatMap { sampleSet -> sampleSet.get("samplePoints")?.asSequence() ?: emptySequence() }
-            .mapCatching { point ->
-                val startTime = point.epochNanoInstant("startTime")
-                    ?: error("Huawei daily polymerize sample point is missing startTime")
-                val endTime = point.epochNanoInstant("endTime")
-                val fieldValues = FieldValues.from(point.get("value"))
-                TopicData(
-                    topic = topic,
-                    key = user.observationKey,
-                    offset = startTime.epochSecond,
-                    value = buildRecord(fieldValues, startTime, endTime, timeReceived),
-                )
-            }
-    }
-}
+) : HuaweiDataConverter by HuaweiSampleSetConverter(topic, buildRecord)

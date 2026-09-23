@@ -48,7 +48,7 @@ interface HuaweiDataConverter : RecordConverter {
                 r.fold(
                     { it },
                     {
-                        logger.error("Data conversion failed.. " + it.message)
+                        logger.error("Data conversion failed for {}: {}", request, it.toString())
                         null
                     },
                 )

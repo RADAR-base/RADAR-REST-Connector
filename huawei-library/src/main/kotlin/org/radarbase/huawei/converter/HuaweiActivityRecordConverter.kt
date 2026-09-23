@@ -83,13 +83,6 @@ class HuaweiActivityRecordConverter(
         }.build()
     }
 
-    private fun JsonNode.epochInstant(field: String): Instant? {
-        val value = this.get(field) ?: return null
-        if (value.isNull) return null
-        val millis = if (value.isTextual) value.asText().toLongOrNull() else value.asLong()
-        return millis?.let { Instant.ofEpochMilli(it) }
-    }
-
     private fun JsonNode.textOrNull(field: String): String? =
         this.get(field)?.takeUnless { it.isNull }?.asText()
 
