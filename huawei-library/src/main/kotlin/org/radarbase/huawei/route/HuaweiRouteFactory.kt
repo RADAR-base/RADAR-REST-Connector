@@ -147,6 +147,13 @@ object HuaweiRouteFactory {
         Triple("vo2max_statistics", "vo2max.statistics", "connect_huawei_vo2max_statistics"),
     )
 
+    /**
+     * Keys of [genericStatisticsTypes] absent from Huawei's data type references (the official
+     * "Body Temperature" reference only defines body and skin temperature, with no resting
+     * variant), so disabled unless explicitly enabled.
+     */
+    private val undocumentedStatisticsTypes = setOf("continuous_body_temperature_rest_statistics")
+
     /** Full registry of Huawei Health Kit data types supported by this connector. */
     val definitions: List<HuaweiRouteDefinition> = buildList {
         add(
@@ -358,7 +365,12 @@ object HuaweiRouteFactory {
 
         genericStatisticsTypes.forEach { (key, dataType, topic) ->
             add(
-                sampleSetDefinition(key, dataType, topic) { f, start, end, received ->
+                sampleSetDefinition(
+                    key,
+                    dataType,
+                    topic,
+                    enabledByDefault = key !in undocumentedStatisticsTypes,
+                ) { f, start, end, received ->
                     HuaweiStatistics.newBuilder().apply {
                         populateCommon(
                             start,
