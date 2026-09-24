@@ -108,7 +108,11 @@ class HuaweiRouteFactoryTest {
                 {"fieldName": "avg_heart_rate", "floatValue": 75.6},
                 {"fieldName": "ecg_arrhythmia_type", "longValue": 8},
                 {"fieldName": "user_symptom", "longValue": 1022},
-                {"fieldName": "sampling_frequency", "integerValue": 500}
+                {"fieldName": "sampling_frequency", "integerValue": 500},
+                {"fieldName": "ecg_algorithm_version", "stringValue": "1.0"},
+                {"fieldName": "ecg_data_sources", "stringValue": "HUAWEI"},
+                {"fieldName": "ecg_data_length", "integerValue": 7500},
+                {"fieldName": "package_name", "stringValue": "com.huawei.health"}
               ],
               "subDataDetails": [{
                 "dataTypeName": "com.huawei.continuous.ecg_detail",
@@ -125,10 +129,15 @@ class HuaweiRouteFactoryTest {
             .single().getOrThrow().value as HuaweiContinuousEcgDetail
 
         assertEquals("ecg-1", record.ecgRecordId)
-        assertEquals(76, record.averageHeartRate)
+        assertEquals(1, record.ecgType)
+        assertEquals(75.6f, record.averageHeartRate)
         assertEquals(8, record.ecgArrhythmiaType)
-        assertEquals("1022", record.userSymptom)
+        assertEquals(1022L, record.userSymptom)
         assertEquals(500, record.samplingFrequency)
+        assertEquals("1.0", record.ecgAlgorithmVersion)
+        assertEquals(null, record.ecgDataSources)
+        assertEquals(7500, record.ecgDataLength)
+        assertEquals("com.huawei.health", record.packageName)
         assertEquals("0.1,0.2", record.voltageData)
     }
 

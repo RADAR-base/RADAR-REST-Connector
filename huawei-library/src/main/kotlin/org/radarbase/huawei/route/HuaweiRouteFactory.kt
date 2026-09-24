@@ -545,17 +545,20 @@ object HuaweiRouteFactory {
                     timeReceived = received.toEpoch()
                     endTime = end?.toEpoch()
                     ecgRecordId = f.recordId
-                    // Documented as a float (bpm); the schema field is an int.
-                    averageHeartRate = f.getDouble("avg_heart_rate")?.let { Math.round(it).toInt() }
+                    ecgType = f.getInt("ecg_type")
+                    averageHeartRate = f.getFloat("avg_heart_rate")
                     // Bit flags (1: sinus rhythm, 2: atrial premature beats, ..., 128: poor
                     // signals), documented as a long but only using the low 8 bits.
                     ecgArrhythmiaType = f.getLong("ecg_arrhythmia_type")?.toInt()
-                    // ecgArrhythmiaResult has no counterpart among the documented ecg_record
-                    // fields and is left null.
-                    // Bit flags of user-selected symptoms, documented as a long; the schema field is
-                    // a string, so the decimal value is kept as-is.
-                    userSymptom = f.getLong("user_symptom")?.toString()
+                    // Bit flags of user-selected symptoms (bit 0: no discomfort ... bit 9: other).
+                    userSymptom = f.getLong("user_symptom")
                     samplingFrequency = f.getInt("sampling_frequency")
+                    ecgAlgorithmVersion = f.getString("ecg_algorithm_version")
+                    // Documented as a String (device vendor name) but an int in the schema, so
+                    // only numeric values are kept.
+                    ecgDataSources = f.getInt("ecg_data_sources")
+                    ecgDataLength = f.getInt("ecg_data_length")
+                    packageName = f.getString("package_name")
                     voltageData = f.subData.voltageData()
                 }.build()
             },

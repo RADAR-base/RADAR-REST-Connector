@@ -59,11 +59,17 @@ class FieldValues private constructor(private val values: Map<String, JsonNode>)
      * field whose casing Huawei's docs don't pin down unambiguously can list both spellings.
      */
 
-    fun getInt(vararg fields: String): Int? = scalar(fields)?.asInt()
+    fun getInt(vararg fields: String): Int? = number(fields)?.let {
+        if (it.isNumber) it.asInt() else it.asText().trim().toIntOrNull()
+    }
 
-    fun getLong(vararg fields: String): Long? = scalar(fields)?.asLong()
+    fun getLong(vararg fields: String): Long? = number(fields)?.let {
+        if (it.isNumber) it.asLong() else it.asText().trim().toLongOrNull()
+    }
 
-    fun getDouble(vararg fields: String): Double? = scalar(fields)?.asDouble()
+    fun getDouble(vararg fields: String): Double? = number(fields)?.let {
+        if (it.isNumber) it.asDouble() else it.asText().trim().toDoubleOrNull()
+    }
 
     fun getFloat(vararg fields: String): Float? = getDouble(*fields)?.toFloat()
 
@@ -100,8 +106,10 @@ class FieldValues private constructor(private val values: Map<String, JsonNode>)
     private fun lookup(fields: Array<out String>): JsonNode? =
         fields.firstNotNullOfOrNull { field -> values[field]?.takeUnless { it.isNull } }
 
-    private fun scalar(fields: Array<out String>): JsonNode? =
-        lookup(fields)?.takeIf { it.isValueNode }
+    /** Numeric or textual node; Jackson's `asInt()` etc. would turn anything else (and
+     * non-numeric text) into 0 rather than null. */
+    private fun number(fields: Array<out String>): JsonNode? =
+        lookup(fields)?.takeIf { it.isNumber || it.isTextual }
 
     companion object {
         private const val FIELD_NAME_KEY = "fieldName"

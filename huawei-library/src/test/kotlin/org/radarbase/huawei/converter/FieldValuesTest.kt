@@ -77,6 +77,24 @@ class FieldValuesTest {
     }
 
     @Test
+    fun `non-numeric text is null rather than zero for numeric getters`() {
+        val node = mapper.readTree(
+            """
+            [
+              {"fieldName": "vendor", "stringValue": "HUAWEI"},
+              {"fieldName": "count", "stringValue": " 42 "}
+            ]
+            """.trimIndent(),
+        )
+        val fields = FieldValues.from(node)
+
+        assertNull(fields.getInt("vendor"))
+        assertNull(fields.getDouble("vendor"))
+        assertEquals(42, fields.getInt("count"))
+        assertEquals(42L, fields.getLong("count"))
+    }
+
+    @Test
     fun `parses map-typed values`() {
         val node = mapper.readTree(
             """
