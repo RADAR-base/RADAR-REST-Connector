@@ -572,9 +572,8 @@ object HuaweiRouteFactory {
                     userSymptom = f.getLong("user_symptom")
                     samplingFrequency = f.getInt("sampling_frequency")
                     ecgAlgorithmVersion = f.getString("ecg_algorithm_version")
-                    // Documented as a String (device vendor name) but an int in the schema, so
-                    // only numeric values are kept.
-                    ecgDataSources = f.getInt("ecg_data_sources")
+                    // Name of the device vendor that provided the ECG data.
+                    ecgDataSources = f.getString("ecg_data_sources")
                     ecgDataLength = f.getInt("ecg_data_length")
                     packageName = f.getString("package_name")
                     voltageData = f.subData.voltageData()

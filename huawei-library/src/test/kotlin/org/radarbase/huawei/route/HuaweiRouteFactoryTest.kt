@@ -135,7 +135,7 @@ class HuaweiRouteFactoryTest {
         assertEquals(1022L, record.userSymptom)
         assertEquals(500, record.samplingFrequency)
         assertEquals("1.0", record.ecgAlgorithmVersion)
-        assertEquals(null, record.ecgDataSources)
+        assertEquals("HUAWEI", record.ecgDataSources)
         assertEquals(7500, record.ecgDataLength)
         assertEquals("com.huawei.health", record.packageName)
         assertEquals("0.1,0.2", record.voltageData)
