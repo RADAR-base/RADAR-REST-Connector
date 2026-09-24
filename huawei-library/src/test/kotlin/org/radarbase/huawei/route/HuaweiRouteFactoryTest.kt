@@ -191,7 +191,7 @@ class HuaweiRouteFactoryTest {
 
         private val LITERAL_FIELD_KEYS = listOf(
             "activeCalories", "activeCaloriesGoal", "activeHours", "activeHoursGoal",
-            "activity_type", "all_sleep_time", "arrhythmia_result", "arrhythmia_type",
+            "activity_type", "all_sleep_time",
             "ascent_total", "avg", "avg_body_fat_rate", "avg_heart_rate", "avgBreatheRate",
             "awake_time", "calories", "calories_total", "correlate_mealtime", "correlate_sleep",
             "count", "deep_sleep_part", "deep_sleep_time", "descent_total",
@@ -203,13 +203,13 @@ class HuaweiRouteFactoryTest {
             "light_sleep_time", "max", "max_body_fat_rate", "max_heart_rate", "maxBreatheRate",
             "maxBreathrateBaseline", "maxSpO2", "meal", "measure_count", "min", "min_body_fat_rate",
             "min_heart_rate", "minBreatheRate", "minBreathrateBaseline", "minSpO2", "off_bed_time",
-            "onOffBedState", "predictedCalories", "prepare_sleep_time", "record_id", "recordDay",
-            "remarks", "sample_source", "sampling_frequency", "saturation_avg", "saturation_last",
+            "onOffBedState", "predictedCalories", "prepare_sleep_time", "recordDay",
+            "remarks", "sample_source", "saturation_avg", "saturation_last",
             "saturation_max", "saturation_min", "sleep_efficiency", "sleep_latency", "sleep_score",
             "sleep_state", "sleep_type", "span", "sphygmus_avg", "sphygmus_last", "sphygmus_max",
             "sphygmus_min", "status", "steps", "steps_delta", "stepsGoal", "subStatus",
             "systolic_pressure_avg", "systolic_pressure_max", "systolic_pressure_min", "threshold",
-            "timeZone", "totalCalories", "type", "user_symptom", "value", "vo2max", "voltage_data",
+            "timeZone", "totalCalories", "type", "value", "vo2max",
             "voltage_datas", "wakeup_count", "wakeup_time",
         )
     }

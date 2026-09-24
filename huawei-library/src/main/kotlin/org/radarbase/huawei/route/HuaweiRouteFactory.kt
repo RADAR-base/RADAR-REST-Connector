@@ -524,15 +524,12 @@ object HuaweiRouteFactory {
                     time = start.toEpoch()
                     timeReceived = received.toEpoch()
                     endTime = end?.toEpoch()
-                    // The official "ECG" reference only documents "ecg_type" and "voltage_datas"
-                    // (a list, serialized here as JSON); the remaining keys are best-effort.
-                    ecgRecordId = f.getString("record_id")
-                    averageHeartRate = f.getInt("avg_heart_rate")
-                    ecgArrhythmiaType = f.getInt("arrhythmia_type")
-                    ecgArrhythmiaResult = f.getInt("arrhythmia_result")
-                    userSymptom = f.getString("user_symptom")
-                    samplingFrequency = f.getInt("sampling_frequency")
-                    voltageData = f.getString("voltage_datas", "voltage_data")
+                    // The official "ECG Measurement Details" reference documents only two fields:
+                    // "ecg_type" (int, mandatory; 1/6/12/18-lead), which this schema has no field
+                    // for yet, and "voltage_datas" (String; a JSON list is serialized as-is). The
+                    // schema's record ID, heart rate, arrhythmia, symptom and sampling frequency
+                    // fields are not part of this data type and are left null.
+                    voltageData = f.getString("voltage_datas")
                 }.build()
             },
         )
