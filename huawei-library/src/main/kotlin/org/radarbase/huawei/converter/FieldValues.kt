@@ -37,6 +37,23 @@ import com.fasterxml.jackson.databind.JsonNode
  */
 class FieldValues private constructor(private val values: Map<String, JsonNode>) {
 
+    /** Huawei's own ID of the record these fields belong to, where the endpoint returns one
+     * (e.g. `healthRecords`). */
+    var recordId: String? = null
+        private set
+
+    /** Field values of the associated detail sample points of a health record (its
+     * `subDataDetails`), in response order, when they were requested and returned. */
+    var subData: List<FieldValues> = emptyList()
+        private set
+
+    /** Copy of these field values with the given record-level context attached. */
+    fun withRecord(recordId: String?, subData: List<FieldValues>): FieldValues =
+        FieldValues(values).also {
+            it.recordId = recordId
+            it.subData = subData
+        }
+
     /*
      * Every accessor accepts one or more candidate keys and returns the first one present, so a
      * field whose casing Huawei's docs don't pin down unambiguously can list both spellings.

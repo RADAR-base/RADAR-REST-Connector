@@ -25,7 +25,8 @@ import java.time.Instant
 /**
  * Generic converter for `GET /healthkit/v2/healthRecords` responses: iterates every record
  * returned for the requested `dataType` and builds one Avro record per entry via
- * [buildRecord].
+ * [buildRecord]. The record's `id` and any associated detail sample points are exposed through
+ * [FieldValues.recordId] and [FieldValues.subData].
  *
  * @author yatharthranjan
  */
@@ -39,6 +40,16 @@ class HuaweiHealthRecordConverter(
     ) -> SpecificRecord,
 ) : HuaweiDataConverter {
 
+    /** Detail sample points returned with a record when `subDataType` was requested. The
+     * HealthRecord model nests them as sample sets; bare sample points are accepted too. */
+    private fun JsonNode.subDataPoints(): Sequence<JsonNode> {
+        val details = get("subDataDetails")?.takeIf { it.isArray } ?: return emptySequence()
+        return details.asSequence().flatMap { detail ->
+            detail.get("samplePoints")?.takeIf { it.isArray }?.asSequence()
+                ?: sequenceOf(detail)
+        }
+    }
+
     override fun processRecords(root: JsonNode, user: User): Sequence<Result<TopicData>> {
         val timeReceived = Instant.now()
         val records = root.get("healthRecords") ?: root.get("records") ?: return emptySequence()
@@ -49,6 +60,11 @@ class HuaweiHealthRecordConverter(
                 val endTime = record.epochInstant("endTime")
                 val fieldValues = FieldValues.from(
                     record.get("value") ?: record.get("fieldValues") ?: record.get("field"),
+                ).withRecord(
+                    recordId = record.get("id")?.takeIf { it.isTextual }?.asText(),
+                    subData = record.subDataPoints()
+                        .map { FieldValues.from(it.get("value") ?: it.get("fieldValues")) }
+                        .toList(),
                 )
                 TopicData(
                     topic = topic,

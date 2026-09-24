@@ -17,6 +17,7 @@
 
 package org.radarbase.huawei.route
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.avro.specific.SpecificRecord
 import org.radarbase.huawei.converter.FieldValues
 import org.radarcns.connector.huawei.HuaweiActiveHours
@@ -75,6 +76,7 @@ import java.time.Instant
 object HuaweiRouteFactory {
 
     private const val VENDOR_PREFIX = "com.huawei."
+    private val MAPPER = ObjectMapper()
 
     private fun Instant.toEpoch(): Double = toEpochMilli() / 1000.0
 
@@ -515,21 +517,34 @@ object HuaweiRouteFactory {
         )
 
         add(
-            sampleSetDefinition(
+            // Keeps its historical key/topic (matching the HuaweiContinuousEcgDetail schema), but
+            // is backed by the "ECG Measurement Records" health record type
+            // com.huawei.continuous.ecg_record: ECG measurement details
+            // (com.huawei.continuous.ecg_detail) are only open through health record queries, as
+            // the detail data associated with each record.
+            healthRecordDefinition(
                 "continuous_ecg_detail",
-                "continuous.ecg_detail",
+                "continuous.ecg_record",
                 "connect_huawei_continuous_ecg_detail",
+                subDataTypes = listOf(VENDOR_PREFIX + "continuous.ecg_detail"),
             ) { f, start, end, received ->
                 HuaweiContinuousEcgDetail.newBuilder().apply {
                     time = start.toEpoch()
                     timeReceived = received.toEpoch()
                     endTime = end?.toEpoch()
-                    // The official "ECG Measurement Details" reference documents only two fields:
-                    // "ecg_type" (int, mandatory; 1/6/12/18-lead), which this schema has no field
-                    // for yet, and "voltage_datas" (String; a JSON list is serialized as-is). The
-                    // schema's record ID, heart rate, arrhythmia, symptom and sampling frequency
-                    // fields are not part of this data type and are left null.
-                    voltageData = f.getString("voltage_datas")
+                    ecgRecordId = f.recordId
+                    // Documented as a float (bpm); the schema field is an int.
+                    averageHeartRate = f.getDouble("avg_heart_rate")?.let { Math.round(it).toInt() }
+                    // Bit flags (1: sinus rhythm, 2: atrial premature beats, ..., 128: poor
+                    // signals), documented as a long but only using the low 8 bits.
+                    ecgArrhythmiaType = f.getLong("ecg_arrhythmia_type")?.toInt()
+                    // ecgArrhythmiaResult has no counterpart among the documented ecg_record
+                    // fields and is left null.
+                    // Bit flags of user-selected symptoms, documented as a long; the schema field is
+                    // a string, so the decimal value is kept as-is.
+                    userSymptom = f.getLong("user_symptom")?.toString()
+                    samplingFrequency = f.getInt("sampling_frequency")
+                    voltageData = f.subData.voltageData()
                 }.build()
             },
         )
@@ -1103,10 +1118,25 @@ object HuaweiRouteFactory {
         }
     }
 
+    /**
+     * ECG voltage data of all measurement detail points associated with an ECG record: a single
+     * point's `voltage_datas` string as-is, or a JSON array of each point's value when there are
+     * several.
+     */
+    private fun List<FieldValues>.voltageData(): String? {
+        val segments = mapNotNull { it.getString("voltage_datas") }
+        return when (segments.size) {
+            0 -> null
+            1 -> segments.single()
+            else -> MAPPER.writeValueAsString(segments)
+        }
+    }
+
     private fun healthRecordDefinition(
         key: String,
         dataTypeName: String,
         defaultTopic: String,
+        subDataTypes: List<String> = emptyList(),
         buildRecord: (
             fields: FieldValues,
             startTime: Instant,
@@ -1118,6 +1148,7 @@ object HuaweiRouteFactory {
             userRepository = repo,
             dataTypeName = VENDOR_PREFIX + dataTypeName,
             topic = topic,
+            subDataTypes = subDataTypes,
             buildRecord = buildRecord,
         )
     }

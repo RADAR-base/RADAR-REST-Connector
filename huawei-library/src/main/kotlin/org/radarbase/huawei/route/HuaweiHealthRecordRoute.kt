@@ -30,7 +30,8 @@ import java.time.Instant
 /**
  * Route backed by `GET /healthkit/v2/healthRecords`, used for the `health.record.*` data types
  * (ambulatory blood pressure sessions, heart rate alerts, hyperthermia, low SpO2 alerts,
- * menstrual cycle phases, and comprehensive sleep records).
+ * menstrual cycle phases, and comprehensive sleep records) and other record-style types such as
+ * ECG measurement records, optionally with their associated detail data (`subDataType`).
  *
  * Per the official Health Kit REST API reference, this endpoint is on API version `v2` (unlike
  * `sampleSet:polymerize`/`activityRecords`, which are on `v1`), takes the data type under the
@@ -44,6 +45,8 @@ open class HuaweiHealthRecordRoute(
     userRepository: UserRepository,
     private val dataTypeName: String,
     private val topic: String,
+    /** Associated detail data types to return with each record (`subDataType`). */
+    private val subDataTypes: List<String> = emptyList(),
     maxIntervalPerRequest: Duration = Duration.ofDays(30L),
     buildRecord: (
         fields: FieldValues,
@@ -68,11 +71,17 @@ open class HuaweiHealthRecordRoute(
             request = createGetRequest(
                 user,
                 "healthRecords",
-                mapOf(
-                    "dataType" to dataTypeName,
-                    "startTime" to rangeStart.toEpochNanos().toString(),
-                    "endTime" to rangeEnd.toEpochNanos().toString(),
-                ),
+                buildMap {
+                    put("dataType", dataTypeName)
+                    put("startTime", rangeStart.toEpochNanos().toString())
+                    put("endTime", rangeEnd.toEpochNanos().toString())
+                    if (subDataTypes.isNotEmpty()) {
+                        put(
+                            "subDataType",
+                            subDataTypes.joinToString(","),
+                        )
+                    }
+                },
                 baseUrl = HUAWEI_API_BASE_URL_V2,
             ),
             user = user,

@@ -24,6 +24,7 @@ import org.apache.avro.Schema
 import org.radarbase.huawei.user.HuaweiUser
 import org.radarbase.huawei.user.User
 import org.radarbase.huawei.user.UserRepository
+import org.radarcns.connector.huawei.HuaweiContinuousEcgDetail
 import org.radarcns.connector.huawei.HuaweiHealthRecordDynamicBp
 import java.time.Instant
 import kotlin.test.Test
@@ -90,6 +91,45 @@ class HuaweiRouteFactoryTest {
         }
 
         assertTrue(failures.isEmpty(), "Failures:\n" + failures.joinToString("\n"))
+    }
+
+    @Test
+    fun `ECG route reads record id, record fields and associated voltage data`() {
+        val definition = HuaweiRouteFactory.definitions.single { it.key == "continuous_ecg_detail" }
+        val route = definition.build(fakeUserRepository, definition.defaultTopic)
+        val payload = mapper.readTree(
+            """
+            {"healthRecords": [{
+              "startTime": $START_NANOS, "endTime": $END_NANOS,
+              "dataTypeName": "com.huawei.continuous.ecg_record",
+              "id": "ecg-1",
+              "value": [
+                {"fieldName": "ecg_type", "integerValue": 1},
+                {"fieldName": "avg_heart_rate", "floatValue": 75.6},
+                {"fieldName": "ecg_arrhythmia_type", "longValue": 8},
+                {"fieldName": "user_symptom", "longValue": 1022},
+                {"fieldName": "sampling_frequency", "integerValue": 500}
+              ],
+              "subDataDetails": [{
+                "dataTypeName": "com.huawei.continuous.ecg_detail",
+                "samplePoints": [
+                  {"startTime": $START_NANOS, "value": [
+                    {"fieldName": "voltage_datas", "stringValue": "0.1,0.2"}]}
+                ]
+              }]
+            }]}
+            """.trimIndent(),
+        )
+
+        val record = route.converters.single().processRecords(payload, fakeUser)
+            .single().getOrThrow().value as HuaweiContinuousEcgDetail
+
+        assertEquals("ecg-1", record.ecgRecordId)
+        assertEquals(76, record.averageHeartRate)
+        assertEquals(8, record.ecgArrhythmiaType)
+        assertEquals("1022", record.userSymptom)
+        assertEquals(500, record.samplingFrequency)
+        assertEquals("0.1,0.2", record.voltageData)
     }
 
     private fun fixtureFor(route: HuaweiRoute) = when (route) {
@@ -191,26 +231,25 @@ class HuaweiRouteFactoryTest {
 
         private val LITERAL_FIELD_KEYS = listOf(
             "activeCalories", "activeCaloriesGoal", "activeHours", "activeHoursGoal",
-            "activity_type", "all_sleep_time",
-            "ascent_total", "avg", "avg_body_fat_rate", "avg_heart_rate", "avgBreatheRate",
-            "awake_time", "calories", "calories_total", "correlate_mealtime", "correlate_sleep",
-            "count", "deep_sleep_part", "deep_sleep_time", "descent_total",
-            "diastolic_pressure_avg", "diastolic_pressure_max", "diastolic_pressure_min",
-            "distance", "distance_delta", "dream_time", "duration", "emotionStatus", "eventName",
-            "exercise_type", "exerciseTime", "exerciseTimeGoal", "extendData", "fall_asleep_time",
-            "fragments", "go_bed_time", "heartRateVariabilityRMSSD",
-            "highBodyTemperatureAlarm", "intensity", "isActive", "last", "level",
-            "light_sleep_time", "max", "max_body_fat_rate", "max_heart_rate", "maxBreatheRate",
-            "maxBreathrateBaseline", "maxSpO2", "meal", "measure_count", "min", "min_body_fat_rate",
-            "min_heart_rate", "minBreatheRate", "minBreathrateBaseline", "minSpO2", "off_bed_time",
-            "onOffBedState", "predictedCalories", "prepare_sleep_time", "recordDay",
-            "remarks", "sample_source", "saturation_avg", "saturation_last",
-            "saturation_max", "saturation_min", "sleep_efficiency", "sleep_latency", "sleep_score",
-            "sleep_state", "sleep_type", "span", "sphygmus_avg", "sphygmus_last", "sphygmus_max",
-            "sphygmus_min", "status", "steps", "steps_delta", "stepsGoal", "subStatus",
-            "systolic_pressure_avg", "systolic_pressure_max", "systolic_pressure_min", "threshold",
-            "timeZone", "totalCalories", "type", "value", "vo2max",
-            "voltage_datas", "wakeup_count", "wakeup_time",
+            "activity_type", "all_sleep_time", "ascent_total", "avg", "avg_body_fat_rate",
+            "avg_heart_rate", "avgBreatheRate", "awake_time", "calories", "calories_total",
+            "correlate_mealtime", "correlate_sleep", "count", "deep_sleep_part", "deep_sleep_time",
+            "descent_total", "diastolic_pressure_avg", "diastolic_pressure_max",
+            "diastolic_pressure_min", "distance", "distance_delta", "dream_time", "duration",
+            "ecg_arrhythmia_type", "emotionStatus", "eventName", "exercise_type", "exerciseTime",
+            "exerciseTimeGoal", "extendData", "fall_asleep_time", "fragments", "go_bed_time",
+            "heartRateVariabilityRMSSD", "highBodyTemperatureAlarm", "intensity", "isActive",
+            "last", "level", "light_sleep_time", "max", "max_body_fat_rate", "max_heart_rate",
+            "maxBreatheRate", "maxBreathrateBaseline", "maxSpO2", "meal", "measure_count", "min",
+            "min_body_fat_rate", "min_heart_rate", "minBreatheRate", "minBreathrateBaseline",
+            "minSpO2", "off_bed_time", "onOffBedState", "predictedCalories", "prepare_sleep_time",
+            "recordDay", "remarks", "sample_source", "sampling_frequency", "saturation_avg",
+            "saturation_last", "saturation_max", "saturation_min", "sleep_efficiency",
+            "sleep_latency", "sleep_score", "sleep_state", "sleep_type", "span", "sphygmus_avg",
+            "sphygmus_last", "sphygmus_max", "sphygmus_min", "status", "steps", "steps_delta",
+            "stepsGoal", "subStatus", "systolic_pressure_avg", "systolic_pressure_max",
+            "systolic_pressure_min", "threshold", "timeZone", "totalCalories", "type",
+            "user_symptom", "value", "vo2max", "voltage_datas", "wakeup_count", "wakeup_time",
         )
     }
 }
