@@ -198,7 +198,7 @@ class HuaweiRouteFactoryTest {
             "diastolic_pressure_avg", "diastolic_pressure_max", "diastolic_pressure_min",
             "distance", "distance_delta", "dream_time", "duration", "emotionStatus", "eventName",
             "exercise_type", "exerciseTime", "exerciseTimeGoal", "extendData", "fall_asleep_time",
-            "fragments", "go_bed_time", "heartRateVariabilityRMSSD", "heartRateVariabilityRmssd",
+            "fragments", "go_bed_time", "heartRateVariabilityRMSSD",
             "highBodyTemperatureAlarm", "intensity", "isActive", "last", "level",
             "light_sleep_time", "max", "max_body_fat_rate", "max_heart_rate", "maxBreatheRate",
             "maxBreathrateBaseline", "maxSpO2", "meal", "measure_count", "min", "min_body_fat_rate",

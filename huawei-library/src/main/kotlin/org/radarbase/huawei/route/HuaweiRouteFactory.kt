@@ -786,12 +786,9 @@ object HuaweiRouteFactory {
                 HuaweiHeartRateVariability.newBuilder().apply {
                     time = start.toEpoch()
                     timeReceived = received.toEpoch()
-                    // The official reference's field column is truncated to "...tRateVariabilityRMSSD";
-                    // the doc's value range is (0, 200] ms, so fractional values are truncated.
-                    heartRateVariabilityRmssd = f.getInt(
-                        "heartRateVariabilityRMSSD",
-                        "heartRateVariabilityRmssd",
-                    )
+                    // int, milliseconds, (0, 200], per the official "Heart Rate Variability"
+                    // reference.
+                    heartRateVariabilityRmssd = f.getInt("heartRateVariabilityRMSSD")
                 }.build()
             },
         )
