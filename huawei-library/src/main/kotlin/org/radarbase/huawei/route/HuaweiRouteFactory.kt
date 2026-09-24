@@ -53,6 +53,7 @@ import org.radarcns.connector.huawei.HuaweiSleepOnOffBedRecord
 import org.radarcns.connector.huawei.HuaweiSleepRespiratoryDetail
 import org.radarcns.connector.huawei.HuaweiSleepRespiratoryEvent
 import org.radarcns.connector.huawei.HuaweiStatistics
+import org.radarcns.connector.huawei.HuaweiTemperature
 import org.radarcns.connector.huawei.HuaweiVo2Max
 import java.time.Instant
 
@@ -447,6 +448,23 @@ object HuaweiRouteFactory {
                 }.build()
             },
         )
+
+        // Individual temperature readings (both share the HuaweiTemperature schema), per the
+        // official "Body Temperature" reference: a single float "temperature" field (°C).
+        listOf(
+            "instantaneous_body_temperature" to "instantaneous.body.temperature",
+            "instantaneous_skin_temperature" to "instantaneous.skin.temperature",
+        ).forEach { (key, dataType) ->
+            add(
+                sampleSetDefinition(key, dataType, "connect_huawei_$key") { f, start, _, received ->
+                    HuaweiTemperature.newBuilder().apply {
+                        time = start.toEpoch()
+                        timeReceived = received.toEpoch()
+                        temperature = f.getFloat("temperature")
+                    }.build()
+                },
+            )
+        }
 
         add(
             sampleSetDefinition(
