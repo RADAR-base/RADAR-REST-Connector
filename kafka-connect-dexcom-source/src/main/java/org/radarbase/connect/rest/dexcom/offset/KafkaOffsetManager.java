@@ -16,9 +16,6 @@
 
 package org.radarbase.connect.rest.dexcom.offset;
 
-import static java.time.temporal.ChronoUnit.NANOS;
-
-import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
@@ -38,7 +35,6 @@ public class KafkaOffsetManager implements DexcomOffsetManager {
   private static final Logger logger = LoggerFactory.getLogger(KafkaOffsetManager.class);
 
   String TIMESTAMP_OFFSET_KEY = "timestamp";
-  protected static final Duration ONE_NANO = NANOS.getDuration();
 
   public KafkaOffsetManager(OffsetStorageReader offsetStorageReader) {
     this.offsetStorageReader = offsetStorageReader;
@@ -63,8 +59,10 @@ public class KafkaOffsetManager implements DexcomOffsetManager {
 
   @Override
   public Offset getOffset(Route route, User user) {
-    Instant offset =
-        offsets.getOrDefault(getOffsetKey(route, user), user.getStartDate().minus(ONE_NANO));
+    Instant offset = offsets.get(getOffsetKey(route, user));
+    if (offset == null) {
+      return null;
+    }
     return new Offset(user, route, offset);
   }
 

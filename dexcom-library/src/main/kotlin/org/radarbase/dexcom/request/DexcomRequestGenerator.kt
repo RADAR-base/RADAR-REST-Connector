@@ -6,6 +6,11 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import okhttp3.Response
 import okhttp3.ResponseBody
 import org.radarbase.dexcom.converter.TopicData
+import org.radarbase.dexcom.route.DexcomAlertsRoute
+import org.radarbase.dexcom.route.DexcomCalibrationsRoute
+import org.radarbase.dexcom.route.DexcomEGVRoute
+import org.radarbase.dexcom.route.DexcomEventsRoute
+import org.radarbase.dexcom.route.DexcomRoute
 import org.radarbase.dexcom.route.DexcomRouteFactory
 import org.radarbase.dexcom.route.Route
 import org.radarbase.dexcom.user.User
@@ -24,6 +29,11 @@ constructor(
     private val defaultQueryRange: Duration = Duration.ofDays(15),
 ) : RequestGenerator {
     private val routeNextRequest: MutableMap<String, Instant> = mutableMapOf()
+    private val dataRangeCache = DexcomDataRangeCache(
+        userRepository,
+        routes.filterIsInstance<DexcomRoute>().firstOrNull()?.apiBaseUrl
+            ?: DexcomRoute.DEFAULT_API_BASE_URL,
+    )
 
     var nextRequestTime: Instant = Instant.MIN
 
@@ -94,9 +104,47 @@ constructor(
         user: User,
     ): Sequence<RestRequest> {
         val offset = dexcomOffsetManager.getOffset(route, user)
-        val startDate = user.startDate
-        val startOffset: Instant =
+        val endNow = user.endDate?.coerceAtMost(Instant.now()) ?: Instant.now()
+        val startOffset: Instant
+        val endDate: Instant
+        if (route.usesDataRangeWindow()) {
             if (offset == null) {
+                val window = try {
+                    dataRangeCache.windowFor(user, route)
+                } catch (ex: IOException) {
+                    logger.warn(
+                        "Failed to fetch dataRange for {}: {}",
+                        user.versionedId,
+                        ex.toString(),
+                    )
+                    routeNextRequest[routeKey(route, user)] = Instant.now().plus(BACK_OFF_TIME)
+                    return emptySequence()
+                }
+                if (window == null) {
+                    logger.info(
+                        "Skip {} for {}: no dataRange window",
+                        route,
+                        user.versionedId,
+                    )
+                    routeNextRequest[routeKey(route, user)] = Instant.now().plus(BACK_OFF_TIME)
+                    return emptySequence()
+                }
+                logger.info(
+                    "No offsets found for {} {}, using dataRange start {}",
+                    route,
+                    user.versionedId,
+                    window.start,
+                )
+                startOffset = window.start
+                endDate = minOf(endNow, window.end)
+            } else {
+                logger.info("Offsets found in persistence: ${offset.offset}")
+                startOffset = offset.offset
+                endDate = endNow
+            }
+        } else {
+            val startDate = user.startDate
+            startOffset = if (offset == null) {
                 logger.info("No offsets found for $user, using the start date.")
                 startDate
             } else {
@@ -104,7 +152,8 @@ constructor(
                 logger.info("Offsets found in persistence: $offsetTime")
                 offsetTime.coerceAtLeast(startDate)
             }
-        val endDate = user.endDate?.coerceAtMost(Instant.now()) ?: Instant.now()
+            endDate = endNow
+        }
         if (!startOffset.isBefore(endDate)) {
             val userEnd = user.endDate
             if (userEnd != null && endDate == userEnd &&
@@ -128,7 +177,7 @@ constructor(
                 startOffset,
                 endDate,
                 offset?.offset,
-                startDate,
+                user.startDate,
             )
             return emptySequence()
         }
@@ -179,7 +228,9 @@ constructor(
                 request.user,
                 nextOffset,
             )
-            val nextRequestTime = Instant.now().plus(SUCCESS_BACK_OFF_TIME)
+            val nextRequestTime = Instant.now().plus(
+                if (request.route is DexcomEGVRoute) EGV_POLL_INTERVAL else SUCCESS_BACK_OFF_TIME,
+            )
             val key = routeKey(request.route, request.user)
             routeNextRequest[key] =
                 routeNextRequest[key]?.let { if (it > nextRequestTime) it else nextRequestTime }
@@ -288,13 +339,24 @@ constructor(
 
     private fun routeKey(route: Route, user: User): String = user.versionedId + "#" + route
 
+    private fun Route.usesDataRangeWindow(): Boolean =
+        this is DexcomEGVRoute ||
+            this is DexcomEventsRoute ||
+            this is DexcomCalibrationsRoute ||
+            this is DexcomAlertsRoute
+
     companion object {
         private val logger = LoggerFactory.getLogger(DexcomRequestGenerator::class.java)
         private val BACK_OFF_TIME = Duration.ofMinutes(10L)
         private val TIME_AFTER_REQUEST = Duration.ofDays(30)
         private val USER_BACK_OFF_TIME = Duration.ofHours(12L)
         private val SUCCESS_BACK_OFF_TIME = Duration.ofSeconds(10L)
-        private val OFFSET_BUFFER = Duration.ofHours(12)
+
+        /** How long to wait after a successful EGV fetch before polling EGV again. */
+        private val EGV_POLL_INTERVAL = Duration.ofHours(12)
+
+        /** Nudge the persisted cursor past the last record so the next window does not overlap. */
+        private val OFFSET_BUFFER = Duration.ofMinutes(1)
         private val USER_MAX_REQUESTS = 1000
         private val HISTORICAL_DATA_THRESHOLD = Duration.ofDays(365L)
         private val HISTORICAL_QUERY_RANGE = Duration.ofDays(365L)
