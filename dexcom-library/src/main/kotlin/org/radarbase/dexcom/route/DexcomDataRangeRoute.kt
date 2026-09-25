@@ -25,7 +25,7 @@ class DexcomDataRangeRoute(
         start: Instant,
         end: Instant,
     ): Sequence<RestRequest> {
-        val request = createRequest(user, "$dataRangeApiBaseUrl/${subPath()}", "")
+        val request = createRequest(user, "$apiBaseUrl/${subPath()}", "")
         return sequenceOf(RestRequest(request, user, this, start, end))
     }
 
