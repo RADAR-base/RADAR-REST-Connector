@@ -39,7 +39,14 @@ class DexcomDataRangeCache(
     private fun rangesFor(user: User): UserDataRange {
         cache[user.versionedId]?.let { return it }
         val fetched = fetch(user)
-        cache[user.versionedId] = fetched
+        if (fetched.hasAnyWindow()) {
+            cache[user.versionedId] = fetched
+        } else {
+            logger.warn(
+                "dataRange for {} has no parseable egv, event, or calibration window",
+                user.versionedId,
+            )
+        }
         return fetched
     }
 
@@ -70,6 +77,9 @@ class DexcomDataRangeCache(
         val events: DexcomTimeWindow?,
         val calibrations: DexcomTimeWindow?,
     ) {
+        fun hasAnyWindow(): Boolean =
+            egvs != null || events != null || calibrations != null
+
         fun windowFor(route: Route): DexcomTimeWindow? =
             when (route) {
                 is DexcomEGVRoute -> egvs
