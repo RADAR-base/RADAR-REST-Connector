@@ -13,6 +13,7 @@ import java.time.format.DateTimeFormatter
 
 abstract class DexcomRoute(
     private val userRepository: UserRepository,
+    internal val apiBaseUrl: String = DEFAULT_API_BASE_URL,
     override val maxIntervalPerRequest: Duration = DEFAULT_INTERVAL_PER_REQUEST,
 ) : Route {
     abstract val converters: List<DexcomDataConverter>
@@ -33,7 +34,7 @@ abstract class DexcomRoute(
     ): Sequence<RestRequest> {
         val request = createRequest(
             user,
-            "$DEXCOM_API_BASE_URL/${subPath()}",
+            "$apiBaseUrl/${subPath()}",
             "?startDate=${start.toDexcomDate()}&endDate=${end.toDexcomDate()}",
         )
         return sequenceOf(RestRequest(request, user, this, start, end))
@@ -52,7 +53,7 @@ abstract class DexcomRoute(
                 val endRange = (startRange + maxIntervalPerRequest).coerceAtMost(end)
                 val request = createRequest(
                     user,
-                    "$DEXCOM_API_BASE_URL/${subPath()}",
+                    "$apiBaseUrl/${subPath()}",
                     "?startDate=${startRange.toDexcomDate()}&endDate=${endRange.toDexcomDate()}",
                 )
                 RestRequest(request, user, this, startRange, endRange)
@@ -65,7 +66,8 @@ abstract class DexcomRoute(
         LocalDateTime.ofInstant(this, ZoneOffset.UTC).format(DEXCOM_DATE_FORMAT)
 
     companion object {
-        const val DEXCOM_API_BASE_URL = "https://api.dexcom.com/v3/users/self"
+        const val DEFAULT_API_BASE_URL = "https://api.dexcom.com/v3/users/self"
+        const val SANDBOX_API_BASE_URL = "https://sandbox-api.dexcom.com/v3/users/self"
         private val DEXCOM_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
         private val DEFAULT_INTERVAL_PER_REQUEST = Duration.ofDays(30L)
     }
