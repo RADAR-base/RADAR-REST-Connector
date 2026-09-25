@@ -182,12 +182,13 @@ constructor(
             return emptySequence()
         }
         val timeSinceStart = Duration.between(startOffset, Instant.now())
-        return if (timeSinceStart > HISTORICAL_DATA_THRESHOLD) {
-            val endTime = (startOffset + HISTORICAL_QUERY_RANGE).coerceAtMost(endDate)
-            route.generateRequests(user, startOffset, endTime)
+        val queryEnd = if (timeSinceStart > HISTORICAL_DATA_THRESHOLD) {
+            (startOffset + HISTORICAL_QUERY_RANGE).coerceAtMost(endDate)
         } else {
-            route.generateRequests(user, startOffset, endDate, USER_MAX_REQUESTS)
+            endDate
         }
+        // Dexcom rejects a single call longer than maxIntervalPerRequest (30 days).
+        return route.generateRequests(user, startOffset, queryEnd, USER_MAX_REQUESTS)
     }
 
     fun handleResponse(
@@ -352,10 +353,8 @@ constructor(
         private val USER_BACK_OFF_TIME = Duration.ofHours(12L)
         private val SUCCESS_BACK_OFF_TIME = Duration.ofSeconds(10L)
 
-        /** How long to wait after a successful EGV fetch before polling EGV again. */
-        private val EGV_POLL_INTERVAL = Duration.ofHours(12)
+        private val EGV_POLL_INTERVAL = Duration.ofMinutes(5)
 
-        /** Nudge the persisted cursor past the last record so the next window does not overlap. */
         private val OFFSET_BUFFER = Duration.ofMinutes(1)
         private val USER_MAX_REQUESTS = 1000
         private val HISTORICAL_DATA_THRESHOLD = Duration.ofDays(365L)
