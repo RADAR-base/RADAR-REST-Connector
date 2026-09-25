@@ -225,6 +225,18 @@ configuration conventions as the Fitbit and Oura connectors above, plus one
 `org.radarbase.huawei.route.HuaweiRouteFactory` for the full list of `<data-type>` keys and their
 default topic names, and `docker/source-huawei.properties.template` for a minimal example.
 
+To inspect raw Huawei API responses for every data type the connector queries, run
+`scripts/huawei-api-probe.sh`. It sends the connector's exact request for each route and saves
+the responses to `huawei-responses/<route>.json`. It can refresh the access token first:
+
+```shell
+HUAWEI_CLIENT_ID=<app id> HUAWEI_CLIENT_SECRET=<app secret> \
+USER_FILE=docker/users/test.yml DAYS=30 ./scripts/huawei-api-probe.sh
+```
+
+Run it from a machine in the same Huawei site (region) as the user's account; requests from
+elsewhere are rejected with error `121001 "request forbidden due to site cross"`.
+
 This connector requires a
 [published `radar-schemas-commons` build containing the `huawei_schemas` branch](https://github.com/RADAR-base/RADAR-Schemas/tree/huawei_schemas)
 (currently `0.9.0-SNAPSHOT`) to be resolvable from one of the repositories declared in
