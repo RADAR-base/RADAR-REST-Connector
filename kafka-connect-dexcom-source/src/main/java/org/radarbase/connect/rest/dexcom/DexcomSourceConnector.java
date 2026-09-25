@@ -127,7 +127,7 @@ public class DexcomSourceConnector extends AbstractRestSourceConnector {
                   })
               .collect(Collectors.toList());
       this.configuredUsers = SequencesKt.toSet(dexcomConfig.getUserRepository().stream());
-      logger.info("Received userTask Configs {}", userTasks);
+      logger.info("Configured {} tasks for {} users", userTasks.size(), configuredUsers.size());
       return userTasks;
     } catch (Exception ex) {
       throw new ConfigException("Cannot read users", ex);
