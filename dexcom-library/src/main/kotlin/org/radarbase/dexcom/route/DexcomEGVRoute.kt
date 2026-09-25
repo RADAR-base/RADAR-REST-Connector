@@ -6,7 +6,8 @@ import org.radarbase.dexcom.user.UserRepository
 
 class DexcomEGVRoute(
     userRepository: UserRepository,
-) : DexcomRoute(userRepository) {
+    apiBaseUrl: String = DEFAULT_API_BASE_URL,
+) : DexcomRoute(userRepository, apiBaseUrl) {
     override fun subPath(): String = "egvs"
 
     override fun toString(): String = "dexcom_egv"
