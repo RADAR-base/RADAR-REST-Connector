@@ -115,7 +115,12 @@ call() {  # key method url [json body]
     -H "Authorization: Bearer $HUAWEI_TOKEN" -H 'Content-Type: application/json;charset=UTF-8')
   [ -n "$body" ] && args+=(--data "$body")
   local status; status=$(curl "${args[@]}" || echo "curl-failed")
-  printf '%-45s %s\n' "$key" "$status"
+  if [ "$status" = 200 ]; then
+    printf '%-45s %s\n' "$key" "$status"
+  else
+    # Error bodies contain no health data; show them inline for easy sharing.
+    printf '%-45s %s %s\n' "$key" "$status" "$(head -c 300 "$OUT_DIR/$key.json" 2>/dev/null | tr -d '\n')"
+  fi
   sleep 1  # stay well clear of rate limits
 }
 
