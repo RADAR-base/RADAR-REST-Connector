@@ -134,6 +134,11 @@ class HuaweiRequestGenerator(
     }
 
     fun handleResponse(req: RestRequest, response: Response): HuaweiResult<List<TopicData>> {
+        if (response.code == 400 && response.peekBody(PEEK_BYTES).string().contains(NO_COLLECTOR)) {
+            // Huawei's way of saying the user has no data source (so no data) for this type.
+            logger.debug("No data source of {} for {}", req.route, req.user.versionedId)
+            return HuaweiResult.Success(recordsReceived(req, MissingNode.getInstance()))
+        }
         return if (response.isSuccessful) {
             try {
                 HuaweiResult.Success(requestSuccessful(req, response))
@@ -164,13 +169,17 @@ class HuaweiRequestGenerator(
      */
     override fun requestSuccessful(request: RestRequest, response: Response): List<TopicData> {
         logger.debug("Request successful: {}..", request.request)
-        val now = Instant.now()
         val data = response.body?.bytes() ?: ByteArray(0)
         val root: JsonNode = if (data.isEmpty()) {
             MissingNode.getInstance()
         } else {
             JSON_READER.readTree(data) ?: MissingNode.getInstance()
         }
+        return recordsReceived(request, root)
+    }
+
+    private fun recordsReceived(request: RestRequest, root: JsonNode): List<TopicData> {
+        val now = Instant.now()
         val currentOffset = currentOffset(request.route, request.user)
         val records = request.route.converters
             .flatMap { it.convert(request, root) }
@@ -255,7 +264,13 @@ class HuaweiRequestGenerator(
             400 -> {
                 val body = response.body?.string() ?: "no response body"
                 logger.warn("Client exception for request {}: {}", request, body)
-                backOff(request.route, request.user, BACK_OFF_TIME)
+                // An unknown data type name won't become valid by retrying soon.
+                val permanent = body.contains(INVALID_DATA_TYPE)
+                backOff(
+                    request.route,
+                    request.user,
+                    if (permanent) USER_BACK_OFF_TIME else BACK_OFF_TIME,
+                )
                 HuaweiClientException(
                     "Client unsupported or unauthorized: $body",
                     IOException("Invalid client"),
@@ -324,6 +339,9 @@ class HuaweiRequestGenerator(
         /** How long after the fact Huawei data may still be synced to the cloud. */
         private val LATE_SYNC_WINDOW = Duration.ofDays(7L)
         private const val USER_MAX_REQUESTS = 1000
+        private const val PEEK_BYTES = 64L * 1024L
+        private const val NO_COLLECTOR = "no default dataCollector found"
+        private const val INVALID_DATA_TYPE = "Invalid dataTypeName"
         val JSON_FACTORY = JsonFactory()
         val JSON_READER = ObjectMapper(JSON_FACTORY).registerModule(JavaTimeModule()).reader()
     }

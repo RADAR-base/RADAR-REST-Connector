@@ -190,6 +190,19 @@ class HuaweiRequestGeneratorTest {
     }
 
     @Test
+    fun `no data collector error is treated as an empty response`() {
+        val start = Instant.parse("2024-01-01T00:00:00Z")
+        val end = Instant.parse("2024-01-31T00:00:00Z")
+        val req = request(route, start, end)
+        val body = """{"error":{"code":400,"message":"no default dataCollector found for: x."}}"""
+
+        val result = generator.handleResponse(req, response(req, 400, body))
+
+        assertTrue(result is HuaweiResult.Success)
+        assertEquals(end, offsets[route.toString()])
+    }
+
+    @Test
     fun `401 invalidates the cached access token`() {
         val req = request(route, user.startDate, user.startDate.plus(Duration.ofDays(1)))
 

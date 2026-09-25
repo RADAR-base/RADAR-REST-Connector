@@ -149,11 +149,19 @@ object HuaweiRouteFactory {
     )
 
     /**
-     * Keys of [genericStatisticsTypes] absent from Huawei's data type references (the official
-     * "Body Temperature" reference only defines body and skin temperature, with no resting
-     * variant), so disabled unless explicitly enabled.
+     * Keys of [genericStatisticsTypes] whose data type Huawei rejected live with
+     * "Invalid dataTypeName" (none appears in Huawei's data type references either), so disabled
+     * unless explicitly enabled.
      */
-    private val undocumentedStatisticsTypes = setOf("continuous_body_temperature_rest_statistics")
+    private val undocumentedStatisticsTypes = setOf(
+        "continuous_body_temperature_rest_statistics",
+        "continuous_calories_bmr_statistics",
+        "continuous_exercise_heart_rate_statistics",
+        "continuous_power_statistics",
+        "continuous_speed_statistics",
+        "continuous_steps_rate_statistics",
+        "continuous_stroke_rate_statistics",
+    )
 
     /** Full registry of Huawei Health Kit data types supported by this connector. */
     val definitions: List<HuaweiRouteDefinition> = buildList {
@@ -259,6 +267,8 @@ object HuaweiRouteFactory {
                 "continuous_activity_statistics",
                 "continuous.activity.statistics",
                 "connect_huawei_continuous_activity_statistics",
+                // Rejected live with "Invalid dataTypeName" for com.huawei.continuous.activity.
+                enabledByDefault = false,
             ) { f, start, end, received ->
                 f.toContinuousActivityStatistics(start, end, received)
             },
