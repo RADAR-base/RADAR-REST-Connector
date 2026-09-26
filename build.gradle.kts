@@ -64,6 +64,12 @@ subprojects {
                 add("implementation", rootProject.libs.commons.lang3) {
                     because("Force safe version of commons-lang3 across all modules")
                 }
+                add("implementation", rootProject.libs.httpcore5) {
+                    because("CVE-2026-54399: firebase-admin pulls in a vulnerable httpcore5")
+                }
+                add("implementation", rootProject.libs.httpcore5.h2) {
+                    because("CVE-2026-54428: firebase-admin pulls in a vulnerable httpcore5-h2")
+                }
             }
         }
     }
