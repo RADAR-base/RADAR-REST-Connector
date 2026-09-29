@@ -120,23 +120,14 @@ constructor(
                     routeNextRequest[routeKey(route, user)] = Instant.now().plus(BACK_OFF_TIME)
                     return emptySequence()
                 }
-                if (window == null) {
-                    logger.info(
-                        "Skip {} for {}: no dataRange window",
-                        route,
-                        user.versionedId,
-                    )
-                    routeNextRequest[routeKey(route, user)] = Instant.now().plus(BACK_OFF_TIME)
-                    return emptySequence()
-                }
+                startOffset = window?.start?.coerceAtLeast(user.startDate) ?: user.startDate
+                endDate = endNow
                 logger.info(
-                    "No offsets found for {} {}, using dataRange start {}",
+                    "No offsets found for {} {}, using start {}",
                     route,
                     user.versionedId,
-                    window.start,
+                    startOffset,
                 )
-                startOffset = window.start
-                endDate = minOf(endNow, window.end)
             } else {
                 logger.info("Offsets found in persistence: ${offset.offset}")
                 startOffset = offset.offset
