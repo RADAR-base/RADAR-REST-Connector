@@ -1,0 +1,49 @@
+
+group = 'org.radarbase'
+version = '0.0.1'
+
+apply plugin: 'maven-publish'
+
+repositories {
+    // Use jcenter for resolving dependencies.
+    // You can declare any Maven/Ivy/file repository here.
+    mavenCentral()
+}
+
+dependencies {
+    // Use the Kotlin JDK 8 standard library.
+    implementation libs.kotlin.stdlib
+
+    implementation libs.okhttp
+
+    implementation libs.radar.schemas.commons
+
+    implementation libs.jackson.annotations
+
+    implementation libs.jackson.databind
+
+    implementation libs.avro
+
+    implementation libs.jackson.datatype.jsr310
+
+    implementation libs.slf4j.api
+
+    // Use the Kotlin test library.
+    testImplementation libs.kotlin.test
+
+    // Use the Kotlin JUnit integration.
+    testImplementation libs.kotlin.test.junit
+}
+
+project.afterEvaluate {
+    publishing {
+        publications {
+            library(MavenPublication) {
+                setGroupId "$group"
+                setArtifactId "dexcom-library"
+                version "$version"
+                from components.java
+            }
+        }
+    }
+}
