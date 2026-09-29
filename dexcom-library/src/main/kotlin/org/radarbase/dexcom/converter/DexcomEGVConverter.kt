@@ -9,7 +9,9 @@ import org.radarcns.connector.dexcom.DexcomEgvTrend
 import org.radarcns.connector.dexcom.DexcomTransmitterGeneration
 import org.radarcns.connector.dexcom.DexcomTransmitterGenerationVariant
 import java.time.Instant
+import java.time.LocalDateTime
 import java.time.OffsetDateTime
+import java.time.ZoneOffset
 import java.time.format.DateTimeParseException
 
 class DexcomEGVConverter(
@@ -126,7 +128,11 @@ class DexcomEGVConverter(
             return try {
                 OffsetDateTime.parse(value).toInstant()
             } catch (_: DateTimeParseException) {
-                Instant.parse(value)
+                try {
+                    Instant.parse(value)
+                } catch (_: DateTimeParseException) {
+                    LocalDateTime.parse(value).toInstant(ZoneOffset.UTC)
+                }
             }
         }
     }
