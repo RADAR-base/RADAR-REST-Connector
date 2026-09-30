@@ -1,0 +1,24 @@
+---
+# Unique user key
+id: test
+# Project ID to be used in org.radarcns.kafka.ObservationKey record keys
+projectId: radar-test
+# User ID to be used in org.radarcns.kafka.ObservationKey record keys
+userId: test
+# Source ID to be used in org.radarcns.kafka.ObservationKey record keys
+sourceId: huawei-watch
+# Date from when to collect data.
+startDate: 2018-08-06T00:00:00Z
+# Date until when to collect data.
+endDate: 2099-01-01T00:00:00Z
+# Huawei user ID as returned by the Huawei OAuth 2.0 authentication procedure
+externalUserId: ?
+oauth2:
+  # Huawei Health Kit OAuth 2.0 access token as returned by the Huawei authentication procedure
+  accessToken: ?
+  # Huawei Health Kit OAuth 2.0 refresh token as returned by the Huawei authentication procedure
+  refreshToken: ?
+  # Optional expiry time of the access token. If absent, it will be estimated to one hour
+  # when the source connector starts. When an authentication error occurs, a new access token will
+  # be fetched regardless of the value in this field.
+  #expiresAt: 2018-08-06T00:00:00Z
