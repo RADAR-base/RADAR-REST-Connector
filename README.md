@@ -237,10 +237,8 @@ USER_FILE=docker/users/test.yml DAYS=30 ./scripts/huawei-api-probe.sh
 Run it from a machine in the same Huawei site (region) as the user's account; requests from
 elsewhere are rejected with error `121001 "request forbidden due to site cross"`.
 
-This connector requires a
-[published `radar-schemas-commons` build containing the `huawei_schemas` branch](https://github.com/RADAR-base/RADAR-Schemas/tree/huawei_schemas)
-(currently `0.9.0-SNAPSHOT`) to be resolvable from one of the repositories declared in
-`huawei-library/build.gradle` / `kafka-connect-huawei-source/build.gradle.kts`.
+This connector's schemas were released in `radar-schemas-commons` `0.9.1` (the
+`radarSchemasHuawei` version in `gradle/libs.versions.toml`).
 
 ### Testing locally
 

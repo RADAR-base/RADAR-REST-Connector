@@ -16,9 +16,9 @@ sentryOpenTelemetryAgent = "8.36.0"
 okhttp = "4.12.0"
 firebaseAdmin = "9.8.0"
 radarSchemas = "0.8.16"
-# Huawei connector schemas are not yet released; pin to the published snapshot until a stable
-# radar-schemas-commons release containing the huawei_schemas branch is cut.
-radarSchemasHuawei = "0.9.0-SNAPSHOT"
+# First radar-schemas-commons release with the Huawei connector schemas; kept separate so the
+# other connectors can move to it independently.
+radarSchemasHuawei = "0.9.1"
 # @pin Upgrade to 3.x.x requires kotlin v2 minimum
 ktor = "2.3.13"
 wiremock = "3.0.1"

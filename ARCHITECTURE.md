@@ -294,9 +294,9 @@ data types:
    `user/<Vendor>ServiceUserRepository` (Ktor-based rest-source-authorizer client, copy
    `OuraServiceUserRepository`'s/`HuaweiServiceUserRepository`'s structure), plus a `Dockerfile`.
 3. Register both modules in `settings.gradle.kts`; add any new dependency versions to
-   `gradle/libs.versions.toml` first. If the vendor's schemas are only available as a `-SNAPSHOT`,
-   add a separate version-catalog entry for it (see `radarSchemasHuawei`) so it doesn't force
-   every other module onto an unreleased version.
+   `gradle/libs.versions.toml` first. If the vendor's schemas need a newer `radar-schemas-commons`
+   than the other connectors use, add a separate version-catalog entry for it (see
+   `radarSchemasHuawei`) so it doesn't force every other module onto that version.
 4. Confirm (or add) the required Avro schemas in the external RADAR-Schemas project and bump the
    catalog version once published — this repo cannot invent schemas locally.
 5. One `Route`/`Converter` per vendor data type. For a small number of data types, per-type classes
