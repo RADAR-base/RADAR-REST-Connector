@@ -43,10 +43,11 @@ class GoogleHealthSleepStageAvroConverter(topic: String) : GoogleHealthAvroConve
             val end = stage["endTime"]?.asText()
                 ?.let { runCatching { Instant.parse(it) }.getOrNull() } ?: return@mapNotNull null
 
-            val startZone = ZoneOffset.ofTotalSeconds(
-                parseUtcOffsetSeconds(stage["startUtcOffset"]?.asText()),
-            )
+            val startOffsetSeconds = parseUtcOffsetSeconds(stage["startUtcOffset"]?.asText())
+            val startZone = ZoneOffset.ofTotalSeconds(startOffsetSeconds)
             val record = googleHealthSleepStage {
+                time = epochSeconds(start)
+                utcOffset = startOffsetSeconds
                 dateTime = LOCAL_FMT.format(LocalDateTime.ofInstant(start, startZone))
                 this.timeReceived = timeReceived
                 duration = (end.epochSecond - start.epochSecond).toInt().coerceAtLeast(0)
