@@ -37,6 +37,7 @@ class GoogleHealthDailyRestingHeartRateAvroConverter(topic: String) :
             dateNode["day"].asInt(),
         )
         val record = googleHealthDailyRestingHeartRate {
+            time = localDateAsUtcEpochSeconds(dateNode)
             date = isoDate
             timeReceived = nowEpochSeconds()
             restingHeartRate = bpm

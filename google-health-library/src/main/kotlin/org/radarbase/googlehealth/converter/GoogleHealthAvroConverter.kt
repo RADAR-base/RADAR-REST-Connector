@@ -98,6 +98,17 @@ abstract class GoogleHealthAvroConverter(override val topic: String) : AvroConve
 
         fun epochSeconds(instant: Instant): Double = instant.toEpochMilli() / 1000.0
 
+        /**
+         * Midnight at the start of a Google Health local date (year, month, day), written as if
+         * it were UTC. It is not the true instant, it only keeps the local day for sinks that
+         * need a numeric time.
+         */
+        fun localDateAsUtcEpochSeconds(dateNode: JsonNode): Double = epochSeconds(
+            LocalDate.of(dateNode["year"].asInt(), dateNode["month"].asInt(), dateNode["day"].asInt())
+                .atStartOfDay(ZoneOffset.UTC)
+                .toInstant(),
+        )
+
         fun nowEpochSeconds(): Double = Instant.now().toEpochMilli() / 1000.0
     }
 }
