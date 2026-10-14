@@ -10,6 +10,7 @@ be done.
   * [Fitbit source connector](#fitbit-source-connector)
     * [Installation](#installation)
     * [Usage](#usage)
+  * [Oura source connector plugin zip](#oura-source-connector-plugin-zip)
   * [Sentry monitoring](#sentry-monitoring)
   * [Contributing](#contributing)
 
@@ -207,6 +208,31 @@ sequenceDiagram
   kafka ->> connector: 200 OK
   connector ->> connector: Update offset times
 ```
+
+## Oura source connector plugin zip
+
+Besides the Docker image, every [release](https://github.com/RADAR-base/RADAR-REST-Connector/releases)
+contains `kafka-connect-oura-source-<version>.zip`. This zip holds the Oura connector together with
+all its dependencies, so it can be used on any Kafka Connect cluster, for example a distributed
+Kafka Connect cluster or Amazon MSK Connect (upload it as a custom plugin).
+
+The zip follows the
+[Confluent Hub component archive](https://docs.confluent.io/platform/current/connect/confluent-hub/component-archive.html)
+layout:
+
+```
+kafka-connect-oura-source-<version>/
+  manifest.json
+  lib/   connector jar and all its dependencies
+  doc/   LICENSE and README.md
+```
+
+To install it on a self-managed Kafka Connect worker, unzip it into a directory listed in the
+worker's `plugin.path` setting and restart the worker. Do this on every worker of the cluster. On
+Confluent Platform, `confluent-hub install kafka-connect-oura-source-<version>.zip` does the same.
+
+To build the zip locally, run `./gradlew :kafka-connect-oura-source:distZip`. The zip is written to
+`kafka-connect-oura-source/build/distributions/`.
 
 ## Sentry monitoring
 
