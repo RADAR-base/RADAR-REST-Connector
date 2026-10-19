@@ -34,9 +34,9 @@ class GoogleHealthDailySleepTemperatureDerivationsAvroConverter(topic: String) :
         val baseline = data["baselineTemperatureCelsius"]?.takeIf {
             it.isNumber
         }?.floatValue() ?: return emptyList()
-        // `date` is the civil date (in the user's timezone) the derivation is for — emit it
-        // directly as a yyyy-MM-dd string, like DailyRestingHeartRate, rather than as a
-        // UTC-midnight instant that could shift to the wrong local day downstream.
+        // `date` is the local date of the user the derivation is for. It is kept as a
+        // yyyy-MM-dd string, like DailyRestingHeartRate. `time` is midnight of that date
+        // written as UTC, so the local day stays the same for sinks that need a numeric time.
         val dateNode = data["date"] ?: return emptyList()
         val isoDate = String.format(
             "%04d-%02d-%02d",
@@ -45,6 +45,7 @@ class GoogleHealthDailySleepTemperatureDerivationsAvroConverter(topic: String) :
             dateNode["day"].asInt(),
         )
         val record = googleHealthDailySleepTemperatureDerivations {
+            time = localDateAsUtcEpochSeconds(dateNode)
             date = isoDate
             timeReceived = nowEpochSeconds()
             relativeTemperature = nightly - baseline
