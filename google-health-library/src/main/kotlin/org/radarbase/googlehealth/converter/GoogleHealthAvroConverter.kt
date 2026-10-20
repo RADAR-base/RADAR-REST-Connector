@@ -21,6 +21,7 @@ import org.apache.avro.specific.SpecificRecord
 import org.radarbase.googlehealth.user.User
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.io.IOException
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -31,6 +32,7 @@ abstract class GoogleHealthAvroConverter(override val topic: String) : AvroConve
 
     protected val logger: Logger = LoggerFactory.getLogger(javaClass)
 
+    @Throws(IOException::class)
     abstract fun convertDataPoint(
         point: JsonNode,
         user: User,
@@ -95,6 +97,19 @@ abstract class GoogleHealthAvroConverter(override val topic: String) : AvroConve
         fun parseUtcOffsetSeconds(offsetText: String?): Int = parseDurationSeconds(offsetText)
 
         fun epochSeconds(instant: Instant): Double = instant.toEpochMilli() / 1000.0
+
+        /**
+         * Midnight at the start of a Google Health local date (year, month, day), written as if
+         * it were UTC. It is not the true instant, it only keeps the local day for sinks that
+         * need a numeric time.
+         */
+        fun localDateAsUtcEpochSeconds(dateNode: JsonNode): Double = epochSeconds(
+            LocalDate.of(
+                dateNode["year"].asInt(),
+                dateNode["month"].asInt(),
+                dateNode["day"].asInt(),
+            ).atStartOfDay(ZoneOffset.UTC).toInstant(),
+        )
 
         fun nowEpochSeconds(): Double = Instant.now().toEpochMilli() / 1000.0
     }

@@ -19,30 +19,21 @@ package org.radarbase.googlehealth.converter
 import com.fasterxml.jackson.databind.JsonNode
 import org.apache.avro.specific.SpecificRecord
 import org.radarbase.googlehealth.user.User
-import org.radarbase.googlehealth.util.googleHealthRespiratoryRateSleepSummary
+import org.radarbase.googlehealth.util.googleHealthSteps
 
-class RespiratoryRateSleepSummaryGoogleHealthAvroConverter(topic: String) :
-    GoogleHealthAvroConverter(topic) {
+class GoogleHealthStepsAvroConverter(topic: String) : GoogleHealthAvroConverter(topic) {
     override fun convertDataPoint(
         point: JsonNode,
         user: User,
     ): List<Pair<SpecificRecord, SpecificRecord>> {
-        val data = point["respiratoryRateSleepSummary"] ?: return emptyList()
-        val time = parseSampleTime(data) ?: return emptyList()
-        val deep = data["deepSleepStats"]?.get("breathsPerMinute")
-        val full = data["fullSleepStats"]?.get("breathsPerMinute")
-        val light = data["lightSleepStats"]?.get("breathsPerMinute")
-        val rem = data["remSleepStats"]?.get("breathsPerMinute")
-
-        if (listOf(deep, full, light, rem).any { it != null && !it.isNumber }) return emptyList()
-
-        val record = googleHealthRespiratoryRateSleepSummary {
-            this.time = epochSeconds(time)
+        val data = point["steps"] ?: return emptyList()
+        val (start, end) = parseInterval(data) ?: return emptyList()
+        val count = data["count"]?.asInt() ?: return emptyList()
+        val record = googleHealthSteps {
+            time = epochSeconds(start)
             timeReceived = nowEpochSeconds()
-            lightSleep = light?.floatValue()
-            deepSleep = deep?.floatValue()
-            remSleep = rem?.floatValue()
-            fullSleep = full?.floatValue()
+            timeInterval = (end.epochSecond - start.epochSecond).toInt().coerceAtLeast(0)
+            steps = count
         }
         return listOf(user.observationKey to record)
     }

@@ -19,12 +19,13 @@ package org.radarbase.googlehealth.converter
 import com.fasterxml.jackson.databind.JsonNode
 import org.apache.avro.specific.SpecificRecord
 import org.radarbase.googlehealth.user.User
-import org.radarbase.googlehealth.util.googleHealthExerciseHeartRate
 import org.radarbase.googlehealth.util.googleHealthExercise
+import org.radarbase.googlehealth.util.googleHealthExerciseHeartRate
 import org.radarbase.googlehealth.util.googleHealthSource
+import java.io.IOException
 import java.time.Instant
 
-class ExerciseGoogleHealthAvroConverter(topic: String) : GoogleHealthAvroConverter(topic) {
+class GoogleHealthExerciseAvroConverter(topic: String) : GoogleHealthAvroConverter(topic) {
     override fun convertDataPoint(
         point: JsonNode,
         user: User,
@@ -44,21 +45,27 @@ class ExerciseGoogleHealthAvroConverter(topic: String) : GoogleHealthAvroConvert
         val distanceKm = metrics?.get("distanceMillimeters")?.takeIf { !it.isNull }
             ?.asText()?.toDoubleOrNull()?.let { it.toFloat() / 1_000_000f }
 
-        val caloriesKcal = metrics?.get("caloriesKcal")?.takeIf { !it.isNull }?.asText()?.toDoubleOrNull()
+        val caloriesKcal = metrics?.get(
+            "caloriesKcal",
+        )?.takeIf { !it.isNull }?.asText()?.toDoubleOrNull()
         val energyKj = caloriesKcal?.let { (it * KCAL_TO_KJ).toFloat() }
         val stepCount = metrics?.get("steps")?.takeIf { !it.isNull }?.asText()?.toIntOrNull()
 
         val speedKmh = metrics?.get("averageSpeedMillimetersPerSecond")?.takeIf { !it.isNull }
             ?.asText()?.toDoubleOrNull()?.let { it * MM_PER_S_TO_KM_PER_H }
 
-        val avgHr = metrics?.get("averageHeartRateBeatsPerMinute")?.takeIf { !it.isNull }?.asText()?.toIntOrNull()
+        val avgHr = metrics?.get("averageHeartRateBeatsPerMinute")?.takeIf {
+            !it.isNull
+        }?.asText()?.toIntOrNull()
         val zones = metrics?.get("heartRateZoneDurations")?.takeIf { !it.isNull }
         val avgHeartRate = if (avgHr != null || zones != null) {
             googleHealthExerciseHeartRate {
                 mean = avgHr
                 durationLight = zones?.get("lightTime")?.asText()?.let { parseDurationSeconds(it) }
-                durationModerate = zones?.get("moderateTime")?.asText()?.let { parseDurationSeconds(it) }
-                durationVigorous = zones?.get("vigorousTime")?.asText()?.let { parseDurationSeconds(it) }
+                durationModerate = zones?.get("moderateTime")?.asText()
+                    ?.let { parseDurationSeconds(it) }
+                durationVigorous = zones?.get("vigorousTime")?.asText()
+                    ?.let { parseDurationSeconds(it) }
                 durationPeak = zones?.get("peakTime")?.asText()?.let { parseDurationSeconds(it) }
             }
         } else {
@@ -76,12 +83,17 @@ class ExerciseGoogleHealthAvroConverter(topic: String) : GoogleHealthAvroConvert
             }
         }
 
-        val activityId = (point["name"] ?: point["dataPointName"])?.asText()
-            ?.substringAfterLast('/')?.toLongOrNull()
-            ?: run {
-                logger.warn("Dropping exercise data point with no usable log id for user={}", user.versionedId)
-                return emptyList()
-            }
+        val idSegment = (point["name"] ?: point["dataPointName"])?.asText()
+            ?.substringAfterLast('/')
+            ?: throw IOException(
+                "Exercise data point has no name or dataPointName to derive a log id from " +
+                    "for user=${user.versionedId}",
+            )
+        val activityId = idSegment.toLongOrNull()
+            ?: throw IOException(
+                "Exercise data point log id '$idSegment' is not numeric " +
+                    "for user=${user.versionedId}",
+            )
 
         val record = googleHealthExercise {
             time = epochSeconds(start)
