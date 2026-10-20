@@ -104,9 +104,11 @@ abstract class GoogleHealthAvroConverter(override val topic: String) : AvroConve
          * need a numeric time.
          */
         fun localDateAsUtcEpochSeconds(dateNode: JsonNode): Double = epochSeconds(
-            LocalDate.of(dateNode["year"].asInt(), dateNode["month"].asInt(), dateNode["day"].asInt())
-                .atStartOfDay(ZoneOffset.UTC)
-                .toInstant(),
+            LocalDate.of(
+                dateNode["year"].asInt(),
+                dateNode["month"].asInt(),
+                dateNode["day"].asInt(),
+            ).atStartOfDay(ZoneOffset.UTC).toInstant(),
         )
 
         fun nowEpochSeconds(): Double = Instant.now().toEpochMilli() / 1000.0
