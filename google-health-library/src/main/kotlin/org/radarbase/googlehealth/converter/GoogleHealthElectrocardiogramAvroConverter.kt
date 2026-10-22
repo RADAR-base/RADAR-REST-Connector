@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import org.apache.avro.specific.SpecificRecord
 import org.radarbase.googlehealth.user.User
 import org.radarbase.googlehealth.util.googleHealthElectrocardiogram
+import org.radarcns.push.googlehealth.GoogleHealthElectrocardiogramResultClassification
 import java.io.IOException
 import java.time.Instant
 import java.util.stream.Collectors
@@ -58,6 +59,8 @@ class GoogleHealthElectrocardiogramAvroConverter(topic: String) : GoogleHealthAv
         val deviceModel = device?.get("deviceModel")?.asText()
         val firmwareVersion = device?.get("firmwareVersion")?.asText()
         val featureVersion = device?.get("featureVersion")?.asText()
+        val resultClassification = data["resultClassification"]?.takeIf { !it.isNull }?.asText()
+            ?.let { resultClassificationOf(it) }
 
         val startSec = epochSeconds(start)
         val received = nowEpochSeconds()
@@ -81,8 +84,14 @@ class GoogleHealthElectrocardiogramAvroConverter(topic: String) : GoogleHealthAv
                 this.deviceModel = deviceModel
                 this.firmwareVersion = firmwareVersion
                 this.featureVersion = featureVersion
+                this.resultClassification = resultClassification
             }
             user.observationKey to record
         }.collect(Collectors.toList())
     }
+
+    /** Any value Google adds later that is not in the schema yet becomes `UNKNOWN`. */
+    private fun resultClassificationOf(text: String) = runCatching {
+        GoogleHealthElectrocardiogramResultClassification.valueOf(text)
+    }.getOrDefault(GoogleHealthElectrocardiogramResultClassification.UNKNOWN)
 }

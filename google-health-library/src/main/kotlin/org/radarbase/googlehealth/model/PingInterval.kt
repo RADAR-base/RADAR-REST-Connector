@@ -17,8 +17,18 @@
 package org.radarbase.googlehealth.model
 
 import java.time.Instant
+import java.time.LocalDateTime
 
+/**
+ * One changed time interval from a Google Health notification.
+ *
+ * The physical times are UTC instants. Google leaves them out for some intervals, such as
+ * full-day step totals. The civil times are the user's local clock times without an offset,
+ * taken from `civilIso8601TimeInterval`, which Google always sends.
+ */
 data class PingInterval(
-    val physicalStartTime: Instant,
-    val physicalEndTime: Instant,
+    val physicalStartTime: Instant?,
+    val physicalEndTime: Instant?,
+    val civilStartTime: LocalDateTime? = null,
+    val civilEndTime: LocalDateTime? = null,
 )
