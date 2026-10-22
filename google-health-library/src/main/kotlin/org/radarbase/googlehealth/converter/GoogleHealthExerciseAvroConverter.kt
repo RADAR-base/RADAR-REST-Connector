@@ -51,8 +51,11 @@ class GoogleHealthExerciseAvroConverter(topic: String) : GoogleHealthAvroConvert
         val energyKj = caloriesKcal?.let { (it * KCAL_TO_KJ).toFloat() }
         val stepCount = metrics?.get("steps")?.takeIf { !it.isNull }?.asText()?.toIntOrNull()
 
+        // Google sends the mean pace (s/m) instead of averageSpeedMillimetersPerSecond.
         val speedKmh = metrics?.get("averageSpeedMillimetersPerSecond")?.takeIf { !it.isNull }
             ?.asText()?.toDoubleOrNull()?.let { it * MM_PER_S_TO_KM_PER_H }
+            ?: metrics?.get("averagePaceSecondsPerMeter")?.takeIf { it.isNumber }
+                ?.doubleValue()?.takeIf { it > 0 }?.let { M_PER_S_TO_KM_PER_H / it }
 
         val avgHr = metrics?.get("averageHeartRateBeatsPerMinute")?.takeIf {
             !it.isNull
@@ -119,5 +122,6 @@ class GoogleHealthExerciseAvroConverter(topic: String) : GoogleHealthAvroConvert
     companion object {
         private const val KCAL_TO_KJ = 4.1868
         private const val MM_PER_S_TO_KM_PER_H = 0.0036
+        private const val M_PER_S_TO_KM_PER_H = 3.6
     }
 }
