@@ -33,10 +33,17 @@ class GoogleHealthHeartRateVariabilityAvroConverter(topic: String) :
             it.isNumber
         }?.floatValue()
             ?: return emptyList()
+        val metadata = data["metadata"]
+        val highFrequency = metadata?.get("highFrequencyPower")?.takeIf { it.isNumber }
+            ?.floatValue()
+        val lowFrequency = metadata?.get("lowFrequencyPower")?.takeIf { it.isNumber }
+            ?.floatValue()
         val record = googleHealthHeartRateVariability {
             this.time = epochSeconds(time)
             timeReceived = nowEpochSeconds()
             this.rmssd = rmssd
+            this.highFrequency = highFrequency
+            this.lowFrequency = lowFrequency
         }
         return listOf(user.observationKey to record)
     }
