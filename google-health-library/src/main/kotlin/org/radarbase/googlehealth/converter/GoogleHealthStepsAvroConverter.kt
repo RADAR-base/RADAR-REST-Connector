@@ -19,21 +19,21 @@ package org.radarbase.googlehealth.converter
 import com.fasterxml.jackson.databind.JsonNode
 import org.apache.avro.specific.SpecificRecord
 import org.radarbase.googlehealth.user.User
-import org.radarbase.googlehealth.util.googleHealthHeartRate
+import org.radarbase.googlehealth.util.googleHealthSteps
 
-class HeartRateGoogleHealthAvroConverter(topic: String) : GoogleHealthAvroConverter(topic) {
+class GoogleHealthStepsAvroConverter(topic: String) : GoogleHealthAvroConverter(topic) {
     override fun convertDataPoint(
         point: JsonNode,
         user: User,
     ): List<Pair<SpecificRecord, SpecificRecord>> {
-        val data = point["heartRate"] ?: return emptyList()
-        val time = parseSampleTime(data) ?: return emptyList()
-        val bpm = data["beatsPerMinute"]?.asInt() ?: return emptyList()
-        val record = googleHealthHeartRate {
-            this.time = epochSeconds(time)
+        val data = point["steps"] ?: return emptyList()
+        val (start, end) = parseInterval(data) ?: return emptyList()
+        val count = data["count"]?.asText()?.toIntOrNull() ?: return emptyList()
+        val record = googleHealthSteps {
+            time = epochSeconds(start)
             timeReceived = nowEpochSeconds()
-            timeInterval = 1
-            heartRate = bpm
+            timeInterval = (end.epochSecond - start.epochSecond).toInt().coerceAtLeast(0)
+            steps = count
         }
         return listOf(user.observationKey to record)
     }

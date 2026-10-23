@@ -19,21 +19,31 @@ package org.radarbase.googlehealth.converter
 import com.fasterxml.jackson.databind.JsonNode
 import org.apache.avro.specific.SpecificRecord
 import org.radarbase.googlehealth.user.User
-import org.radarbase.googlehealth.util.googleHealthSteps
+import org.radarbase.googlehealth.util.googleHealthHeartRateVariability
 
-class StepsGoogleHealthAvroConverter(topic: String) : GoogleHealthAvroConverter(topic) {
+class GoogleHealthHeartRateVariabilityAvroConverter(topic: String) :
+    GoogleHealthAvroConverter(topic) {
     override fun convertDataPoint(
         point: JsonNode,
         user: User,
     ): List<Pair<SpecificRecord, SpecificRecord>> {
-        val data = point["steps"] ?: return emptyList()
-        val (start, end) = parseInterval(data) ?: return emptyList()
-        val count = data["count"]?.asInt() ?: return emptyList()
-        val record = googleHealthSteps {
-            time = epochSeconds(start)
+        val data = point["heartRateVariability"] ?: return emptyList()
+        val time = parseSampleTime(data) ?: return emptyList()
+        val rmssd = data["rootMeanSquareOfSuccessiveDifferencesMilliseconds"]?.takeIf {
+            it.isNumber
+        }?.floatValue()
+            ?: return emptyList()
+        val metadata = data["metadata"]
+        val highFrequency = metadata?.get("highFrequencyPower")?.takeIf { it.isNumber }
+            ?.floatValue()
+        val lowFrequency = metadata?.get("lowFrequencyPower")?.takeIf { it.isNumber }
+            ?.floatValue()
+        val record = googleHealthHeartRateVariability {
+            this.time = epochSeconds(time)
             timeReceived = nowEpochSeconds()
-            timeInterval = (end.epochSecond - start.epochSecond).toInt().coerceAtLeast(0)
-            steps = count
+            this.rmssd = rmssd
+            this.highFrequency = highFrequency
+            this.lowFrequency = lowFrequency
         }
         return listOf(user.observationKey to record)
     }

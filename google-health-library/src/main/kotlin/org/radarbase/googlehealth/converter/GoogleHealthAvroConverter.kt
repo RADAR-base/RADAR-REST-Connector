@@ -19,6 +19,9 @@ package org.radarbase.googlehealth.converter
 import com.fasterxml.jackson.databind.JsonNode
 import org.apache.avro.specific.SpecificRecord
 import org.radarbase.googlehealth.user.User
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import java.io.IOException
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -27,6 +30,9 @@ import java.time.ZoneOffset
 
 abstract class GoogleHealthAvroConverter(override val topic: String) : AvroConverter {
 
+    protected val logger: Logger = LoggerFactory.getLogger(javaClass)
+
+    @Throws(IOException::class)
     abstract fun convertDataPoint(
         point: JsonNode,
         user: User,
@@ -35,7 +41,14 @@ abstract class GoogleHealthAvroConverter(override val topic: String) : AvroConve
     override fun convert(tree: JsonNode, user: User): List<Pair<SpecificRecord, SpecificRecord>> {
         val points = tree["dataPoints"] ?: tree["rollupDataPoints"] ?: return emptyList()
         if (!points.isArray) return emptyList()
-        return points.flatMap { convertDataPoint(it, user) }
+        return points.flatMap { point ->
+            try {
+                convertDataPoint(point, user)
+            } catch (ex: Exception) {
+                logger.warn("Skipping data point for topic={} user={}", topic, user.versionedId, ex)
+                emptyList()
+            }
+        }
     }
 
     companion object {
@@ -79,14 +92,31 @@ abstract class GoogleHealthAvroConverter(override val topic: String) : AvroConve
             return dateTime.toInstant(ZoneOffset.ofTotalSeconds(utcOffsetSeconds))
         }
 
-        fun parseUtcOffsetSeconds(durationText: String?): Int {
+        /** Parses a Google `Duration` string (e.g. "36s", "780s") to whole seconds. */
+        fun parseDurationSeconds(durationText: String?): Int {
             if (durationText.isNullOrEmpty()) return 0
             val trimmed = durationText.trim().removeSuffix("s")
-            val seconds = trimmed.toLongOrNull() ?: return 0
+            val seconds = trimmed.toDoubleOrNull() ?: return 0
             return seconds.toInt()
         }
 
+        /** A UTC offset is encoded as a [Duration]; returns its value in seconds. */
+        fun parseUtcOffsetSeconds(offsetText: String?): Int = parseDurationSeconds(offsetText)
+
         fun epochSeconds(instant: Instant): Double = instant.toEpochMilli() / 1000.0
+
+        /**
+         * Midnight at the start of a Google Health local date (year, month, day), written as if
+         * it were UTC. It is not the true instant, it only keeps the local day for sinks that
+         * need a numeric time.
+         */
+        fun localDateAsUtcEpochSeconds(dateNode: JsonNode): Double = epochSeconds(
+            LocalDate.of(
+                dateNode["year"].asInt(),
+                dateNode["month"].asInt(),
+                dateNode["day"].asInt(),
+            ).atStartOfDay(ZoneOffset.UTC).toInstant(),
+        )
 
         fun nowEpochSeconds(): Double = Instant.now().toEpochMilli() / 1000.0
     }

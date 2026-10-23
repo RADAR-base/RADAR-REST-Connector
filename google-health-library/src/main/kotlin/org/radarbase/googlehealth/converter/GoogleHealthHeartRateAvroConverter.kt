@@ -19,32 +19,22 @@ package org.radarbase.googlehealth.converter
 import com.fasterxml.jackson.databind.JsonNode
 import org.apache.avro.specific.SpecificRecord
 import org.radarbase.googlehealth.user.User
-import org.radarbase.googlehealth.util.googleHealthRespiratoryRateSleepSummary
+import org.radarbase.googlehealth.util.googleHealthHeartRate
 
-class RespiratoryRateSleepSummaryGoogleHealthAvroConverter(topic: String) :
-    GoogleHealthAvroConverter(topic) {
+class GoogleHealthHeartRateAvroConverter(topic: String) : GoogleHealthAvroConverter(topic) {
     override fun convertDataPoint(
         point: JsonNode,
         user: User,
     ): List<Pair<SpecificRecord, SpecificRecord>> {
-        val data = point["respiratoryRateSleepSummary"] ?: return emptyList()
+        val data = point["heartRate"] ?: return emptyList()
         val time = parseSampleTime(data) ?: return emptyList()
-        val deep = data["deepSleepStats"]?.get("breathsPerMinute")?.floatValue() ?: UNAVAILABLE
-        val full = data["fullSleepStats"]?.get("breathsPerMinute")?.floatValue() ?: UNAVAILABLE
-        val light = data["lightSleepStats"]?.get("breathsPerMinute")?.floatValue() ?: UNAVAILABLE
-        val rem = data["remSleepStats"]?.get("breathsPerMinute")?.floatValue() ?: UNAVAILABLE
-        val record = googleHealthRespiratoryRateSleepSummary {
+        val bpm = data["beatsPerMinute"]?.asInt() ?: return emptyList()
+        val record = googleHealthHeartRate {
             this.time = epochSeconds(time)
             timeReceived = nowEpochSeconds()
-            lightSleep = light
-            deepSleep = deep
-            remSleep = rem
-            fullSleep = full
+            timeInterval = 1
+            heartRate = bpm
         }
         return listOf(user.observationKey to record)
-    }
-
-    companion object {
-        private const val UNAVAILABLE = 0.0f
     }
 }

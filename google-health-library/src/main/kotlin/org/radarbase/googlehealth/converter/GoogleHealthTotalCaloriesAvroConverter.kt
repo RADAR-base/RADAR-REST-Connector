@@ -19,21 +19,23 @@ package org.radarbase.googlehealth.converter
 import com.fasterxml.jackson.databind.JsonNode
 import org.apache.avro.specific.SpecificRecord
 import org.radarbase.googlehealth.user.User
-import org.radarbase.googlehealth.util.googleHealthOxygenSaturation
+import org.radarbase.googlehealth.util.googleHealthTotalCalories
+import java.time.Instant
 
-class OxygenSaturationGoogleHealthAvroConverter(topic: String) :
-    GoogleHealthAvroConverter(topic) {
+class GoogleHealthTotalCaloriesAvroConverter(topic: String) : GoogleHealthAvroConverter(topic) {
     override fun convertDataPoint(
         point: JsonNode,
         user: User,
     ): List<Pair<SpecificRecord, SpecificRecord>> {
-        val data = point["oxygenSaturation"] ?: return emptyList()
-        val time = parseSampleTime(data) ?: return emptyList()
-        val pct = data["percentage"]?.floatValue() ?: return emptyList()
-        val record = googleHealthOxygenSaturation {
-            this.time = epochSeconds(time)
+        val start = point["startTime"]?.asText()?.let(Instant::parse) ?: return emptyList()
+        val end = point["endTime"]?.asText()?.let(Instant::parse) ?: return emptyList()
+        val kilocalories = point["totalCalories"]?.get("kcalSum")?.asText()?.toDoubleOrNull()
+            ?: return emptyList()
+        val record = googleHealthTotalCalories {
+            time = epochSeconds(start)
             timeReceived = nowEpochSeconds()
-            percentage = pct
+            timeInterval = (end.epochSecond - start.epochSecond).toInt().coerceAtLeast(0)
+            calories = kilocalories
         }
         return listOf(user.observationKey to record)
     }
