@@ -1,0 +1,19 @@
+description = "Google Health library with utility components to be used in RADAR-Pushendpoint"
+
+dependencies {
+    implementation libs.kotlin.stdlib
+
+    implementation libs.okhttp
+
+    implementation libs.radar.schemas.commons
+
+    implementation libs.jackson.annotations
+
+    implementation libs.jackson.databind
+
+    implementation libs.avro
+
+    implementation libs.jackson.datatype.jsr310
+
+    testImplementation libs.kotlin.test
+}
