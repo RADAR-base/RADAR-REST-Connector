@@ -28,7 +28,7 @@ class GoogleHealthStepsAvroConverter(topic: String) : GoogleHealthAvroConverter(
     ): List<Pair<SpecificRecord, SpecificRecord>> {
         val data = point["steps"] ?: return emptyList()
         val (start, end) = parseInterval(data) ?: return emptyList()
-        val count = data["count"]?.asInt() ?: return emptyList()
+        val count = data["count"]?.asText()?.toIntOrNull() ?: return emptyList()
         val record = googleHealthSteps {
             time = epochSeconds(start)
             timeReceived = nowEpochSeconds()

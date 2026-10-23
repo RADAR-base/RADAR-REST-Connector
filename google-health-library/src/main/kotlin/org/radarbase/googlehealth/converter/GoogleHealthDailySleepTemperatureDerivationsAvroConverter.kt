@@ -33,7 +33,13 @@ class GoogleHealthDailySleepTemperatureDerivationsAvroConverter(topic: String) :
         }?.floatValue() ?: return emptyList()
         val baseline = data["baselineTemperatureCelsius"]?.takeIf {
             it.isNumber
-        }?.floatValue() ?: return emptyList()
+        }?.floatValue() ?: run {
+            logger.info(
+                "Skipping sleep temperature for user={}: no baselineTemperatureCelsius",
+                user.versionedId,
+            )
+            return emptyList()
+        }
         // `date` is the local date of the user the derivation is for. It is kept as a
         // yyyy-MM-dd string, like DailyRestingHeartRate. `time` is midnight of that date
         // written as UTC, so the local day stays the same for sinks that need a numeric time.

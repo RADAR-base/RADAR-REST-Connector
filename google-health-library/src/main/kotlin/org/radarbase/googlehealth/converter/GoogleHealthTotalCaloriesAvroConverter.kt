@@ -29,7 +29,7 @@ class GoogleHealthTotalCaloriesAvroConverter(topic: String) : GoogleHealthAvroCo
     ): List<Pair<SpecificRecord, SpecificRecord>> {
         val start = point["startTime"]?.asText()?.let(Instant::parse) ?: return emptyList()
         val end = point["endTime"]?.asText()?.let(Instant::parse) ?: return emptyList()
-        val kilocalories = point["totalCalories"]?.get("kcalSum")?.doubleValue()
+        val kilocalories = point["totalCalories"]?.get("kcalSum")?.asText()?.toDoubleOrNull()
             ?: return emptyList()
         val record = googleHealthTotalCalories {
             time = epochSeconds(start)

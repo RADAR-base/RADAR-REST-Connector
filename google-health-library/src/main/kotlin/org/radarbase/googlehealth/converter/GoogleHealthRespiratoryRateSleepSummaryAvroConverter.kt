@@ -34,7 +34,8 @@ class GoogleHealthRespiratoryRateSleepSummaryAvroConverter(topic: String) :
         val light = data["lightSleepStats"]?.get("breathsPerMinute")
         val rem = data["remSleepStats"]?.get("breathsPerMinute")
 
-        if (listOf(deep, full, light, rem).any { it != null && !it.isNumber }) return emptyList()
+        val stats = listOf(deep, full, light, rem)
+        if (stats.all { it == null } || stats.any { it != null && !it.isNumber }) return emptyList()
 
         val record = googleHealthRespiratoryRateSleepSummary {
             this.time = epochSeconds(time)

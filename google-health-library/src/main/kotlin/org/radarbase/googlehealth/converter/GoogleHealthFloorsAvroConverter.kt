@@ -23,7 +23,8 @@ import org.radarbase.googlehealth.util.googleHealthFloors
 
 /**
  * Converts `floors` data points: elevation gained over an interval.
- * Google documents `count` as an int64, serialised as a JSON string, `asInt` parses either form.
+ * Google documents `count` as an int64, serialised as a JSON string. Reading it as text parses
+ * either form, and a non-numeric value drops the point instead of becoming 0.
  * The type supports true zeros, so a `count` of 0 is a real observation and is kept.
  */
 class GoogleHealthFloorsAvroConverter(topic: String) : GoogleHealthAvroConverter(topic) {
@@ -33,7 +34,7 @@ class GoogleHealthFloorsAvroConverter(topic: String) : GoogleHealthAvroConverter
     ): List<Pair<SpecificRecord, SpecificRecord>> {
         val data = point["floors"] ?: return emptyList()
         val (start, end) = parseInterval(data) ?: return emptyList()
-        val count = data["count"]?.asInt() ?: return emptyList()
+        val count = data["count"]?.asText()?.toIntOrNull() ?: return emptyList()
         val record = googleHealthFloors {
             time = epochSeconds(start)
             endTime = epochSeconds(end)

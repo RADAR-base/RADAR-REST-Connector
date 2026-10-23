@@ -41,7 +41,14 @@ abstract class GoogleHealthAvroConverter(override val topic: String) : AvroConve
     override fun convert(tree: JsonNode, user: User): List<Pair<SpecificRecord, SpecificRecord>> {
         val points = tree["dataPoints"] ?: tree["rollupDataPoints"] ?: return emptyList()
         if (!points.isArray) return emptyList()
-        return points.flatMap { convertDataPoint(it, user) }
+        return points.flatMap { point ->
+            try {
+                convertDataPoint(point, user)
+            } catch (ex: Exception) {
+                logger.warn("Skipping data point for topic={} user={}", topic, user.versionedId, ex)
+                emptyList()
+            }
+        }
     }
 
     companion object {
