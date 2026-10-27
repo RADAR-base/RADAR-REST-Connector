@@ -19,14 +19,17 @@ package org.radarbase.googlehealth.converter
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.radarbase.googlehealth.user.GoogleHealthUser
+import org.radarcns.push.googlehealth.GoogleHealthDailyRestingHeartRate
 import org.radarcns.push.googlehealth.GoogleHealthElectrocardiogram
 import org.radarcns.push.googlehealth.GoogleHealthExercise
 import org.radarcns.push.googlehealth.GoogleHealthFloors
+import org.radarcns.push.googlehealth.GoogleHealthHeartRate
 import org.radarcns.push.googlehealth.GoogleHealthSteps
 import org.radarcns.push.googlehealth.GoogleHealthTotalCalories
 import java.time.Instant
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 /** Made-up data in the shapes the Google Health API returns. */
 class GoogleHealthConverterRobustnessTest {
@@ -163,6 +166,53 @@ class GoogleHealthConverterRobustnessTest {
         val tree = page(summary(""), summary(""", "fullSleepStats": {"breathsPerMinute": 14.2}"""))
         val converter = GoogleHealthRespiratoryRateSleepSummaryAvroConverter("t")
         assertEquals(1, converter.convert(tree, user).size)
+    }
+
+    @Test
+    fun nullOrNonNumericHeartRateIsDroppedNotZero() {
+        val heartRate = { bpm: String ->
+            """
+                {"heartRate": {"sampleTime": {"physicalTime": "2026-10-20T10:00:00Z"},
+                  "beatsPerMinute": $bpm}}
+            """
+        }
+        val tree = page(heartRate("\"59\""), heartRate("60"), heartRate("null"), heartRate("\"x\""))
+        val values = GoogleHealthHeartRateAvroConverter("t").convert(tree, user)
+            .map { (it.second as GoogleHealthHeartRate).heartRate }
+        assertEquals(listOf(59, 60), values)
+    }
+
+    @Test
+    fun nullOrNonNumericRestingHeartRateIsDroppedNotZero() {
+        val resting = { bpm: String ->
+            """
+                {"dailyRestingHeartRate": {"date": {"year": 2026, "month": 10, "day": 20},
+                  "beatsPerMinute": $bpm}}
+            """
+        }
+        val tree = page(resting("\"55\""), resting("null"), resting("\"x\""))
+        val values = GoogleHealthDailyRestingHeartRateAvroConverter("t").convert(tree, user)
+            .map { (it.second as GoogleHealthDailyRestingHeartRate).restingHeartRate }
+        assertEquals(listOf(55), values)
+    }
+
+    @Test
+    fun nullOrNonNumericEcgSampleIsSkippedAndOthersKeepTheirTime() {
+        val tree = page(
+            """
+                {"name": "${ECG_PREFIX}r1", "electrocardiogram": {
+                  "interval": {"startTime": "2026-10-20T10:00:00Z"},
+                  "waveformSamples": [10, null, "x", 40], "samplingFrequencyHertz": 250,
+                  "millivoltsScalingFactor": "x", "leadNumber": null}}
+            """,
+        )
+        val records = GoogleHealthElectrocardiogramAvroConverter("t").convert(tree, user)
+            .map { it.second as GoogleHealthElectrocardiogram }
+        assertEquals(listOf(10, 40), records.map { it.sample })
+        val start = Instant.parse("2026-10-20T10:00:00Z").epochSecond.toDouble()
+        assertEquals(listOf(start, start + 3.0 / 250), records.map { it.time })
+        assertNull(records.first().millivoltsScalingFactor)
+        assertNull(records.first().leadNumber)
     }
 
     companion object {

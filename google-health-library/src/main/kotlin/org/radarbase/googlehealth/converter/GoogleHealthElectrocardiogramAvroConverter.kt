@@ -47,7 +47,7 @@ class GoogleHealthElectrocardiogramAvroConverter(topic: String) : GoogleHealthAv
                     "for user=${user.versionedId}",
             )
         val samples = data["waveformSamples"]?.takeIf { it.isArray } ?: return emptyList()
-        val frequency = data["samplingFrequencyHertz"]?.takeIf { !it.isNull }?.asInt()
+        val frequency = data["samplingFrequencyHertz"]?.asText()?.toIntOrNull()
             ?.takeIf { it > 0 }
             ?: run {
                 logger.warn(
@@ -61,8 +61,8 @@ class GoogleHealthElectrocardiogramAvroConverter(topic: String) : GoogleHealthAv
         val device = data["medicalDeviceInfo"]
         val beatsPerMinuteAvg = data["beatsPerMinuteAvg"]?.takeIf { !it.isNull }?.asText()
             ?.toIntOrNull()
-        val scalingFactor = data["millivoltsScalingFactor"]?.takeIf { !it.isNull }?.asInt()
-        val leadNumber = data["leadNumber"]?.takeIf { !it.isNull }?.asInt()
+        val scalingFactor = data["millivoltsScalingFactor"]?.asText()?.toIntOrNull()
+        val leadNumber = data["leadNumber"]?.asText()?.toIntOrNull()
         val deviceModel = device?.get("deviceModel")?.asText()
         val firmwareVersion = device?.get("firmwareVersion")?.asText()
         val featureVersion = device?.get("featureVersion")?.asText()
@@ -77,13 +77,15 @@ class GoogleHealthElectrocardiogramAvroConverter(topic: String) : GoogleHealthAv
         // A single reading carries thousands of samples (~7500 at 30 s / 250 Hz), each needing
         // its own record. Every iteration only reads the parsed JSON tree and builds an
         // independent Avro record, so the work spreads safely over the common pool; the stream
-        // stays ordered, keeping the samples in acquisition order.
+        // stays ordered, keeping the samples in acquisition order. A sample that is not a number
+        // is skipped, the others keep their time because it comes from the sample's index.
         return IntStream.range(0, sampleCount).parallel().mapToObj { i ->
+            val value = samples[i].asText().toIntOrNull() ?: return@mapToObj null
             val record = googleHealthElectrocardiogram {
                 time = startSec + i.toDouble() / frequency
                 timeReceived = received
                 this.id = id
-                sample = samples[i].asInt()
+                sample = value
                 this.beatsPerMinuteAvg = beatsPerMinuteAvg
                 this.samplingFrequencyHertz = frequency
                 this.millivoltsScalingFactor = scalingFactor
@@ -94,7 +96,7 @@ class GoogleHealthElectrocardiogramAvroConverter(topic: String) : GoogleHealthAv
                 this.resultClassification = resultClassification
             }
             user.observationKey to record
-        }.collect(Collectors.toList())
+        }.collect(Collectors.toList()).filterNotNull()
     }
 
     /** Any value Google adds later that is not in the schema yet becomes `UNKNOWN`. */

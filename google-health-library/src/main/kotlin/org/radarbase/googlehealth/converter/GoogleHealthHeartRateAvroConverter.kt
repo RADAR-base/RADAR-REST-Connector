@@ -28,7 +28,7 @@ class GoogleHealthHeartRateAvroConverter(topic: String) : GoogleHealthAvroConver
     ): List<Pair<SpecificRecord, SpecificRecord>> {
         val data = point["heartRate"] ?: return emptyList()
         val time = parseSampleTime(data) ?: return emptyList()
-        val bpm = data["beatsPerMinute"]?.asInt() ?: return emptyList()
+        val bpm = data["beatsPerMinute"]?.asText()?.toIntOrNull() ?: return emptyList()
         val record = googleHealthHeartRate {
             this.time = epochSeconds(time)
             timeReceived = nowEpochSeconds()

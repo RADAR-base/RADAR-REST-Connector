@@ -29,7 +29,7 @@ class GoogleHealthDailyRestingHeartRateAvroConverter(topic: String) :
     ): List<Pair<SpecificRecord, SpecificRecord>> {
         val data = point["dailyRestingHeartRate"] ?: return emptyList()
         val dateNode = data["date"] ?: return emptyList()
-        val bpm = data["beatsPerMinute"]?.asInt() ?: return emptyList()
+        val bpm = data["beatsPerMinute"]?.asText()?.toIntOrNull() ?: return emptyList()
         val isoDate = String.format(
             "%04d-%02d-%02d",
             dateNode["year"].asInt(),
