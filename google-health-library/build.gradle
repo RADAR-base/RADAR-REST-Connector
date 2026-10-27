@@ -3,15 +3,13 @@ description = "Google Health library with utility components to be used in RADAR
 dependencies {
     implementation libs.kotlin.stdlib
 
-    implementation libs.okhttp
-
-    implementation libs.radar.schemas.commons
+    api libs.radar.schemas.commons
 
     implementation libs.jackson.annotations
 
-    implementation libs.jackson.databind
+    api libs.jackson.databind
 
-    implementation libs.avro
+    api libs.avro
 
     implementation libs.jackson.datatype.jsr310
 
