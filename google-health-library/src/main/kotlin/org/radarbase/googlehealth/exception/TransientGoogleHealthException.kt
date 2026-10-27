@@ -17,7 +17,7 @@
 package org.radarbase.googlehealth.exception
 
 /**
- * Thrown when a retryable Google Health API error (429 or 5xx) exhausts its retry budget.
- * Redis cursor past a chunk that never completed, the next scheduled iteration will retry.
+ * Thrown when a retryable Google Health API error (429 or 5xx) still fails after all retries.
+ * Callers should treat the request as not done and try it again later.
  */
 class TransientGoogleHealthException(message: String) : RuntimeException(message)
