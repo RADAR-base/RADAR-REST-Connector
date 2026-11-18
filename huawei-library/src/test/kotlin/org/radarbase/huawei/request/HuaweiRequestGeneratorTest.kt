@@ -287,6 +287,18 @@ class HuaweiRequestGeneratorTest {
     }
 
     @Test
+    fun `out of range window steps the offset forward a day`() {
+        val start = Instant.parse("2024-01-01T00:00:00Z")
+        val req = request(route, start, Instant.parse("2024-01-31T00:00:00Z"))
+        val body = """{"error":{"code":403,"message":"The query time is out of range."}}"""
+
+        val result = generator.handleResponse(req, response(req, 403, body))
+
+        assertTrue(result is HuaweiResult.Success)
+        assertEquals(start.plus(Duration.ofDays(1)), offsets[route.toString()])
+    }
+
+    @Test
     fun `site cross error backs off every route of the user`() {
         val other = stepsRoute("other")
         val generator = HuaweiRequestGenerator(repository, offsetManager, listOf(route, other))

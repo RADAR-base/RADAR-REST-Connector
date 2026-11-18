@@ -163,6 +163,11 @@ class HuaweiRequestGenerator @JvmOverloads constructor(
             logger.debug("No data source of {} for {}", req.route, req.user.versionedId)
             return HuaweiResult.Success(recordsReceived(req, MissingNode.getInstance()))
         }
+        if (response.code == 403 &&
+            response.peekBody(PEEK_BYTES).string().contains(OUT_OF_RANGE)
+        ) {
+            return HuaweiResult.Success(outOfRange(req))
+        }
         return if (response.isSuccessful) {
             try {
                 HuaweiResult.Success(requestSuccessful(req, response))
@@ -237,6 +242,32 @@ class HuaweiRequestGenerator @JvmOverloads constructor(
             now.plus(SUCCESS_BACK_OFF_TIME)
         }
         return records
+    }
+
+    /**
+     * Huawei rejects windows before its history limit, counted from when the user authorized
+     * access. Step the offset forward a day at a time, so a window that only partly precedes the
+     * limit doesn't lose the data after it.
+     */
+    private fun outOfRange(request: RestRequest): List<TopicData> {
+        val currentOffset = currentOffset(request.route, request.user)
+        val nextOffset = request.startDate.plus(OUT_OF_RANGE_STEP)
+            .coerceAtMost(request.endDate)
+            .coerceAtLeast(currentOffset)
+        logger.info(
+            "{} data of {} before {} is out of Huawei's history range; continuing from {}",
+            request.route,
+            request.user.versionedId,
+            request.endDate,
+            nextOffset,
+        )
+        if (nextOffset.isAfter(currentOffset)) {
+            huaweiOffsetManager.updateOffsets(request.route, request.user, nextOffset)
+        }
+        val key = routeKey(request.route, request.user)
+        routeFailedUntil -= key
+        routeNextRequest[key] = Instant.now().plus(SUCCESS_BACK_OFF_TIME)
+        return emptyList()
     }
 
     override fun requestFailed(request: RestRequest, response: Response): HuaweiError {
@@ -381,6 +412,8 @@ class HuaweiRequestGenerator @JvmOverloads constructor(
         private const val NO_COLLECTOR = "no default dataCollector found"
         private const val INVALID_DATA_TYPE = "Invalid dataTypeName"
         private const val SITE_CROSS = "121001"
+        private const val OUT_OF_RANGE = "The query time is out of range"
+        private val OUT_OF_RANGE_STEP = Duration.ofDays(1L)
         val JSON_FACTORY = JsonFactory()
         val JSON_READER = ObjectMapper(JSON_FACTORY).registerModule(JavaTimeModule()).reader()
     }

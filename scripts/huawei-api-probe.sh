@@ -34,6 +34,7 @@
 #
 # Options:
 #   DAYS=30 ./huawei-api-probe.sh                          # window size, max 30 (default 7)
+#   ENDED_DAYS_AGO=400 ./huawei-api-probe.sh               # window ending N days ago (default 0)
 #   ./huawei-api-probe.sh continuous_ecg_detail emotion    # only these routes
 set -euo pipefail
 
@@ -91,12 +92,13 @@ fi
 
 : "${HUAWEI_TOKEN:?Set HUAWEI_REFRESH_TOKEN (+ CLIENT_ID/SECRET), USER_FILE, or HUAWEI_TOKEN}"
 DAYS="${DAYS:-7}"
+ENDED_DAYS_AGO="${ENDED_DAYS_AGO:-0}"
 OUT_DIR="${OUT_DIR:-huawei-responses}"
 V1=https://health-api.cloud.huawei.com/healthkit/v1
 V2=https://health-api.cloud.huawei.com/healthkit/v2
 
-# Window: the last DAYS complete UTC days, [START, END).
-END_S=$(( $(date -u +%s) / 86400 * 86400 ))
+# Window: DAYS complete UTC days ending ENDED_DAYS_AGO days ago, [START, END).
+END_S=$(( ($(date -u +%s) / 86400 - ENDED_DAYS_AGO) * 86400 ))
 START_S=$(( END_S - DAYS * 86400 ))
 utc_day() { date -u -d "@$1" +%Y%m%d 2>/dev/null || date -u -r "$1" +%Y%m%d; }  # GNU || BSD/macOS
 START_MS=${START_S}000
