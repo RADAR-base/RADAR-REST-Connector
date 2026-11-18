@@ -214,13 +214,13 @@ sequenceDiagram
 The `kafka-connect-huawei-source` module polls the
 [Huawei Health Kit Data API](https://developer.huawei.com/consumer/en/doc/HMSCore-References/rest-overview-0000001254420693)
 for the data types documented in the
-[`radar-huawei-connector` schema specification](https://github.com/RADAR-base/RADAR-Schemas/blob/huawei_schemas/specifications/connector/radar-huawei-connector-1.0.0.yml)
-(RADAR-Schemas, `huawei_schemas` branch) — activity records, continuous/instantaneous sample
+[`radar-huawei-connector` schema specification](https://github.com/RADAR-base/RADAR-Schemas/blob/master/specifications/connector/radar-huawei-connector-1.0.0.yml)
+(RADAR-Schemas, released in `0.9.1`) — activity records, continuous/instantaneous sample
 statistics (steps, distance, calories, heart rate, SpO2, blood pressure, breathing rate, ECG,
 sleep stages, and more), health records (ambulatory blood pressure, heart rate alerts,
 hyperthermia, low SpO2 alerts, menstrual cycle, sleep), and daily summaries. It follows the same
-`rest.source.*`, `huawei.api.client`/`huawei.api.secret`, and `huawei.user.repository.*`
-configuration conventions as the Fitbit and Oura connectors above, plus one
+`huawei.api.client`/`huawei.api.secret` and `huawei.user.repository.*` configuration
+conventions as the Fitbit and Oura connectors above, plus one
 `huawei.<data-type>.enabled` / `huawei.<data-type>.topic` pair per Huawei data type — see
 `org.radarbase.huawei.route.HuaweiRouteFactory` for the full list of `<data-type>` keys and their
 default topic names, and `docker/source-huawei.properties.template` for a minimal example.
@@ -236,6 +236,19 @@ USER_FILE=docker/users/test.yml DAYS=30 ./scripts/huawei-api-probe.sh
 
 Run it from a machine in the same Huawei site (region) as the user's account; requests from
 elsewhere are rejected with error `121001 "request forbidden due to site cross"`.
+
+Collection settings:
+
+| Setting | Default | Meaning |
+|---|---|---|
+| `huawei.user.poll.interval` | `1800` | Seconds to wait before polling a user's data type again once all its data has been collected. |
+| `huawei.late.sync.window` | `P14D` | ISO-8601 duration. Devices can sync days late, so a time window without data is only marked as collected once it is older than this. |
+| `huawei.max.history` | (none) | ISO-8601 period such as `P1Y`. Huawei only serves a limited history, counted back from when the user authorized access; data before that is not requested. Uses the user's `authorizedAt` when the user repository provides it, otherwise `createdAt`. |
+| `huawei.heartbeat.topic` | `connect_huawei_heartbeat` | Topic for empty records that store the progress of time windows without data, so a restart doesn't request them again. Create it with `cleanup.policy=compact`. |
+
+Known limitation: once a data type returns records, the connector continues just after the latest
+one. If a second device of the same user syncs late with earlier data for that data type, Huawei
+may not return it to the connector any more.
 
 This connector's schemas were released in `radar-schemas-commons` `0.9.1` (the
 `radarSchemasHuawei` version in `gradle/libs.versions.toml`).

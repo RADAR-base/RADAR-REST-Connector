@@ -167,15 +167,17 @@ didn't fit Oura's simpler historical/recent chunking model.
 Structurally identical to the Oura pattern above (pure-Kotlin domain library + thin Connect glue
 module), but with two differences worth knowing about:
 
-- **Three request "shapes" instead of one.** The Huawei Health Kit Data API doesn't have a single
-  uniform per-route request shape like Oura's `GET .../{subPath}?start_date=...&end_date=...`. It
-  exposes `POST /healthkit/v1/sampleSet:polymerize` (raw sample points, or day-aggregated
-  statistics when a `groupByTime` block is added to the JSON body) for most data types, plus two
-  GET endpoints — `activityRecords` and `healthRecords` — for workout sessions and clinical-style
-  records (blood pressure sessions, heart-rate alerts, menstrual cycle, sleep). `HuaweiRoute` is
-  the shared abstract base (OAuth2-authorized request building + time-range chunking);
-  `HuaweiSampleSetRoute`, `HuaweiHealthRecordRoute`, and `HuaweiActivityRecordRoute` are the three
-  concrete route kinds.
+- **Four request "shapes" instead of one.** The Huawei Health Kit Data API doesn't have a single
+  uniform per-route request shape like Oura's `GET .../{subPath}?start_date=...&end_date=...`.
+  `HuaweiRoute` is the shared abstract base (OAuth2-authorized request building + time-range
+  chunking), with four concrete route kinds:
+  - `HuaweiSampleSetRoute`: `POST /healthkit/v1/sampleSet:polymerize` for raw sample points
+    (millisecond timestamps).
+  - `HuaweiDailyPolymerizeRoute`: `POST /healthkit/v2/sampleSet:dailyPolymerize` for per-UTC-day
+    statistics (`*_statistics` and `*_total` keys), requesting whole completed days only.
+  - `HuaweiHealthRecordRoute`: `GET /healthkit/v2/healthRecords` for clinical-style records (ECG,
+    blood pressure sessions, heart-rate alerts, menstrual cycle, sleep), nanosecond timestamps.
+  - `HuaweiActivityRecordRoute`: `GET /healthkit/v2/activityRecords` for workout sessions.
 - **A single route registry drives both the route list and the Connect config**, instead of
   Oura/Fitbit's one-hand-written-`ConfigDef`-entry-per-data-type approach. Huawei has ~54 data
   types (see the `radar-huawei-connector` schema spec in RADAR-Schemas,
@@ -193,9 +195,15 @@ module), but with two differences worth knowing about:
   pattern over copy-pasting Oura's per-type `ConfigDef` blocks.
 
 Field-value key names inside `HuaweiRouteFactory`'s record builders (what JSON key a given Avro
-field is read from) are a best-effort mapping to Huawei's documented `Field` naming convention —
-verify them against a real Health Kit API response and adjust before relying on this in
-production; see the KDoc at the top of that file.
+field is read from) follow each data type's reference in the Huawei Health Kit docs; the few keys
+those references don't document are marked best-effort in the KDoc at the top of that file.
+
+Offsets: when a time window returns no data, the offset only moves past it once the window is
+older than `huawei.late.sync.window`, since devices can sync days late. Kafka Connect only stores
+an offset along with a record, so `HuaweiSourceTask` then writes an empty record to
+`huawei.heartbeat.topic` to store it. The earliest data requested is limited by
+`huawei.max.history`, counted back from the user's authorization time. See
+`docs/adr/0001-settled-offsets-and-history-limit.md`.
 
 ## Runtime data flow (both connectors, conceptually)
 
@@ -258,10 +266,12 @@ and configured purely through `SENTRY_DSN`/`SENTRY_*` env vars — see README "S
 
 ## Testing
 
-- `kafka-connect-rest-source/src/test`, `kafka-connect-fitbit-source/src/test`,
-  `kafka-connect-oura-source/src/test`, `kafka-connect-huawei-source/src/test` currently only
-  contain config-parsing tests (`*ConnectorConfigTest`) plus one task test — test coverage of the
-  actual polling/conversion logic is thin. `wiremock` and `mockito` are on the version catalog for
+- `kafka-connect-rest-source/src/test`, `kafka-connect-fitbit-source/src/test` and
+  `kafka-connect-oura-source/src/test` mostly contain config-parsing tests
+  (`*ConnectorConfigTest`) plus one task test, so test coverage of their polling/conversion logic
+  is thin. `huawei-library/src/test` covers the Huawei request generator (offsets, back-off,
+  history limit), converters and route registry, and `kafka-connect-huawei-source/src/test` its
+  config, YAML user repository and heartbeat records. `wiremock` and `mockito` are on the version catalog for
   HTTP-level testing but not yet exercised much; the `oura-library`/`huawei-library` pure-Kotlin
   design makes those the easiest place to add real unit tests for new routes/converters without
   Kafka Connect scaffolding.
@@ -269,15 +279,6 @@ and configured purely through `SENTRY_DSN`/`SENTRY_*` env vars — see README "S
   to `master`/`dev`, then builds (and on `push`, publishes) multi-arch Docker images per connector
   module via a matrix job. `release.yml` does the same on GitHub Release publish, additionally
   uploading built jars as release assets, tagged `vX.Y.Z` from `gradle.properties`/version catalog.
-- **Sandbox note:** in a network-restricted environment (no access to `packages.confluent.io`, or
-  to whichever host actually serves a given `-SNAPSHOT` dependency), only the pure-Kotlin library
-  modules (`oura-library`, `huawei-library`) may be compilable — the `kafka-connect-*-source`
-  glue modules depend on `io.confluent:kafka-connect-avro-converter` /
-  `org.apache.kafka:connect-api` from Confluent's Maven repo and won't resolve. If you hit this,
-  it's an environment limitation, not a code problem: check whether the library module alone
-  compiles before concluding the code is broken, and consider publishing a needed `-SNAPSHOT`
-  dependency to `mavenLocal()` (e.g. `gradle :radar-schemas-commons:publishToMavenLocal` from a
-  RADAR-Schemas checkout) to verify domain logic against the real generated classes.
 
 ## Adding a new vendor integration
 
