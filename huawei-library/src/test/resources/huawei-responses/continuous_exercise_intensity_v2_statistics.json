@@ -1,0 +1,56 @@
+{
+  "group": [
+    {
+      "startTime": 1794960000000,
+      "endTime": 1795046399999,
+      "sampleSet": [
+        {
+          "dataCollectorId": "opaque-data-collector-id",
+          "samplePoints": [
+            {
+              "startTime": 1794960000000000000,
+              "endTime": 1795046399999000000,
+              "dataTypeName": "com.huawei.continuous.exercise_intensity.v2.statistics",
+              "originalDataCollectorId": "opaque-data-collector-id",
+              "value": [
+                {
+                  "fieldName": "totalIntensity",
+                  "integerValue": 32
+                },
+                {
+                  "fieldName": "intensity_map",
+                  "mapValue": [
+                    {
+                      "key": "1",
+                      "value": {
+                        "integerValue": 11
+                      }
+                    },
+                    {
+                      "key": "2",
+                      "value": {
+                        "integerValue": 15
+                      }
+                    },
+                    {
+                      "key": "6",
+                      "value": {
+                        "integerValue": 2
+                      }
+                    },
+                    {
+                      "key": "8",
+                      "value": {
+                        "integerValue": 2
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

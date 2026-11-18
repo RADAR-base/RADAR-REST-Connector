@@ -1,0 +1,39 @@
+{
+  "group": [
+    {
+      "startTime": 1794960000000,
+      "endTime": 1795046399999,
+      "sampleSet": [
+        {
+          "dataCollectorId": "opaque-data-collector-id",
+          "samplePoints": [
+            {
+              "startTime": 1795016220000000000,
+              "endTime": 1795019460000000000,
+              "dataTypeName": "com.huawei.continuous.spo2.statistics",
+              "originalDataCollectorId": "opaque-data-collector-id",
+              "value": [
+                {
+                  "fieldName": "saturation_avg",
+                  "floatValue": 98.0
+                },
+                {
+                  "fieldName": "saturation_max",
+                  "floatValue": 99.0
+                },
+                {
+                  "fieldName": "saturation_min",
+                  "floatValue": 97.0
+                },
+                {
+                  "fieldName": "saturation_last",
+                  "floatValue": 99.0
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "group": [
+    {
+      "startTime": 1794960000000,
+      "endTime": 1795046399999,
+      "sampleSet": [
+        {
+          "dataCollectorId": "opaque-data-collector-id",
+          "samplePoints": [
+            {
+              "startTime": 1795013359000000000,
+              "endTime": 1795027785000000000,
+              "dataTypeName": "com.huawei.continuous.body.blood_pressure.statistics",
+              "originalDataCollectorId": "opaque-data-collector-id",
+              "value": [
+                {
+                  "fieldName": "systolic_pressure_avg",
+                  "floatValue": 139.0
+                },
+                {
+                  "fieldName": "systolic_pressure_max",
+                  "floatValue": 155.0
+                },
+                {
+                  "fieldName": "systolic_pressure_min",
+                  "floatValue": 125.0
+                },
+                {
+                  "fieldName": "systolic_pressure_last",
+                  "floatValue": 136.0
+                },
+                {
+                  "fieldName": "diastolic_pressure_avg",
+                  "floatValue": 101.0
+                },
+                {
+                  "fieldName": "diastolic_pressure_max",
+                  "floatValue": 106.0
+                },
+                {
+                  "fieldName": "diastolic_pressure_min",
+                  "floatValue": 94.0
+                },
+                {
+                  "fieldName": "diastolic_pressure_last",
+                  "floatValue": 98.0
+                },
+                {
+                  "fieldName": "sphygmus_avg",
+                  "floatValue": 94.0
+                },
+                {
+                  "fieldName": "sphygmus_max",
+                  "floatValue": 106.0
+                },
+                {
+                  "fieldName": "sphygmus_min",
+                  "floatValue": 85.0
+                },
+                {
+                  "fieldName": "sphygmus_last",
+                  "floatValue": 102.0
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

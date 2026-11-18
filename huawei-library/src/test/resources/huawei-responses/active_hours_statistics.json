@@ -1,0 +1,27 @@
+{
+  "group": [
+    {
+      "startTime": 1794960000000,
+      "endTime": 1795046399999,
+      "sampleSet": [
+        {
+          "dataCollectorId": "opaque-data-collector-id",
+          "samplePoints": [
+            {
+              "startTime": 1795014000000000000,
+              "endTime": 1795031999999000000,
+              "dataTypeName": "com.huawei.active_hours.statistics",
+              "originalDataCollectorId": "opaque-data-collector-id",
+              "value": [
+                {
+                  "fieldName": "activeHours",
+                  "integerValue": 5
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

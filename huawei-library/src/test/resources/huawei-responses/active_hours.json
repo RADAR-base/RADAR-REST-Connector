@@ -1,0 +1,39 @@
+{
+  "group": [
+    {
+      "startTime": 1794960000000,
+      "endTime": 1795046400000,
+      "sampleSet": [
+        {
+          "dataCollectorId": "derived:com.huawei.active_hours:com.huawei.hwid:merged",
+          "samplePoints": [
+            {
+              "startTime": 1795014000000000000,
+              "endTime": 1795017599999000000,
+              "dataTypeName": "com.huawei.active_hours",
+              "originalDataCollectorId": "raw:com.huawei.active_hours:com.huawei.health:HUAWEI:TBD:308517120:308517120",
+              "value": [
+                {
+                  "fieldName": "isActive",
+                  "integerValue": 1
+                }
+              ]
+            },
+            {
+              "startTime": 1795017600000000000,
+              "endTime": 1795021199999000000,
+              "dataTypeName": "com.huawei.active_hours",
+              "originalDataCollectorId": "raw:com.huawei.active_hours:com.huawei.health:HUAWEI:TBD:308517120:308517120",
+              "value": [
+                {
+                  "fieldName": "isActive",
+                  "integerValue": 1
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

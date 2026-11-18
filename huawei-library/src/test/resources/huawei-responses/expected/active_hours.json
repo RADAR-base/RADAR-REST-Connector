@@ -1,0 +1,13 @@
+[ {
+  "time" : 1.795014E9,
+  "endTime" : 1.795017599999E9,
+  "activeHours" : 1,
+  "moderateIntensityMinutes" : null,
+  "highIntensityMinutes" : null
+}, {
+  "time" : 1.7950176E9,
+  "endTime" : 1.795021199999E9,
+  "activeHours" : 1,
+  "moderateIntensityMinutes" : null,
+  "highIntensityMinutes" : null
+} ]

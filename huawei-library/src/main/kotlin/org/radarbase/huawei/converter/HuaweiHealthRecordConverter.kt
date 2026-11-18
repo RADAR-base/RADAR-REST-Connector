@@ -40,13 +40,13 @@ class HuaweiHealthRecordConverter(
     ) -> SpecificRecord,
 ) : HuaweiDataConverter {
 
-    /** Detail sample points returned with a record when `subDataType` was requested. The
-     * HealthRecord model nests them as sample sets; bare sample points are accepted too. */
+    /** Detail sample points returned with a record when `subDataType` was requested. Live
+     * responses carry them as `subData`, an object of sample sets keyed by detail data type:
+     * `{"com.huawei.continuous.ecg_detail": {"samplePoints": [...]}}`. */
     private fun JsonNode.subDataPoints(): Sequence<JsonNode> {
-        val details = get("subDataDetails")?.takeIf { it.isArray } ?: return emptySequence()
-        return details.asSequence().flatMap { detail ->
-            detail.get("samplePoints")?.takeIf { it.isArray }?.asSequence()
-                ?: sequenceOf(detail)
+        val details = get("subData")?.takeIf { it.isObject } ?: return emptySequence()
+        return details.properties().asSequence().flatMap { (_, sampleSet) ->
+            sampleSet.get("samplePoints")?.takeIf { it.isArray }?.asSequence().orEmpty()
         }
     }
 

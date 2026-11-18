@@ -1,0 +1,39 @@
+{
+  "group": [
+    {
+      "startTime": 1794960000000,
+      "endTime": 1795046399999,
+      "sampleSet": [
+        {
+          "dataCollectorId": "opaque-data-collector-id",
+          "samplePoints": [
+            {
+              "startTime": 1795025764000000000,
+              "endTime": 1795027250000000000,
+              "dataTypeName": "com.huawei.vo2max.statistics",
+              "originalDataCollectorId": "opaque-data-collector-id",
+              "value": [
+                {
+                  "fieldName": "avg",
+                  "integerValue": 39
+                },
+                {
+                  "fieldName": "max",
+                  "integerValue": 39
+                },
+                {
+                  "fieldName": "min",
+                  "integerValue": 39
+                },
+                {
+                  "fieldName": "last",
+                  "integerValue": 39
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

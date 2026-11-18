@@ -24,7 +24,6 @@ import org.apache.avro.Schema
 import org.radarbase.huawei.user.HuaweiUser
 import org.radarbase.huawei.user.User
 import org.radarbase.huawei.user.UserRepository
-import org.radarcns.connector.huawei.HuaweiContinuousEcgDetail
 import org.radarcns.connector.huawei.HuaweiHealthRecordDynamicBp
 import java.time.Instant
 import kotlin.test.Test
@@ -33,10 +32,14 @@ import kotlin.test.assertTrue
 
 /**
  * Exercises every [HuaweiRouteFactory] definition end to end: builds the route, feeds a
- * generously-populated fixture payload shaped like the endpoint it targets (`sampleSet:polymerize`,
- * `healthRecords`, or `activityRecords`), and asserts the converter produces exactly one record on
- * the definition's own topic without throwing. This is the main regression test against typos in
- * the ~90 hand-written Huawei field-value key strings (and the Avro builder calls around them).
+ * generously-populated fixture payload shaped like the endpoint it targets, and asserts the
+ * converter produces exactly one record on the definition's own topic without throwing. This
+ * guards the ~90 hand-written Huawei field-value key strings (and the Avro builder calls around
+ * them) of routes with no recorded live response yet; [HuaweiRecordedResponseTest] pins the
+ * values of those that have one.
+ *
+ * Every envelope (`sampleSet:polymerize`, `sampleSet:dailyPolymerize`, `healthRecords` and
+ * `activityRecords`) is copied from a live response.
  *
  * @author yatharthranjan
  */
@@ -93,75 +96,16 @@ class HuaweiRouteFactoryTest {
         assertTrue(failures.isEmpty(), "Failures:\n" + failures.joinToString("\n"))
     }
 
-    @Test
-    fun `ECG route reads record id, record fields and associated voltage data`() {
-        val definition = HuaweiRouteFactory.definitions.single { it.key == "continuous_ecg_detail" }
-        val route = definition.build(fakeUserRepository, definition.defaultTopic)
-        val payload = mapper.readTree(
-            """
-            {"healthRecords": [{
-              "startTime": $START_NANOS, "endTime": $END_NANOS,
-              "dataTypeName": "com.huawei.continuous.ecg_record",
-              "id": "ecg-1",
-              "value": [
-                {"fieldName": "ecg_type", "integerValue": 1},
-                {"fieldName": "avg_heart_rate", "floatValue": 75.6},
-                {"fieldName": "ecg_arrhythmia_type", "longValue": 8},
-                {"fieldName": "user_symptom", "longValue": 1022},
-                {"fieldName": "sampling_frequency", "integerValue": 500},
-                {"fieldName": "ecg_algorithm_version", "stringValue": "1.0"},
-                {"fieldName": "ecg_data_sources", "stringValue": "HUAWEI"},
-                {"fieldName": "ecg_data_length", "integerValue": 7500},
-                {"fieldName": "package_name", "stringValue": "com.huawei.health"}
-              ],
-              "subDataDetails": [{
-                "dataTypeName": "com.huawei.continuous.ecg_detail",
-                "samplePoints": [
-                  {"startTime": $START_NANOS, "value": [
-                    {"fieldName": "voltage_datas", "stringValue": "0.1,0.2"}]}
-                ]
-              }]
-            }]}
-            """.trimIndent(),
-        )
-
-        val record = route.converters.single().processRecords(payload, fakeUser)
-            .single().getOrThrow().value as HuaweiContinuousEcgDetail
-
-        assertEquals("ecg-1", record.ecgRecordId)
-        assertEquals(1, record.ecgType)
-        assertEquals(75.6f, record.averageHeartRate)
-        assertEquals(8, record.ecgArrhythmiaType)
-        assertEquals(1022L, record.userSymptom)
-        assertEquals(500, record.samplingFrequency)
-        assertEquals("1.0", record.ecgAlgorithmVersion)
-        assertEquals("HUAWEI", record.ecgDataSources)
-        assertEquals(7500, record.ecgDataLength)
-        assertEquals("com.huawei.health", record.packageName)
-        assertEquals("0.1,0.2", record.voltageData)
-    }
-
     private fun fixtureFor(route: HuaweiRoute) = when (route) {
-        is HuaweiActivityRecordRoute -> activityRecordFixture()
+        is HuaweiActivityRecordRoute -> recordedActivityRecord()
         is HuaweiHealthRecordRoute -> healthRecordFixture()
-        is HuaweiDailyPolymerizeRoute -> dailyPolymerizeFixture()
-        is HuaweiSampleSetRoute -> sampleSetFixture()
+        is HuaweiDailyPolymerizeRoute, is HuaweiSampleSetRoute -> sampleSetFixture()
         else -> error("Unknown route type: ${route::class}")
     }
 
+    /** Envelope shared by `sampleSet:polymerize` and `sampleSet:dailyPolymerize` responses:
+     * millisecond group times, nanosecond sample point times. */
     private fun sampleSetFixture(): ObjectNode {
-        val root = mapper.createObjectNode()
-        val sampleSet = root.putArray("sampleSet")
-        val group = sampleSet.addObject()
-        val samplePoints = group.putArray("samplePoints")
-        val point = samplePoints.addObject()
-        point.put("startTime", START_MILLIS)
-        point.put("endTime", END_MILLIS)
-        point.set<ArrayNode>("value", genericValueArray())
-        return root
-    }
-
-    private fun dailyPolymerizeFixture(): ObjectNode {
         val root = mapper.createObjectNode()
         val groups = root.putArray("group")
         val group = groups.addObject()
@@ -169,10 +113,13 @@ class HuaweiRouteFactoryTest {
         group.put("endTime", END_MILLIS)
         val sampleSet = group.putArray("sampleSet")
         val collector = sampleSet.addObject()
+        collector.put("dataCollectorId", "derived:com.huawei.test:com.huawei.hwid:merged")
         val samplePoints = collector.putArray("samplePoints")
         val point = samplePoints.addObject()
         point.put("startTime", START_NANOS)
         point.put("endTime", END_NANOS)
+        point.put("dataTypeName", "com.huawei.test")
+        point.put("originalDataCollectorId", "raw:com.huawei.test:com.huawei.health:HUAWEI")
         point.set<ArrayNode>("value", genericValueArray())
         return root
     }
@@ -183,46 +130,36 @@ class HuaweiRouteFactoryTest {
         val record = records.addObject()
         record.put("startTime", START_NANOS)
         record.put("endTime", END_NANOS)
+        record.put("dataTypeName", "com.huawei.test")
+        record.put("originalDataCollectorId", "opaque-data-collector-id")
         record.set<ArrayNode>("value", genericValueArray())
+        record.put("id", "health-record-id")
+        val detail = record.putObject("subData").putObject("com.huawei.test.detail")
+        detail.put("startTime", START_NANOS)
+        detail.put("endTime", END_NANOS)
+        detail.put("dataCollectorId", "opaque-data-collector-id")
+        val point = detail.putArray("samplePoints").addObject()
+        point.put("startTime", START_NANOS)
+        point.put("endTime", END_NANOS)
+        point.put("dataTypeName", "com.huawei.test.detail")
+        point.set<ArrayNode>("value", genericValueArray())
         return root
     }
 
-    private fun activityRecordFixture(): ObjectNode {
-        val root = mapper.createObjectNode()
-        val records = root.putArray("activityRecord")
-        val record = records.addObject()
-        record.put("startTime", START_MILLIS)
-        record.put("endTime", END_MILLIS)
-        record.put("id", "activity-1")
-        record.put("name", "Run")
-        record.put("desc", "Morning run")
-        record.put("timeZone", "Europe/London")
-        record.put("activityType", "1")
-        record.put("activeTime", 1000L)
-        record.put("isKeepGoing", false)
-        val device = record.putObject("device")
-        device.put("manufacturer", "Huawei")
-        device.put("type", 1)
-        val summary = record.putObject("activitySummary")
-        summary.put("avgPace", 300.0)
-        summary.put("bestPace", 250.0)
-        summary.putObject("paceMap")
-        summary.putArray("dataSummary")
-        summary.putArray("sectionSummary")
-        return root
-    }
+    private fun recordedActivityRecord() = mapper.readTree(
+        checkNotNull(javaClass.getResource("/huawei-responses/activity_record.json")),
+    )
 
     /** One value entry per literal field-value key used across [HuaweiRouteFactory], plus every
      * (snake-cased) field of [HuaweiHealthRecordDynamicBp] - covering both the ad hoc key names
-     * used for most data types and the mechanically-derived ones used for the 24h ABPM record. */
+     * used for most data types and the mechanically-derived ones used for the 24h ABPM record.
+     * Each entry carries a single typed value, as live responses do. */
     private fun genericValueArray(): ArrayNode {
         val array = mapper.createArrayNode()
         (LITERAL_FIELD_KEYS + dynamicBpFieldKeys()).distinct().forEach { key ->
             val entry = array.addObject()
             entry.put("fieldName", key)
             entry.put("integerValue", 1)
-            entry.put("floatValue", 1.5)
-            entry.put("stringValue", "test")
         }
         return array
     }
@@ -248,7 +185,8 @@ class HuaweiRouteFactoryTest {
             "ecg_algorithm_version", "ecg_arrhythmia_type", "ecg_data_length", "ecg_data_sources",
             "ecg_type", "emotionStatus", "eventName", "exercise_type", "exerciseTime",
             "exerciseTimeGoal", "extendData", "fall_asleep_time", "fragments", "go_bed_time",
-            "heartRateVariabilityRMSSD", "highBodyTemperatureAlarm", "intensity", "isActive",
+            "heartRateVariabilityRMSSD", "highBodyTemperatureAlarm", "intensity", "intensity_map",
+            "isActive",
             "last", "level", "light_sleep_time", "max", "max_body_fat_rate", "max_heart_rate",
             "maxBreatheRate", "maxBreathrateBaseline", "maxSpO2", "meal", "measure_count", "min",
             "min_body_fat_rate", "min_heart_rate", "minBreatheRate", "minBreathrateBaseline",

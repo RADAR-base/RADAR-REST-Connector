@@ -1,0 +1,15 @@
+[ {
+  "time" : 1.795034746E9,
+  "endTime" : 1.795034776E9,
+  "ecgRecordId" : "health-record-id",
+  "ecgType" : 1,
+  "averageHeartRate" : 71.0,
+  "ecgArrhythmiaType" : 1,
+  "userSymptom" : 0,
+  "samplingFrequency" : 500,
+  "ecgAlgorithmVersion" : "V1.0.0.24",
+  "ecgDataSources" : "HUAWEI",
+  "ecgDataLength" : 60000,
+  "packageName" : "hw.health.ecganalysis",
+  "voltageData" : "[-621258.375000,-606141.437500,-596807.750000,-596147.937500,-597200.187500]"
+} ]

@@ -114,13 +114,25 @@ class HuaweiRequestGeneratorTest {
         .body(body.toResponseBody())
         .build()
 
+    /** A `sampleSet:polymerize` response in the live shape, with one-minute sample points.
+     * Live responses seen so far carry no `hasMoreData` flag, so it is only added when set. */
     private fun pointsBody(vararg starts: Instant, hasMoreData: Boolean = false): String {
         val points = starts.joinToString(",") { start ->
-            """{"startTime": ${start.toEpochMilli() * 1_000_000},
-               "value": [{"fieldName": "steps_delta", "integerValue": 1}]}"""
+            val startNanos = start.toEpochMilli() * 1_000_000
+            """{"startTime": $startNanos, "endTime": ${startNanos + 60_000_000_000},
+               "dataTypeName": "com.huawei.continuous.steps.delta",
+               "originalDataCollectorId":
+                 "raw:com.huawei.continuous.steps.delta:com.huawei.health:HUAWEI",
+               "value": [{"fieldName": "steps_delta", "integerValue": 60}]}"""
         }
-        return """{"hasMoreData": $hasMoreData,
-                   "group": [{"sampleSet": [{"samplePoints": [$points]}]}]}"""
+        val more = if (hasMoreData) """"hasMoreData": true,""" else ""
+        val groupStart = (starts.firstOrNull() ?: Instant.EPOCH).toEpochMilli()
+        return """{$more "group": [{
+                   "startTime": $groupStart, "endTime": ${groupStart + 86_400_000},
+                   "sampleSet": [{
+                     "dataCollectorId":
+                       "derived:com.huawei.continuous.steps.delta:com.huawei.hwid:merged",
+                     "samplePoints": [$points]}]}]}"""
     }
 
     @Test

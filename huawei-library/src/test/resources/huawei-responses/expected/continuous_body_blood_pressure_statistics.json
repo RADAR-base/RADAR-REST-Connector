@@ -1,0 +1,14 @@
+[ {
+  "time" : 1.795013359E9,
+  "endTime" : 1.795027785E9,
+  "systolicPressureAvg" : 139.0,
+  "systolicPressureMax" : 155.0,
+  "systolicPressureMin" : 125.0,
+  "diastolicPressureAvg" : 101.0,
+  "diastolicPressureMax" : 106.0,
+  "diastolicPressureMin" : 94.0,
+  "sphygmusAvg" : 94.0,
+  "sphygmusMax" : 106.0,
+  "sphygmusMin" : 85.0,
+  "sphygmusLast" : 102.0
+} ]

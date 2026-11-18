@@ -1,0 +1,39 @@
+{
+  "group": [
+    {
+      "startTime": 1794960000000,
+      "endTime": 1795046400000,
+      "sampleSet": [
+        {
+          "dataCollectorId": "derived:com.huawei.heart_rate_variability:com.huawei.hwid:merged",
+          "samplePoints": [
+            {
+              "startTime": 1795014096000000000,
+              "endTime": 1795014156000000000,
+              "dataTypeName": "com.huawei.heart_rate_variability",
+              "originalDataCollectorId": "raw:com.huawei.heart_rate_variability:com.huawei.health:HUAWEI:TBD:308517120:308517120",
+              "value": [
+                {
+                  "fieldName": "heartRateVariabilityRMSSD",
+                  "integerValue": 61
+                }
+              ]
+            },
+            {
+              "startTime": 1795018896000000000,
+              "endTime": 1795018956000000000,
+              "dataTypeName": "com.huawei.heart_rate_variability",
+              "originalDataCollectorId": "raw:com.huawei.heart_rate_variability:com.huawei.health:HUAWEI:TBD:308517120:308517120",
+              "value": [
+                {
+                  "fieldName": "heartRateVariabilityRMSSD",
+                  "integerValue": 67
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

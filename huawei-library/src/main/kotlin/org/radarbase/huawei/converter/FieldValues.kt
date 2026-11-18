@@ -43,7 +43,7 @@ class FieldValues private constructor(private val values: Map<String, JsonNode>)
         private set
 
     /** Field values of the associated detail sample points of a health record (its
-     * `subDataDetails`), in response order, when they were requested and returned. */
+     * `subData`), in response order, when they were requested and returned. */
     var subData: List<FieldValues> = emptyList()
         private set
 
@@ -81,12 +81,11 @@ class FieldValues private constructor(private val values: Map<String, JsonNode>)
 
     /**
      * Reads a `Map<Integer, Integer>`-typed field (e.g. Huawei's exercise-type-to-duration map),
-     * as an object whose keys are stringified (Avro maps require string keys). Best-effort: the
-     * exact wire shape of a Huawei map-typed field is not confirmed against a live API response
-     * (Huawei's typed-value array uses `integerValue`/`floatValue`/`stringValue`/`longValue` for
-     * scalars, so `mapValue` is assumed by the same `<type>Value` convention). Accepts a plain
-     * `{"key": 1}` object, an object of typed values `{"key": {"integerValue": 1}}`, or an array of
-     * `{"key": ..., "value": ...}` entries.
+     * as an object whose keys are stringified (Avro maps require string keys). The live API sends
+     * these as a `mapValue` array of entries,
+     * `{"fieldName": "intensity_map", "mapValue": [{"key": "1", "value": {"integerValue": 11}}]}`;
+     * a plain `{"key": 1}` object or an object of typed values `{"key": {"integerValue": 1}}` is
+     * also accepted.
      */
     fun getIntMap(vararg fields: String): Map<String, Int>? {
         val node = lookup(fields) ?: return null

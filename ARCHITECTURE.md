@@ -271,7 +271,10 @@ and configured purely through `SENTRY_DSN`/`SENTRY_*` env vars — see README "S
   (`*ConnectorConfigTest`) plus one task test, so test coverage of their polling/conversion logic
   is thin. `huawei-library/src/test` covers the Huawei request generator (offsets, back-off,
   history limit), converters and route registry, and `kafka-connect-huawei-source/src/test` its
-  config, YAML user repository and heartbeat records. `wiremock` and `mockito` are on the version catalog for
+  config, YAML user repository and heartbeat records. Huawei converter tests run on responses
+  recorded from the live API (`huawei-library/src/test/resources/huawei-responses/`, made with
+  `scripts/huawei-api-probe.sh` and `scripts/huawei-response-fixtures.py`), and
+  `HuaweiRecordedResponseTest` compares their conversion with snapshots in `expected/`. `wiremock` and `mockito` are on the version catalog for
   HTTP-level testing but not yet exercised much; the `oura-library`/`huawei-library` pure-Kotlin
   design makes those the easiest place to add real unit tests for new routes/converters without
   Kafka Connect scaffolding.

@@ -25,11 +25,12 @@ import java.time.Instant
 /**
  * Converts `GET /healthkit/v2/activityRecords` responses into [HuaweiActivityRecord]s.
  *
- * Field names below follow the Huawei Health Kit `ActivityRecord`/`Device`/`ActivitySummary`
- * model (activity record id, name, description, time zone, activity type, device manufacturer and
- * type, and a nested activity summary with pace/data/section statistics). Nested JSON structures
- * that map to free-form Avro `string` fields (pace map, data summary, section summary) are kept as
- * their raw JSON text, since their internal shape varies by activity type.
+ * Field paths below follow the live API response: record id, name, description, time zone,
+ * activity type and active time at the top level, the recording device under `deviceInfo`
+ * (`manufacturer`, `deviceCode`), and pace statistics under `activitySummary.paceSummary`
+ * (`avgPace`, `bestPace`, `paceMap`). Nested JSON structures that map to free-form Avro `string`
+ * fields (pace map, data summary, section summary) are kept as their raw JSON text, since their
+ * internal shape varies by activity type.
  *
  * @author yatharthranjan
  */
@@ -61,8 +62,10 @@ class HuaweiActivityRecordConverter(
         timeReceived: Instant,
     ): HuaweiActivityRecord {
         val fields = FieldValues.from(this)
-        val device = this.get("device")?.let { FieldValues.from(it) }
-        val summary = this.get("activitySummary")?.let { FieldValues.from(it) }
+        val device = this.get("deviceInfo")?.let { FieldValues.from(it) }
+        val summaryNode = this.get("activitySummary")
+        val summary = summaryNode?.let { FieldValues.from(it) }
+        val pace = summaryNode?.get("paceSummary")?.let { FieldValues.from(it) }
         return HuaweiActivityRecord.newBuilder().apply {
             time = startTime.toEpoch()
             this.timeReceived = timeReceived.toEpoch()
@@ -77,10 +80,10 @@ class HuaweiActivityRecordConverter(
                 ?.takeIf { it.isBoolean }
                 ?.asBoolean()
             deviceManufacturer = device?.getString("manufacturer")
-            deviceType = device?.getInt("type")
-            activitySummaryAvgPace = summary?.getDouble("avgPace")
-            activitySummaryBestPace = summary?.getDouble("bestPace")
-            activitySummaryPaceMap = summary?.getString("paceMap")
+            deviceType = device?.getInt("deviceCode")
+            activitySummaryAvgPace = pace?.getDouble("avgPace")
+            activitySummaryBestPace = pace?.getDouble("bestPace")
+            activitySummaryPaceMap = pace?.getString("paceMap")
             activitySummaryDataSummary = summary?.getString("dataSummary")
             activitySummarySectionSummary = summary?.getString("sectionSummary")
         }.build()

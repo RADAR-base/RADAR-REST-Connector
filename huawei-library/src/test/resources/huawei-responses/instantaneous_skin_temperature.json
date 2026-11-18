@@ -1,0 +1,39 @@
+{
+  "group": [
+    {
+      "startTime": 1794960000000,
+      "endTime": 1795046400000,
+      "sampleSet": [
+        {
+          "dataCollectorId": "derived:com.huawei.instantaneous.skin.temperature:com.huawei.hwid:merged",
+          "samplePoints": [
+            {
+              "startTime": 1795013640000000000,
+              "endTime": 1795013700000000000,
+              "dataTypeName": "com.huawei.instantaneous.skin.temperature",
+              "originalDataCollectorId": "raw:com.huawei.instantaneous.skin.temperature:com.huawei.health:HUAWEI:TBD:308517120:308517120",
+              "value": [
+                {
+                  "fieldName": "temperature",
+                  "floatValue": 33.4
+                }
+              ]
+            },
+            {
+              "startTime": 1795013700000000000,
+              "endTime": 1795013760000000000,
+              "dataTypeName": "com.huawei.instantaneous.skin.temperature",
+              "originalDataCollectorId": "raw:com.huawei.instantaneous.skin.temperature:com.huawei.health:HUAWEI:TBD:308517120:308517120",
+              "value": [
+                {
+                  "fieldName": "temperature",
+                  "floatValue": 33.3
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

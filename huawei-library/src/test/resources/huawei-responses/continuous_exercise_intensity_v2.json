@@ -1,0 +1,39 @@
+{
+  "group": [
+    {
+      "startTime": 1794960000000,
+      "endTime": 1795046400000,
+      "sampleSet": [
+        {
+          "dataCollectorId": "derived:com.huawei.continuous.exercise_intensity.v2:com.huawei.hwid:merged",
+          "samplePoints": [
+            {
+              "startTime": 1795017360000000000,
+              "endTime": 1795017420000000000,
+              "dataTypeName": "com.huawei.continuous.exercise_intensity.v2",
+              "originalDataCollectorId": "raw:com.huawei.continuous.exercise_intensity.v2:com.huawei.health:HUAWEI:TBD:308517120:308517120",
+              "value": [
+                {
+                  "fieldName": "exercise_type",
+                  "integerValue": 1
+                }
+              ]
+            },
+            {
+              "startTime": 1795025340000000000,
+              "endTime": 1795025400000000000,
+              "dataTypeName": "com.huawei.continuous.exercise_intensity.v2",
+              "originalDataCollectorId": "raw:com.huawei.continuous.exercise_intensity.v2:com.huawei.health:HUAWEI:TBD:308517120:308517120",
+              "value": [
+                {
+                  "fieldName": "exercise_type",
+                  "integerValue": 1
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

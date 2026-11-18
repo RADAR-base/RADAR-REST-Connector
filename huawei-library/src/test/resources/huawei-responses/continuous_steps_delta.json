@@ -1,0 +1,39 @@
+{
+  "group": [
+    {
+      "startTime": 1794960000000,
+      "endTime": 1795046400000,
+      "sampleSet": [
+        {
+          "dataCollectorId": "derived:com.huawei.continuous.steps.delta:com.huawei.hwid:merged",
+          "samplePoints": [
+            {
+              "startTime": 1795014300000000000,
+              "endTime": 1795014360000000000,
+              "dataTypeName": "com.huawei.continuous.steps.delta",
+              "originalDataCollectorId": "raw:com.huawei.continuous.steps.delta:com.huawei.health:HUAWEI:TBD:308517120:308517120",
+              "value": [
+                {
+                  "fieldName": "steps_delta",
+                  "integerValue": 60
+                }
+              ]
+            },
+            {
+              "startTime": 1795014360000000000,
+              "endTime": 1795014420000000000,
+              "dataTypeName": "com.huawei.continuous.steps.delta",
+              "originalDataCollectorId": "raw:com.huawei.continuous.steps.delta:com.huawei.health:HUAWEI:TBD:308517120:308517120",
+              "value": [
+                {
+                  "fieldName": "steps_delta",
+                  "integerValue": 41
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

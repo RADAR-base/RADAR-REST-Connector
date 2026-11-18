@@ -23,6 +23,8 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
 /**
+ * Every payload below is a snippet of a live Huawei Health Kit response.
+ *
  * @author yatharthranjan
  */
 class FieldValuesTest {
@@ -30,86 +32,82 @@ class FieldValuesTest {
 
     @Test
     fun `parses typed-value array shape`() {
+        // Sample point values from continuous_body_blood_pressure_statistics and
+        // heart_rate_variability.
         val node = mapper.readTree(
             """
             [
-              {"fieldName": "steps", "integerValue": 123},
-              {"fieldName": "distance", "floatValue": 4.5},
-              {"fieldName": "note", "stringValue": "hello"}
+              {"fieldName": "systolic_pressure_avg", "floatValue": 139.0},
+              {"fieldName": "heartRateVariabilityRMSSD", "integerValue": 61}
             ]
             """.trimIndent(),
         )
         val fields = FieldValues.from(node)
 
-        assertEquals(123, fields.getInt("steps"))
-        assertEquals(4.5, fields.getDouble("distance"))
-        assertEquals("hello", fields.getString("note"))
+        assertEquals(139.0, fields.getDouble("systolic_pressure_avg"))
+        assertEquals(139, fields.getInt("systolic_pressure_avg"))
+        assertEquals(61, fields.getInt("heartRateVariabilityRMSSD"))
+        assertEquals("61", fields.getString("heartRateVariabilityRMSSD"))
         assertNull(fields.getInt("missing"))
     }
 
     @Test
     fun `parses flattened object shape`() {
-        val node = mapper.readTree("""{"avg": 1.5, "max": 3, "min": null}""")
-        val fields = FieldValues.from(node)
-
-        assertEquals(1.5, fields.getDouble("avg"))
-        assertEquals(3, fields.getInt("max"))
-        assertNull(fields.getInt("min"))
-    }
-
-    @Test
-    fun `falls back to later candidate keys and serializes list values`() {
+        // activityRecords deviceInfo, with the device-specific uniqueId replaced.
         val node = mapper.readTree(
             """
-            [
-              {"fieldName": "heartRateVariabilityRmssd", "integerValue": 42},
-              {"fieldName": "voltage_datas", "value": [1.5, -2.0]},
-              {"fieldName": "custom", "doubleValue": 7.5}
-            ]
+            {"uniqueId": "device-unique-id", "devType": "Smart watch", "modelNum": "TBD",
+             "manufacturer": "HUAWEI", "deviceCode": 308517120}
             """.trimIndent(),
         )
         val fields = FieldValues.from(node)
 
-        assertEquals(42, fields.getInt("heartRateVariabilityRMSSD", "heartRateVariabilityRmssd"))
-        assertEquals("[1.5,-2.0]", fields.getString("voltage_datas"))
-        assertNull(fields.getInt("voltage_datas"))
-        assertEquals(7.5, fields.getDouble("custom"))
+        assertEquals("HUAWEI", fields.getString("manufacturer"))
+        assertEquals(308517120, fields.getInt("deviceCode"))
+        assertEquals("Smart watch", fields.getString("devType"))
     }
 
     @Test
     fun `non-numeric text is null rather than zero for numeric getters`() {
+        val fields = FieldValues.from(mapper.readTree("""{"devType": "Smart watch"}"""))
+
+        assertNull(fields.getInt("devType"))
+        assertNull(fields.getDouble("devType"))
+    }
+
+    @Test
+    fun `serializes object-valued fields as JSON`() {
+        // activityRecords activitySummary.paceSummary, trimmed.
         val node = mapper.readTree(
             """
-            [
-              {"fieldName": "vendor", "stringValue": "HUAWEI"},
-              {"fieldName": "count", "stringValue": " 42 "}
-            ]
+            {"paceMap": {"1.0": 478.0, "2.0": 462.0}, "avgPace": 484.91802978515625,
+             "bestPace": 322.58}
             """.trimIndent(),
         )
         val fields = FieldValues.from(node)
 
-        assertNull(fields.getInt("vendor"))
-        assertNull(fields.getDouble("vendor"))
-        assertEquals(42, fields.getInt("count"))
-        assertEquals(42L, fields.getLong("count"))
+        assertEquals("""{"1.0":478.0,"2.0":462.0}""", fields.getString("paceMap"))
+        assertEquals(484.91802978515625, fields.getDouble("avgPace"))
     }
 
     @Test
     fun `parses map-typed values`() {
+        // continuous_exercise_intensity_v2_statistics sample point values.
         val node = mapper.readTree(
             """
             [
-              {"fieldName": "plain", "mapValue": {"1": 10, "2": 20}},
-              {"fieldName": "typed", "mapValue": {"1": {"integerValue": 5}}},
-              {"fieldName": "entries", "mapValue": [{"key": "3", "value": {"integerValue": 7}}]}
+              {"fieldName": "totalIntensity", "integerValue": 32},
+              {"fieldName": "intensity_map", "mapValue": [
+                {"key": "1", "value": {"integerValue": 11}},
+                {"key": "2", "value": {"integerValue": 15}}
+              ]}
             ]
             """.trimIndent(),
         )
         val fields = FieldValues.from(node)
 
-        assertEquals(mapOf("1" to 10, "2" to 20), fields.getIntMap("plain"))
-        assertEquals(mapOf("1" to 5), fields.getIntMap("typed"))
-        assertEquals(mapOf("3" to 7), fields.getIntMap("entries"))
+        assertEquals(mapOf("1" to 11, "2" to 15), fields.getIntMap("intensity_map"))
+        assertEquals(32, fields.getInt("totalIntensity"))
     }
 
     @Test

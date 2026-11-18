@@ -1,0 +1,27 @@
+{
+  "group": [
+    {
+      "startTime": 1794960000000,
+      "endTime": 1795046400000,
+      "sampleSet": [
+        {
+          "dataCollectorId": "derived:com.huawei.vo2max:com.huawei.hwid:merged",
+          "samplePoints": [
+            {
+              "startTime": 1795025764000000000,
+              "endTime": 1795027250000000000,
+              "dataTypeName": "com.huawei.vo2max",
+              "originalDataCollectorId": "raw:com.huawei.vo2max:com.huawei.health:HUAWEI:TBD:308517120:308517120",
+              "value": [
+                {
+                  "fieldName": "vo2max",
+                  "integerValue": 39
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

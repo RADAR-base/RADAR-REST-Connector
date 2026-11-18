@@ -50,48 +50,24 @@ class HuaweiSampleSetConverterTest {
     }
 
     @Test
-    fun `reads group-wrapped sample sets with nanosecond times`() {
+    fun `reads recorded sample points with nanosecond times`() {
         val root = mapper.readTree(
-            """
-            {"group": [{
-              "startTime": 1704067200000, "endTime": 1704153600000,
-              "sampleSet": [{"samplePoints": [
-                {"startTime": 1704067200000000000, "endTime": "1704067260000000000",
-                 "value": [{"fieldName": "steps_delta", "integerValue": 12}]}
-              ]}]
-            }]}
-            """.trimIndent(),
+            checkNotNull(javaClass.getResource("/huawei-responses/continuous_steps_delta.json")),
         )
-        val record = converter.processRecords(root, user).single().getOrThrow()
-        val value = record.value as HuaweiContinuousStepsDelta
+        val records = converter.processRecords(root, user).map { it.getOrThrow() }.toList()
+        val values = records.map { it.value as HuaweiContinuousStepsDelta }
 
-        assertEquals(1704067200L, record.offset)
-        assertEquals(1704067200.0, value.time)
-        assertEquals(1704067260.0, value.endTime)
-        assertEquals(12, value.stepsDelta)
-    }
-
-    @Test
-    fun `reads top-level sample sets with millisecond times`() {
-        val root = mapper.readTree(
-            """
-            {"sampleSet": [{"samplePoints": [
-              {"startTime": 1704067200000, "endTime": 1704067260000,
-               "value": [{"fieldName": "steps_delta", "integerValue": 3}]}
-            ]}]}
-            """.trimIndent(),
-        )
-        val record = converter.processRecords(root, user).single().getOrThrow()
-
-        assertEquals(1704067200L, record.offset)
+        assertEquals(listOf(1795014300L, 1795014360L), records.map { it.offset })
+        assertEquals(listOf(1795014300.0, 1795014360.0), values.map { it.time })
+        assertEquals(listOf(1795014360.0, 1795014420.0), values.map { it.endTime })
+        assertEquals(listOf(60, 41), values.map { it.stepsDelta })
     }
 
     @Test
     fun `infers timestamp units from magnitude`() {
-        val expected = Instant.parse("2024-01-01T00:00:00.123Z")
-        assertEquals(expected, epochInstantOf(1704067200123L))
-        assertEquals(expected, epochInstantOf(1704067200123000L))
-        assertEquals(expected, epochInstantOf(1704067200123000000L))
-        assertEquals(Instant.parse("2024-01-01T00:00:00Z"), epochInstantOf(1704067200L))
+        // Group times are milliseconds and sample point times nanoseconds in live responses.
+        val expected = Instant.parse("2026-11-18T15:05:00Z")
+        assertEquals(expected, epochInstantOf(1795014300000L))
+        assertEquals(expected, epochInstantOf(1795014300000000000L))
     }
 }

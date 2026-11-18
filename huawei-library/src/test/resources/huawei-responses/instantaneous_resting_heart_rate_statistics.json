@@ -1,0 +1,39 @@
+{
+  "group": [
+    {
+      "startTime": 1794960000000,
+      "endTime": 1795046399999,
+      "sampleSet": [
+        {
+          "dataCollectorId": "opaque-data-collector-id",
+          "samplePoints": [
+            {
+              "startTime": 1794960000000000000,
+              "endTime": 1795046399999000000,
+              "dataTypeName": "com.huawei.continuous.resting_heart_rate.statistics",
+              "originalDataCollectorId": "opaque-data-collector-id",
+              "value": [
+                {
+                  "fieldName": "avg",
+                  "floatValue": 71.0
+                },
+                {
+                  "fieldName": "max",
+                  "floatValue": 71.0
+                },
+                {
+                  "fieldName": "min",
+                  "floatValue": 71.0
+                },
+                {
+                  "fieldName": "last",
+                  "floatValue": 71.0
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

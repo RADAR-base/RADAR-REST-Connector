@@ -237,6 +237,11 @@ USER_FILE=docker/users/test.yml DAYS=30 ./scripts/huawei-api-probe.sh
 Run it from a machine in the same Huawei site (region) as the user's account; requests from
 elsewhere are rejected with error `121001 "request forbidden due to site cross"`.
 
+To turn responses with data into converter test fixtures, run
+`scripts/huawei-response-fixtures.py huawei-responses huawei-library/src/test/resources/huawei-responses`.
+It trims each response and replaces device and account identifiers. Review the output before
+committing: the remaining values are still that user's health data.
+
 Collection settings:
 
 | Setting | Default | Meaning |
