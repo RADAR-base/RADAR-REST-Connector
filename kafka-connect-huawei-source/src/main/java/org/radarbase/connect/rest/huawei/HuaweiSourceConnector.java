@@ -112,7 +112,8 @@ public class HuaweiSourceConnector extends AbstractRestSourceConnector {
     }
     // Divide the users over tasks
     try {
-      Sequence<String> ids = SequencesKt.map(huaweiConfig.getUserRepository(repository).stream(), User::getVersionedId);
+      Sequence<String> ids = SequencesKt.map(
+          huaweiConfig.getUserRepository(repository).stream(), User::getVersionedId);
       List<Map<String, String>> userTasks = StreamsKt.asStream(ids)
           // group users based on their hashCode, in principle, this allows for more efficient
           // reconfigurations for a fixed number of tasks, since that allows existing tasks to

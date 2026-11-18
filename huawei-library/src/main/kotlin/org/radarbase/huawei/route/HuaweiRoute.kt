@@ -43,6 +43,11 @@ abstract class HuaweiRoute(
 ) : Route {
     abstract val converters: List<HuaweiDataConverter>
 
+    /** Kafka topic this route's records are written to. */
+    protected abstract val topic: String
+
+    override fun toString(): String = "huawei_" + topic.removePrefix("connect_huawei_")
+
     protected fun createGetRequest(
         user: User,
         path: String,

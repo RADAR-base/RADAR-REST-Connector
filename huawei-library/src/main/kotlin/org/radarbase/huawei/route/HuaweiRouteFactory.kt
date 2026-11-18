@@ -68,9 +68,9 @@ import java.time.Instant
  * describe the Huawei Health Kit REST Data API's own data type identifiers.
  *
  * Field-value key names used in the record builders are the `fieldName`s documented in Huawei's
- * per-data-type references. Their casing is not consistent across data types (e.g. `steps_delta`
- * and `sleep_state` but `emotionStatus` and `onOffBedState`), so each key is taken from its own data
- * type's reference; keys not documented there are marked best-effort.
+ * per-data-type references. Their casing is not consistent across data types (e.g.
+ * `steps_delta` and `sleep_state` but `emotionStatus` and `onOffBedState`), so each key is taken
+ * from its own data type's reference; keys not documented there are marked best-effort.
  *
  * @author yatharthranjan
  */
@@ -98,54 +98,57 @@ object HuaweiRouteFactory {
         count = fields.getInt("count", "measure_count")
     }
 
-    /** Data types that reuse the generic [HuaweiStatistics] schema: (config key, Huawei data type name, default topic). */
+    /** A data type's config key, Huawei data type name and default topic. */
+    private data class TypeName(val key: String, val dataType: String, val topic: String)
+
+    /** Data types that reuse the generic [HuaweiStatistics] schema. */
     private val genericStatisticsTypes = listOf(
-        Triple(
+        TypeName(
             "continuous_body_temperature_rest_statistics",
             "continuous.body.temperature.rest.statistics",
             "connect_huawei_continuous_body_temperature_rest_statistics",
         ),
-        Triple(
+        TypeName(
             "continuous_calories_bmr_statistics",
             "continuous.calories.bmr.statistics",
             "connect_huawei_continuous_calories_bmr_statistics",
         ),
-        Triple(
+        TypeName(
             "continuous_exercise_heart_rate_statistics",
             "continuous.exercise_heart_rate.statistics",
             "connect_huawei_continuous_exercise_heart_rate_statistics",
         ),
-        Triple(
+        TypeName(
             "continuous_power_statistics",
             "continuous.power.statistics",
             "connect_huawei_continuous_power_statistics",
         ),
-        Triple(
+        TypeName(
             "continuous_speed_statistics",
             "continuous.speed.statistics",
             "connect_huawei_continuous_speed_statistics",
         ),
-        Triple(
+        TypeName(
             "continuous_steps_rate_statistics",
             "continuous.steps.rate.statistics",
             "connect_huawei_continuous_steps_rate_statistics",
         ),
-        Triple(
+        TypeName(
             "continuous_stroke_rate_statistics",
             "continuous.stroke_rate.statistics",
             "connect_huawei_continuous_stroke_rate_statistics",
         ),
-        Triple(
+        TypeName(
             "instantaneous_resting_heart_rate_statistics",
             "instantaneous.resting_heart_rate.statistics",
             "connect_huawei_instantaneous_resting_heart_rate_statistics",
         ),
-        Triple(
+        TypeName(
             "instantaneous_stress_statistics",
             "instantaneous.stress.statistics",
             "connect_huawei_instantaneous_stress_statistics",
         ),
-        Triple("vo2max_statistics", "vo2max.statistics", "connect_huawei_vo2max_statistics"),
+        TypeName("vo2max_statistics", "vo2max.statistics", "connect_huawei_vo2max_statistics"),
     )
 
     /**
@@ -399,17 +402,17 @@ object HuaweiRouteFactory {
         // Health Sampling references) - so they need an explicit queryDataTypeSuffix override
         // rather than the generic loop above.
         listOf(
-            Triple(
+            TypeName(
                 "continuous_heart_rate_statistics",
                 "continuous.heart_rate.statistics",
                 "connect_huawei_continuous_heart_rate_statistics",
             ) to "instantaneous.heart_rate",
-            Triple(
+            TypeName(
                 "continuous_body_temperature_statistics",
                 "continuous.body.temperature.statistics",
                 "connect_huawei_continuous_body_temperature_statistics",
             ) to "instantaneous.body.temperature",
-            Triple(
+            TypeName(
                 "continuous_skin_temperature_statistics",
                 "continuous.skin.temperature.statistics",
                 "connect_huawei_continuous_skin_temperature_statistics",
@@ -634,9 +637,9 @@ object HuaweiRouteFactory {
                     time = start.toEpoch()
                     timeReceived = received.toEpoch()
                     endTime = end?.toEpoch()
-                    // Huawei reports this as a single Map<exercise_type, minutes> field ("intensity"),
-                    // not per-heart-rate-zone durations - see FieldValues.getIntMap for the wire-shape
-                    // caveat.
+                    // Huawei reports this as a single Map<exercise_type, minutes> field
+                    // ("intensity"), not per-heart-rate-zone durations - see
+                    // FieldValues.getIntMap for the wire-shape caveat.
                     intensityMap = f.getIntMap("intensity")
                 }.build()
             },

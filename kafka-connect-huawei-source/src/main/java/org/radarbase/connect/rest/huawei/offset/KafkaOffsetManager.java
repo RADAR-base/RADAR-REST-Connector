@@ -49,10 +49,12 @@ public class KafkaOffsetManager implements HuaweiOffsetManager {
   public void initialize(List<Map<String, Object>> partitions) {
     if (this.offsetStorageReader != null) {
       this.offsetStorageReader.offsets(partitions).entrySet().stream()
-          .filter(e -> e.getValue() != null && e.getValue().get(TIMESTAMP_OFFSET_KEY) instanceof Number)
+          .filter(e -> e.getValue() != null
+              && e.getValue().get(TIMESTAMP_OFFSET_KEY) instanceof Number)
           .forEach(e -> offsets.put(
               e.getKey().get("user") + "-" + e.getKey().get("route"),
-              Instant.ofEpochSecond(((Number) e.getValue().get(TIMESTAMP_OFFSET_KEY)).longValue())));
+              Instant.ofEpochSecond(
+                  ((Number) e.getValue().get(TIMESTAMP_OFFSET_KEY)).longValue())));
     } else {
       logger.warn("Offset storage reader is null, will resume from an empty state.");
     }
@@ -60,7 +62,8 @@ public class KafkaOffsetManager implements HuaweiOffsetManager {
 
   @Override
   public Offset getOffset(Route route, User user) {
-    Instant offset = offsets.getOrDefault(getOffsetKey(route, user), user.getStartDate().minus(ONE_NANO));
+    Instant offset = offsets.getOrDefault(
+        getOffsetKey(route, user), user.getStartDate().minus(ONE_NANO));
     return new Offset(user, route, offset);
   }
 

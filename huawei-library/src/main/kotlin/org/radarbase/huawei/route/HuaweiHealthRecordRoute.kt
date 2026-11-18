@@ -41,10 +41,10 @@ import java.time.Instant
  *
  * @author yatharthranjan
  */
-open class HuaweiHealthRecordRoute(
+class HuaweiHealthRecordRoute(
     userRepository: UserRepository,
     private val dataTypeName: String,
-    private val topic: String,
+    override val topic: String,
     /** Associated detail data types to return with each record (`subDataType`). */
     private val subDataTypes: List<String> = emptyList(),
     maxIntervalPerRequest: Duration = Duration.ofDays(30L),
@@ -58,8 +58,6 @@ open class HuaweiHealthRecordRoute(
 
     override val converters: List<HuaweiDataConverter> =
         listOf(HuaweiHealthRecordConverter(topic, buildRecord))
-
-    override fun toString(): String = "huawei_" + topic.removePrefix("connect_huawei_")
 
     override fun generateRequests(
         user: User,

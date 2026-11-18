@@ -33,7 +33,7 @@ import java.time.Instant
  */
 class HuaweiActivityRecordRoute(
     userRepository: UserRepository,
-    private val topic: String = "connect_huawei_activity_record",
+    override val topic: String = "connect_huawei_activity_record",
     maxIntervalPerRequest: Duration = Duration.ofDays(30L),
 ) : HuaweiRoute(userRepository, maxIntervalPerRequest) {
 

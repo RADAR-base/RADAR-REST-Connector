@@ -43,10 +43,10 @@ import java.time.temporal.ChronoUnit
  *
  * @author yatharthranjan
  */
-open class HuaweiDailyPolymerizeRoute(
+class HuaweiDailyPolymerizeRoute(
     userRepository: UserRepository,
     private val dataTypeName: String,
-    private val topic: String,
+    override val topic: String,
     // dailyPolymerize accepts at most 31 days (inclusive) per request.
     maxIntervalPerRequest: Duration = Duration.ofDays(30L),
     buildRecord: (
@@ -59,8 +59,6 @@ open class HuaweiDailyPolymerizeRoute(
 
     override val converters: List<HuaweiDataConverter> =
         listOf(HuaweiDailyPolymerizeConverter(topic, buildRecord))
-
-    override fun toString(): String = "huawei_" + topic.removePrefix("connect_huawei_")
 
     /**
      * Requests whole UTC days only: from the first midnight at or after [start] up to the last

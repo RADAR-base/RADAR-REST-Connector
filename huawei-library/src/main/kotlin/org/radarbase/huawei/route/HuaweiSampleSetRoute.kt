@@ -40,10 +40,10 @@ import java.time.Instant
  *
  * @author yatharthranjan
  */
-open class HuaweiSampleSetRoute(
+class HuaweiSampleSetRoute(
     userRepository: UserRepository,
     private val dataTypeName: String,
-    private val topic: String,
+    override val topic: String,
     maxIntervalPerRequest: Duration = Duration.ofDays(30L),
     buildRecord: (
         fields: FieldValues,
@@ -55,8 +55,6 @@ open class HuaweiSampleSetRoute(
 
     override val converters: List<HuaweiDataConverter> =
         listOf(HuaweiSampleSetConverter(topic, buildRecord))
-
-    override fun toString(): String = "huawei_" + topic.removePrefix("connect_huawei_")
 
     override fun generateRequests(
         user: User,

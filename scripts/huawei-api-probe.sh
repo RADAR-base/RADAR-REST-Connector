@@ -41,7 +41,9 @@ TOKEN_URL=https://oauth-login.cloud.huawei.com/oauth2/v3/token
 
 json_field() {  # json key -> string/number value of a top-level key, or empty
   if command -v python3 >/dev/null; then
-    python3 -c 'import json,sys; v=json.loads(sys.argv[1]).get(sys.argv[2]); print("" if v is None else v)' "$1" "$2"
+    python3 -c 'import json,sys
+v = json.loads(sys.argv[1]).get(sys.argv[2])
+print("" if v is None else v)' "$1" "$2"
   elif command -v jq >/dev/null; then
     jq -r --arg k "$2" '.[$k] // empty' <<<"$1"
   else
@@ -57,7 +59,7 @@ if [ -z "${HUAWEI_REFRESH_TOKEN:-}" ] && [ -n "${USER_FILE:-}" ]; then
 fi
 
 if [ -n "${HUAWEI_REFRESH_TOKEN:-}" ]; then
-  : "${HUAWEI_CLIENT_ID:?Set HUAWEI_CLIENT_ID (your Huawei app ID, huawei.api.client in the connector config)}"
+  : "${HUAWEI_CLIENT_ID:?Set HUAWEI_CLIENT_ID (Huawei app ID, huawei.api.client in the config)}"
   : "${HUAWEI_CLIENT_SECRET:?Set HUAWEI_CLIENT_SECRET (huawei.api.secret in the connector config)}"
   echo "Refreshing access token..."
   TOKEN_RESPONSE=$(curl -sS -w '\n%{http_code}' -X POST "$TOKEN_URL" \
@@ -74,18 +76,20 @@ if [ -n "${HUAWEI_REFRESH_TOKEN:-}" ]; then
   fi
   HUAWEI_TOKEN=$(json_field "$TOKEN_BODY" access_token)
   [ -n "$HUAWEI_TOKEN" ] || { echo "No access_token in token response: $TOKEN_BODY" >&2; exit 1; }
-  echo "Got access token (expires in $(json_field "$TOKEN_BODY" expires_in)s, scopes: $(json_field "$TOKEN_BODY" scope))"
+  echo "Got access token (expires in $(json_field "$TOKEN_BODY" expires_in)s," \
+    "scopes: $(json_field "$TOKEN_BODY" scope))"
   NEW_REFRESH_TOKEN=$(json_field "$TOKEN_BODY" refresh_token)
   if [ -n "$NEW_REFRESH_TOKEN" ] && [ "$NEW_REFRESH_TOKEN" != "$HUAWEI_REFRESH_TOKEN" ]; then
     echo >&2
-    echo "WARNING: Huawei issued a NEW refresh token. The old one may no longer work, so put this" >&2
-    echo "one in oauth2.refreshToken of your user file before (re)starting the connector:" >&2
+    echo "WARNING: Huawei issued a NEW refresh token. The old one may no longer work," >&2
+    echo "so put this one in oauth2.refreshToken of your user file before (re)starting" >&2
+    echo "the connector:" >&2
     echo "$NEW_REFRESH_TOKEN" >&2
     echo >&2
   fi
 fi
 
-: "${HUAWEI_TOKEN:?Set HUAWEI_REFRESH_TOKEN (+ HUAWEI_CLIENT_ID/SECRET), USER_FILE, or HUAWEI_TOKEN}"
+: "${HUAWEI_TOKEN:?Set HUAWEI_REFRESH_TOKEN (+ CLIENT_ID/SECRET), USER_FILE, or HUAWEI_TOKEN}"
 DAYS="${DAYS:-7}"
 OUT_DIR="${OUT_DIR:-huawei-responses}"
 V1=https://health-api.cloud.huawei.com/healthkit/v1
@@ -105,7 +109,12 @@ END_DAY=$(utc_day "$(( END_S - 86400 ))")  # endDay is inclusive
 mkdir -p "$OUT_DIR"
 echo "Window: $START_DAY .. $END_DAY (UTC), saving to $OUT_DIR/"
 
-wanted() { [ $# -eq 0 ] && return 0; local k; for k in $ONLY; do [ "$k" = "$1" ] && return 0; done; return 1; }
+wanted() {
+  [ $# -eq 0 ] && return 0
+  local k
+  for k in $ONLY; do [ "$k" = "$1" ] && return 0; done
+  return 1
+}
 ONLY="$*"
 
 call() {  # key method url [json body]
@@ -119,7 +128,8 @@ call() {  # key method url [json body]
     printf '%-45s %s\n' "$key" "$status"
   else
     # Error bodies contain no health data; show them inline for easy sharing.
-    printf '%-45s %s %s\n' "$key" "$status" "$(head -c 300 "$OUT_DIR/$key.json" 2>/dev/null | tr -d '\n')"
+    printf '%-45s %s %s\n' "$key" "$status" \
+      "$(head -c 300 "$OUT_DIR/$key.json" 2>/dev/null | tr -d '\n')"
   fi
   sleep 1  # stay well clear of rate limits
 }
@@ -154,7 +164,8 @@ polymerize continuous_activity_fragment com.huawei.continuous.activity.fragment
 polymerize instantaneous_body_temperature com.huawei.instantaneous.body.temperature
 polymerize instantaneous_skin_temperature com.huawei.instantaneous.skin.temperature
 polymerize continuous_calories_burnt com.huawei.continuous.calories.burnt
-polymerize continuous_calories_consumed com.huawei.continuous.calories.consumed  # disabled by default
+# disabled by default
+polymerize continuous_calories_consumed com.huawei.continuous.calories.consumed
 polymerize continuous_distance_delta com.huawei.continuous.distance.delta
 polymerize continuous_exercise_intensity com.huawei.continuous.exercise_intensity
 polymerize continuous_exercise_intensity_v2 com.huawei.continuous.exercise_intensity.v2
@@ -176,7 +187,8 @@ daily continuous_altitude_statistics com.huawei.instantaneous.altitude
 daily continuous_blood_glucose_statistics com.huawei.instantaneous.blood_glucose
 daily continuous_breathe_rate_statistics com.huawei.instantaneous.breathe_rate
 daily continuous_body_blood_pressure_statistics com.huawei.instantaneous.blood_pressure
-daily continuous_body_temperature_rest_statistics com.huawei.continuous.body.temperature.rest  # disabled by default
+# disabled by default
+daily continuous_body_temperature_rest_statistics com.huawei.continuous.body.temperature.rest
 daily continuous_calories_bmr_statistics com.huawei.continuous.calories.bmr
 daily continuous_exercise_heart_rate_statistics com.huawei.continuous.exercise_heart_rate
 daily continuous_power_statistics com.huawei.continuous.power
@@ -199,7 +211,8 @@ daily continuous_steps_total com.huawei.continuous.steps.delta
 daily resting_calories_statistics com.huawei.resting_calories
 
 # Health records: GET v2 healthRecords (times in ns)
-health_record continuous_ecg_detail com.huawei.continuous.ecg_record com.huawei.continuous.ecg_detail
+health_record continuous_ecg_detail \
+  com.huawei.continuous.ecg_record com.huawei.continuous.ecg_detail
 health_record health_record_dynamic_bp com.huawei.health.record.dynamic_bp
 health_record health_record_bradycardia com.huawei.health.record.bradycardia
 health_record health_record_tachycardia com.huawei.health.record.tachycardia
