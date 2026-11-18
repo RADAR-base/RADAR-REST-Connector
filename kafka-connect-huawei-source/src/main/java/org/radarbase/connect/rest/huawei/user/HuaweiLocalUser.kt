@@ -58,6 +58,9 @@ class HuaweiLocalUser : User {
     @JsonProperty("createdAt")
     override var createdAt: Instant = Instant.now()
 
+    @JsonProperty("authorizedAt")
+    override var authorizedAt: Instant? = null
+
     @JsonProperty("humanReadableUserId")
     override var humanReadableUserId: String? = null
 
@@ -93,6 +96,7 @@ class HuaweiLocalUser : User {
         copy.startDate = startDate
         copy.endDate = endDate
         copy.createdAt = createdAt
+        copy.authorizedAt = authorizedAt
         copy.humanReadableUserId = humanReadableUserId
         copy.serviceUserId = serviceUserId
         copy.version = version
@@ -117,6 +121,7 @@ class HuaweiLocalUser : User {
             externalId == other.externalId &&
             startDate == other.startDate &&
             endDate == other.endDate &&
+            authorizedAt == other.authorizedAt &&
             serviceUserId == other.serviceUserId &&
             version == other.version &&
             isAuthorizedOverride == other.isAuthorizedOverride

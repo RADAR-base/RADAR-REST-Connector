@@ -17,8 +17,12 @@
 
 package org.radarbase.connect.rest.huawei
 
+import org.apache.kafka.common.config.ConfigException
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.radarbase.huawei.route.HuaweiRouteFactory
+import java.time.Duration
+import java.time.Period
 import kotlin.test.assertEquals
 
 /**
@@ -62,5 +66,30 @@ class HuaweiRestSourceConnectorConfigTest {
         )
 
         assertEquals(null, config.enabledTopics()[definition.key])
+    }
+
+    private fun config(vararg extra: Pair<String, String>) = HuaweiRestSourceConnectorConfig(
+        mutableMapOf("huawei.api.client" to "client", "huawei.api.secret" to "secret", *extra),
+        false,
+    )
+
+    @Test
+    fun `late sync window and history limit have defaults`() {
+        val config = config()
+
+        assertEquals(Duration.ofDays(14), config.getLateSyncWindow())
+        assertEquals(null, config.getMaxHistory())
+        assertEquals("connect_huawei_heartbeat", config.getHeartbeatTopic())
+    }
+
+    @Test
+    fun `history limit is read as an ISO-8601 period`() {
+        assertEquals(Period.ofYears(1), config("huawei.max.history" to "P1Y").getMaxHistory())
+    }
+
+    @Test
+    fun `invalid durations are rejected`() {
+        assertThrows<ConfigException> { config("huawei.late.sync.window" to "14 days") }
+        assertThrows<ConfigException> { config("huawei.max.history" to "1 year") }
     }
 }

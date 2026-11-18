@@ -32,6 +32,7 @@ import org.radarbase.huawei.user.UserRepository
 import org.radarcns.connector.huawei.HuaweiContinuousStepsDelta
 import java.time.Duration
 import java.time.Instant
+import java.time.Period
 import java.time.temporal.ChronoUnit
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -41,16 +42,23 @@ import kotlin.test.assertTrue
  * @author yatharthranjan
  */
 class HuaweiRequestGeneratorTest {
-    private val user: User = HuaweiUser(
+    private val user: User = user()
+
+    private fun user(
+        startDate: Instant = Instant.parse("2024-01-01T00:00:00Z"),
+        createdAt: Instant = Instant.now(),
+        authorizedAt: Instant? = null,
+    ) = HuaweiUser(
         id = "u1",
-        createdAt = Instant.now(),
+        createdAt = createdAt,
         projectId = "p",
         userId = "u",
         humanReadableUserId = null,
         sourceId = "s",
         externalId = "ext",
         isAuthorized = true,
-        startDate = Instant.parse("2024-01-01T00:00:00Z"),
+        startDate = startDate,
+        authorizedAt = authorizedAt,
     )
 
     private var tokenError: Exception? = null
@@ -74,10 +82,12 @@ class HuaweiRequestGeneratorTest {
         }
     }
 
-    private val route = HuaweiSampleSetRoute(
+    private val route = stepsRoute("topic")
+
+    private fun stepsRoute(topic: String) = HuaweiSampleSetRoute(
         repository,
         "com.huawei.continuous.steps.delta",
-        "topic",
+        topic,
     ) { f, start, _, received ->
         HuaweiContinuousStepsDelta.newBuilder().apply {
             time = start.epochSecond.toDouble()
@@ -135,9 +145,83 @@ class HuaweiRequestGeneratorTest {
         generator.requestSuccessful(req, response(req, 200, pointsBody()))
 
         val offset = offsets.getValue(route.toString())
-        val limit = Instant.now().minus(Duration.ofDays(7))
+        val limit = Instant.now().minus(Duration.ofDays(14))
         assertTrue(offset <= limit, "offset $offset advanced too far")
-        assertTrue(offset > now.minus(Duration.ofDays(8)))
+        assertTrue(offset > now.minus(Duration.ofDays(15)))
+    }
+
+    @Test
+    fun `late sync window is configurable`() {
+        val generator = HuaweiRequestGenerator(
+            repository,
+            offsetManager,
+            listOf(route),
+            lateSyncWindow = Duration.ofDays(3),
+        )
+        val now = Instant.now()
+        val start = now.minus(Duration.ofDays(20))
+        offsets[route.toString()] = start
+        val req = request(route, start, now)
+
+        generator.requestSuccessful(req, response(req, 200, pointsBody()))
+
+        val offset = offsets.getValue(route.toString())
+        assertTrue(offset <= Instant.now().minus(Duration.ofDays(3)), "offset $offset too far")
+        assertTrue(offset > now.minus(Duration.ofDays(4)), "offset $offset not advanced")
+    }
+
+    @Test
+    fun `history limit counts back from the authorization time`() {
+        val authorizedAt = Instant.parse("2026-03-15T12:00:00Z")
+        val limited = user(
+            startDate = Instant.parse("2017-01-01T00:00:00Z"),
+            createdAt = Instant.parse("2025-01-01T00:00:00Z"),
+            authorizedAt = authorizedAt,
+        )
+        val generator = HuaweiRequestGenerator(
+            repository,
+            offsetManager,
+            listOf(route),
+            maxHistory = Period.ofYears(1),
+        )
+
+        val first = generator.requests(route, limited, 100).first()
+
+        assertEquals(Instant.parse("2025-03-15T12:00:00Z"), first.startDate)
+    }
+
+    @Test
+    fun `history limit falls back to the creation time`() {
+        val limited = user(
+            startDate = Instant.parse("2017-01-01T00:00:00Z"),
+            createdAt = Instant.parse("2025-01-01T00:00:00Z"),
+        )
+        val generator = HuaweiRequestGenerator(
+            repository,
+            offsetManager,
+            listOf(route),
+            maxHistory = Period.ofMonths(6),
+        )
+
+        val first = generator.requests(route, limited, 100).first()
+
+        assertEquals(Instant.parse("2024-07-01T00:00:00Z"), first.startDate)
+    }
+
+    @Test
+    fun `history limit does not override a later start date`() {
+        val start = Instant.parse("2024-12-01T00:00:00Z")
+        val limited = user(startDate = start, createdAt = Instant.parse("2025-01-01T00:00:00Z"))
+        val generator = HuaweiRequestGenerator(
+            repository,
+            offsetManager,
+            listOf(route),
+            maxHistory = Period.ofYears(1),
+        )
+
+        val first = generator.requests(route, limited, 100).first()
+
+        assertEquals(start, first.startDate)
     }
 
     @Test
@@ -200,6 +284,37 @@ class HuaweiRequestGeneratorTest {
 
         assertTrue(result is HuaweiResult.Success)
         assertEquals(end, offsets[route.toString()])
+    }
+
+    @Test
+    fun `site cross error backs off every route of the user`() {
+        val other = stepsRoute("other")
+        val generator = HuaweiRequestGenerator(repository, offsetManager, listOf(route, other))
+        val req = request(route, user.startDate, user.startDate.plus(Duration.ofDays(1)))
+        val body = """{"error":{"code":121001,"message":"request forbidden due to site cross"}}"""
+
+        val result = generator.handleResponse(req, response(req, 403, body))
+
+        assertTrue(result is HuaweiResult.Error)
+        assertTrue(generator.requests(other, user, 100).toList().isEmpty(), "other route polled")
+    }
+
+    @Test
+    fun `caught up route is polled again after the configured interval`() {
+        val generator = HuaweiRequestGenerator(
+            repository,
+            offsetManager,
+            listOf(route),
+            caughtUpBackOffTime = Duration.ZERO,
+        )
+        val now = Instant.now()
+        val start = now.minus(Duration.ofDays(1))
+        offsets[route.toString()] = start
+        val req = request(route, start, now)
+
+        generator.requestSuccessful(req, response(req, 200, pointsBody()))
+
+        assertTrue(generator.requests(route, user, 100).toList().isNotEmpty(), "not polled")
     }
 
     @Test

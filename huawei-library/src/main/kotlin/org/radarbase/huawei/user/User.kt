@@ -32,6 +32,10 @@ interface User {
     val startDate: Instant
     val endDate: Instant?
     val createdAt: Instant
+
+    /** When the user last authorized access, if the user repository records it. */
+    val authorizedAt: Instant?
+        get() = null
     val humanReadableUserId: String?
     val serviceUserId: String?
     val version: String?

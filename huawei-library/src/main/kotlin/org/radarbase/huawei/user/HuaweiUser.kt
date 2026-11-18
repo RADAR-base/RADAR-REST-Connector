@@ -39,6 +39,7 @@ data class HuaweiUser(
     @JsonProperty("endDate") override val endDate: Instant? = null,
     @JsonProperty("version") override val version: String? = null,
     @JsonProperty("serviceUserId") override val serviceUserId: String? = null,
+    @JsonProperty("authorizedAt") override val authorizedAt: Instant? = null,
 ) : User {
     override val observationKey: ObservationKey = ObservationKey(projectId, userId, sourceId)
     override val versionedId: String = "$id${version?.let { "#$it" } ?: ""}"

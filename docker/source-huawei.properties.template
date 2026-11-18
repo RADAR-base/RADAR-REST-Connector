@@ -1,8 +1,6 @@
 name=radar-huawei-source
 connector.class=org.radarbase.connect.rest.huawei.HuaweiSourceConnector
 tasks.max=4
-rest.source.base.url=https://health-api.cloud.huawei.com/healthkit/v1
-rest.source.poll.interval.ms=5000
 huawei.api.client=?
 huawei.api.secret=?
 # For local testing without a rest-source-authorizer webservice, use the file-based

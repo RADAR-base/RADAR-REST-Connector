@@ -18,6 +18,7 @@
 package org.radarbase.connect.rest.huawei;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -29,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.avro.specific.SpecificRecord;
 import org.apache.kafka.connect.data.SchemaAndValue;
 import org.apache.kafka.connect.errors.ConnectException;
 import org.apache.kafka.connect.source.SourceRecord;
@@ -66,20 +68,30 @@ public class HuaweiSourceTask extends SourceTask {
   private List<Route> routes;
   private HuaweiRequestGenerator huaweiRequestGenerator;
   private final AvroData avroData = new AvroData(20);
+  private static final AvroData HEARTBEAT_AVRO_DATA = new AvroData(1);
   private KafkaOffsetManager offsetManager;
+  private String heartbeatTopic;
   private static final String TIMESTAMP_OFFSET_KEY = "timestamp";
   private static final long TIMEOUT = 60000L;
   private int routeStartIndex = 0;
   private final CountDownLatch stopLatch = new CountDownLatch(1);
   private boolean lastPollHadRecords = false;
 
-  public void initialize(HuaweiRestSourceConnectorConfig config, OffsetStorageReader offsetStorageReader) {
+  public void initialize(
+      HuaweiRestSourceConnectorConfig config, OffsetStorageReader offsetStorageReader) {
     this.baseClient = new OkHttpClient();
 
     this.userRepository = config.getUserRepository();
     this.offsetManager = new KafkaOffsetManager(offsetStorageReader);
     this.routes = getRoutes(config);
-    this.huaweiRequestGenerator = new HuaweiRequestGenerator(this.userRepository, this.offsetManager, this.routes);
+    this.heartbeatTopic = config.getHeartbeatTopic();
+    this.huaweiRequestGenerator = new HuaweiRequestGenerator(
+        this.userRepository,
+        this.offsetManager,
+        this.routes,
+        config.getLateSyncWindow(),
+        config.getMaxHistory(),
+        config.getPollIntervalPerUser());
     this.offsetManager.initialize(getPartitions());
   }
 
@@ -133,25 +145,65 @@ public class HuaweiSourceTask extends SourceTask {
 
   public Stream<SourceRecord> handleRequest(RestRequest req) throws IOException {
     try (Response response = baseClient.newCall(req.getRequest()).execute()) {
-      HuaweiResult<List<TopicData>> result = this.huaweiRequestGenerator.handleResponse(req, response);
+      Instant before = currentOffset(req);
+      HuaweiResult<List<TopicData>> result =
+          this.huaweiRequestGenerator.handleResponse(req, response);
       if (result instanceof HuaweiResult.Success) {
         Success<List<TopicData>> success = (Success<List<TopicData>>) result;
-        return success.getValue().stream().map(r -> {
-          SchemaAndValue avro = avroData.toConnectData(r.getValue().getSchema(), r.getValue());
-          SchemaAndValue key = avroData.toConnectData(r.getKey().getSchema(), r.getKey());
-          Map<String, Object> partition = getPartition(req.getRoute().toString(), req.getUser());
-          // Stored offsets mark where to resume: just after this record's start time (seconds).
-          Map<String, ?> offset = Collections.singletonMap(TIMESTAMP_OFFSET_KEY, r.getOffset() + 1);
-
-          return new SourceRecord(partition, offset, r.getTopic(),
-                key.schema(), key.value(), avro.schema(), avro.value());
-        });
+        List<TopicData> records = success.getValue();
+        Map<String, Object> partition = getPartition(req.getRoute().toString(), req.getUser());
+        List<SourceRecord> sourceRecords = records.stream()
+            .map(r -> sourceRecord(partition, r))
+            .collect(Collectors.toList());
+        SourceRecord heartbeat = heartbeat(heartbeatTopic, partition,
+            req.getUser().getObservationKey(), before, currentOffset(req), records);
+        if (heartbeat != null) {
+          sourceRecords.add(heartbeat);
+        }
+        return sourceRecords.stream();
       } else {
         HuaweiErrorBase e = (HuaweiErrorBase) ((HuaweiResult.Error) result).getError();
         logger.warn("Failed to make request: {} {} {}", e.getMessage(), e.getCause(), e.getCode());
         return Stream.empty();
       }
     }
+  }
+
+  private Instant currentOffset(RestRequest req) {
+    return offsetManager.getOffset(req.getRoute(), req.getUser()).getOffset();
+  }
+
+  private SourceRecord sourceRecord(Map<String, Object> partition, TopicData r) {
+    SchemaAndValue avro = avroData.toConnectData(r.getValue().getSchema(), r.getValue());
+    SchemaAndValue key = avroData.toConnectData(r.getKey().getSchema(), r.getKey());
+    // Stored offsets mark where to resume: just after this record's start time (seconds).
+    Map<String, ?> offset = Collections.singletonMap(TIMESTAMP_OFFSET_KEY, r.getOffset() + 1);
+
+    return new SourceRecord(partition, offset, r.getTopic(),
+        key.schema(), key.value(), avro.schema(), avro.value());
+  }
+
+  /**
+   * Kafka Connect only stores an offset along with a record. When a request moved the offset
+   * past what its records store, which happens once a time window without data has settled,
+   * an empty record on the heartbeat topic stores it, so a restart does not request that
+   * window again.
+   *
+   * @return the heartbeat record, or null if the records already store the offset.
+   */
+  static SourceRecord heartbeat(String topic, Map<String, Object> partition,
+      SpecificRecord key, Instant before, Instant after, List<TopicData> records) {
+    long stored = records.stream()
+        .mapToLong(r -> r.getOffset() + 1)
+        .max()
+        .orElse(before.getEpochSecond());
+    if (!after.isAfter(before) || after.getEpochSecond() <= stored) {
+      return null;
+    }
+    Map<String, ?> offset = Collections.singletonMap(TIMESTAMP_OFFSET_KEY, after.getEpochSecond());
+    SchemaAndValue connectKey = HEARTBEAT_AVRO_DATA.toConnectData(key.getSchema(), key);
+    return new SourceRecord(partition, offset, topic,
+        connectKey.schema(), connectKey.value(), null, null);
   }
 
   @Override
@@ -187,7 +239,8 @@ public class HuaweiSourceTask extends SourceTask {
       while (sourceRecords.isEmpty() && stopLatch.getCount() > 0 && requestIterator.hasNext()) {
         RestRequest request = requestIterator.next();
 
-        logger.info("Requesting for user {}, url: {}", request.getUser().getUserId(), request.getRequest().url());
+        logger.info("Requesting for user {}, url: {}",
+            request.getUser().getUserId(), request.getRequest().url());
         requestsGenerated++;
 
         try {

@@ -34,6 +34,8 @@ import java.net.URL
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.time.Duration
+import java.time.Period
+import java.time.format.DateTimeParseException
 
 /**
  * Kafka Connect configuration for the Huawei Health Kit source connector.
@@ -117,6 +119,14 @@ class HuaweiRestSourceConnectorConfig(
         getInt(HUAWEI_USER_POLL_INTERVAL_CONFIG).toLong(),
     )
 
+    fun getLateSyncWindow(): Duration = Duration.parse(getString(HUAWEI_LATE_SYNC_WINDOW_CONFIG))
+
+    fun getMaxHistory(): Period? = getString(HUAWEI_MAX_HISTORY_CONFIG)
+        .takeIf { it.isNotEmpty() }
+        ?.let { Period.parse(it) }
+
+    fun getHeartbeatTopic(): String = getString(HUAWEI_HEARTBEAT_TOPIC_CONFIG)
+
     fun getHuaweiUserRepositoryClientId(): String = getString(
         HUAWEI_USER_REPOSITORY_CLIENT_ID_CONFIG,
     )
@@ -146,16 +156,6 @@ class HuaweiRestSourceConnectorConfig(
             .associate { it.key to getString(topicKey(it.key)) }
 
     companion object {
-        private const val SOURCE_POLL_INTERVAL_CONFIG = "rest.source.poll.interval.ms"
-        private const val SOURCE_POLL_INTERVAL_DOC = "How often to poll the source URL."
-        private const val SOURCE_POLL_INTERVAL_DISPLAY = "Polling interval"
-        private const val SOURCE_POLL_INTERVAL_DEFAULT = 60000L
-
-        const val SOURCE_URL_CONFIG = "rest.source.base.url"
-        private const val SOURCE_URL_DOC = "Base URL for REST source connector."
-        private const val SOURCE_URL_DISPLAY = "Base URL for REST source connector."
-        const val SOURCE_URL_DEFAULT = "https://health-api.cloud.huawei.com/healthkit/v1"
-
         const val HUAWEI_USERS_CONFIG = "huawei.users"
         private const val HUAWEI_USERS_DOC =
             "The user ID of Huawei users to include in polling, separated by commas. " +
@@ -179,9 +179,31 @@ class HuaweiRestSourceConnectorConfig(
 
         const val HUAWEI_USER_POLL_INTERVAL_CONFIG = "huawei.user.poll.interval"
         private const val HUAWEI_USER_POLL_INTERVAL_DOC =
-            "Polling interval per Huawei user per request route in seconds."
-        private const val HUAWEI_USER_POLL_INTERVAL_DEFAULT = 150
+            "How long to wait, in seconds, before polling a Huawei user's data type again once " +
+                "all its data has been collected."
+        private const val HUAWEI_USER_POLL_INTERVAL_DEFAULT = 1800
         private const val HUAWEI_USER_POLL_INTERVAL_DISPLAY = "Per-user per-route polling interval."
+
+        const val HUAWEI_LATE_SYNC_WINDOW_CONFIG = "huawei.late.sync.window"
+        private const val HUAWEI_LATE_SYNC_WINDOW_DOC =
+            "How long after the fact Huawei data may still be synced to the cloud, as an " +
+                "ISO-8601 duration. Time windows that returned no data are only marked as " +
+                "collected once they are older than this."
+        private const val HUAWEI_LATE_SYNC_WINDOW_DEFAULT = "P14D"
+        private const val HUAWEI_LATE_SYNC_WINDOW_DISPLAY = "Late sync window"
+
+        const val HUAWEI_MAX_HISTORY_CONFIG = "huawei.max.history"
+        private const val HUAWEI_MAX_HISTORY_DOC =
+            "How far before a user's authorization time Huawei serves data, as an ISO-8601 " +
+                "period such as P1Y. Data before that is not requested. Empty for no limit."
+        private const val HUAWEI_MAX_HISTORY_DISPLAY = "Maximum history"
+
+        const val HUAWEI_HEARTBEAT_TOPIC_CONFIG = "huawei.heartbeat.topic"
+        private const val HUAWEI_HEARTBEAT_TOPIC_DOC =
+            "Kafka topic for empty records that store the progress of time windows without " +
+                "data, so a restart does not request them again. Best configured as compacted."
+        private const val HUAWEI_HEARTBEAT_TOPIC_DEFAULT = "connect_huawei_heartbeat"
+        private const val HUAWEI_HEARTBEAT_TOPIC_DISPLAY = "Heartbeat topic"
 
         const val HUAWEI_USER_CREDENTIALS_DIR_CONFIG = "huawei.user.dir"
         private const val HUAWEI_USER_CREDENTIALS_DIR_DOC =
@@ -217,6 +239,24 @@ class HuaweiRestSourceConnectorConfig(
             "OAuth 2.0 token url for retrieving client credentials."
         private const val HUAWEI_USER_REPOSITORY_TOKEN_URL_DISPLAY = "OAuth 2.0 token URL."
 
+        private val durationValidator = ConfigDef.Validator { name, value ->
+            try {
+                Duration.parse(value as String)
+            } catch (ex: DateTimeParseException) {
+                throw ConfigException(name, value, "Not an ISO-8601 duration such as P14D.")
+            }
+        }
+
+        private val periodValidator = ConfigDef.Validator { name, value ->
+            if ((value as String).isNotEmpty()) {
+                try {
+                    Period.parse(value)
+                } catch (ex: DateTimeParseException) {
+                    throw ConfigException(name, value, "Not an ISO-8601 period such as P1Y.")
+                }
+            }
+        }
+
         private fun enabledKey(key: String) = "huawei.$key.enabled"
         private fun topicKey(key: String) = "huawei.$key.topic"
 
@@ -226,28 +266,6 @@ class HuaweiRestSourceConnectorConfig(
             var order = 0
 
             val def = ConfigDef()
-                .define(
-                    SOURCE_POLL_INTERVAL_CONFIG,
-                    Type.LONG,
-                    SOURCE_POLL_INTERVAL_DEFAULT,
-                    Importance.LOW,
-                    SOURCE_POLL_INTERVAL_DOC,
-                    group,
-                    ++order,
-                    Width.SHORT,
-                    SOURCE_POLL_INTERVAL_DISPLAY,
-                )
-                .define(
-                    SOURCE_URL_CONFIG,
-                    Type.STRING,
-                    SOURCE_URL_DEFAULT,
-                    Importance.HIGH,
-                    SOURCE_URL_DOC,
-                    group,
-                    ++order,
-                    Width.SHORT,
-                    SOURCE_URL_DISPLAY,
-                )
                 .define(
                     HUAWEI_USERS_CONFIG,
                     Type.LIST,
@@ -292,6 +310,42 @@ class HuaweiRestSourceConnectorConfig(
                     ++order,
                     Width.SHORT,
                     HUAWEI_USER_POLL_INTERVAL_DISPLAY,
+                )
+                .define(
+                    HUAWEI_LATE_SYNC_WINDOW_CONFIG,
+                    Type.STRING,
+                    HUAWEI_LATE_SYNC_WINDOW_DEFAULT,
+                    durationValidator,
+                    Importance.LOW,
+                    HUAWEI_LATE_SYNC_WINDOW_DOC,
+                    group,
+                    ++order,
+                    Width.SHORT,
+                    HUAWEI_LATE_SYNC_WINDOW_DISPLAY,
+                )
+                .define(
+                    HUAWEI_MAX_HISTORY_CONFIG,
+                    Type.STRING,
+                    "",
+                    periodValidator,
+                    Importance.MEDIUM,
+                    HUAWEI_MAX_HISTORY_DOC,
+                    group,
+                    ++order,
+                    Width.SHORT,
+                    HUAWEI_MAX_HISTORY_DISPLAY,
+                )
+                .define(
+                    HUAWEI_HEARTBEAT_TOPIC_CONFIG,
+                    Type.STRING,
+                    HUAWEI_HEARTBEAT_TOPIC_DEFAULT,
+                    NonEmptyString(),
+                    Importance.LOW,
+                    HUAWEI_HEARTBEAT_TOPIC_DOC,
+                    group,
+                    ++order,
+                    Width.SHORT,
+                    HUAWEI_HEARTBEAT_TOPIC_DISPLAY,
                 )
                 .define(
                     HUAWEI_USER_REPOSITORY_CONFIG,

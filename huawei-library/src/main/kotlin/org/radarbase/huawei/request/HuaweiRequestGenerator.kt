@@ -32,17 +32,30 @@ import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.time.Duration
 import java.time.Instant
+import java.time.Period
+import java.time.ZoneOffset
 import java.util.concurrent.ConcurrentHashMap
 
 /**
+ * @param lateSyncWindow how long after the fact Huawei data may still be synced to the cloud.
+ * @param maxHistory how far before the user's authorization time Huawei serves data, or null
+ *     for no limit beyond the user's start date.
+ * @param caughtUpBackOffTime how long to wait before polling a route again once it is caught up.
+ *
  * @author yatharthranjan
  */
-class HuaweiRequestGenerator(
+class HuaweiRequestGenerator @JvmOverloads constructor(
     private val userRepository: UserRepository,
     private val huaweiOffsetManager: HuaweiOffsetManager,
     val routes: List<Route>,
+    private val lateSyncWindow: Duration = DEFAULT_LATE_SYNC_WINDOW,
+    private val maxHistory: Period? = null,
+    private val caughtUpBackOffTime: Duration = DEFAULT_CAUGHT_UP_BACK_OFF_TIME,
 ) : RequestGenerator {
     private val routeNextRequest: MutableMap<String, Instant> = ConcurrentHashMap()
+
+    /** Users backed off on every route, until when, e.g. after a site cross error. */
+    private val userNextRequest: MutableMap<String, Instant> = ConcurrentHashMap()
 
     /** Routes whose last request failed, until when. Stops the rest of a lazily generated
      * request sequence for that route and user, so a later chunk can't advance the offset past
@@ -51,6 +64,8 @@ class HuaweiRequestGenerator(
 
     var nextRequestTime: Instant = Instant.MIN
 
+    // The max argument is ignored: a route's requests are generated lazily and consumed one at
+    // a time by the source task, so the per-user cap is USER_MAX_REQUESTS.
     override fun requests(user: User, max: Int): Sequence<RestRequest> =
         routes.asSequence()
             .flatMap { route -> requests(route, user, max) }
@@ -88,7 +103,7 @@ class HuaweiRequestGenerator(
         val key = routeKey(route, user)
         return route.generateRequests(user, startOffset, endDate, USER_MAX_REQUESTS)
             .guarded(route, user)
-            .takeWhile { !isBlocked(key) }
+            .takeWhile { !isBlocked(key, user) }
     }
 
     /**
@@ -124,13 +139,22 @@ class HuaweiRequestGenerator(
     }
 
     private fun currentOffset(route: Route, user: User): Instant {
+        val earliest = earliestDate(user)
         val offset = huaweiOffsetManager.getOffset(route, user)
         return if (offset == null) {
             logger.info("No offsets found for {} on {}, using the start date.", user, route)
-            user.startDate
+            earliest
         } else {
-            offset.offset.coerceAtLeast(user.startDate)
+            offset.offset.coerceAtLeast(earliest)
         }
+    }
+
+    /** The user's start date, limited to the history Huawei serves before authorization. */
+    private fun earliestDate(user: User): Instant {
+        val limit = maxHistory ?: return user.startDate
+        val anchor = user.authorizedAt ?: user.createdAt
+        val limitStart = anchor.atOffset(ZoneOffset.UTC).minus(limit).toInstant()
+        return user.startDate.coerceAtLeast(limitStart)
     }
 
     fun handleResponse(req: RestRequest, response: Response): HuaweiResult<List<TopicData>> {
@@ -149,11 +173,7 @@ class HuaweiRequestGenerator(
                 HuaweiResult.Success(emptyList())
             }
         } else {
-            try {
-                HuaweiResult.Error(requestFailed(req, response))
-            } catch (e: TooManyRequestsException) {
-                HuaweiResult.Success(emptyList())
-            }
+            HuaweiResult.Error(requestFailed(req, response))
         }
     }
 
@@ -162,7 +182,7 @@ class HuaweiRequestGenerator(
      *
      * Huawei devices sync to the Huawei cloud with a delay of minutes to days, so data for a
      * period can appear after that period was already queried. The offset is therefore never
-     * advanced past [LATE_SYNC_WINDOW] ago on the basis of an empty response: only past the
+     * advanced past [lateSyncWindow] ago on the basis of an empty response: only past the
      * latest record actually received. Records starting before the current offset were already
      * emitted (the offset sits just past the latest one) and are dropped, since Huawei also
      * returns samples that merely overlap the queried window.
@@ -185,7 +205,7 @@ class HuaweiRequestGenerator(
             .flatMap { it.convert(request, root) }
             .filter { it.offset >= currentOffset.epochSecond }
 
-        val settledEnd = request.endDate.coerceAtMost(now.minus(LATE_SYNC_WINDOW))
+        val settledEnd = request.endDate.coerceAtMost(now.minus(lateSyncWindow))
         val maxOffset = records.maxOfOrNull { it.offset }
         val nextOffset = if (maxOffset != null) {
             val afterLatest = Instant.ofEpochSecond(maxOffset + 1)
@@ -212,7 +232,7 @@ class HuaweiRequestGenerator(
         routeFailedUntil -= key
         routeNextRequest[key] = if (records.isEmpty() && request.endDate > settledEnd) {
             // Caught up to data that may still be syncing: check again later.
-            now.plus(CAUGHT_UP_BACK_OFF_TIME)
+            now.plus(caughtUpBackOffTime)
         } else {
             now.plus(SUCCESS_BACK_OFF_TIME)
         }
@@ -220,6 +240,21 @@ class HuaweiRequestGenerator(
     }
 
     override fun requestFailed(request: RestRequest, response: Response): HuaweiError {
+        if (response.peekBody(PEEK_BYTES).string().contains(SITE_CROSS)) {
+            val body = response.body?.string() ?: ""
+            logger.warn(
+                "User {} belongs to a different Huawei site (region) than this connector's " +
+                    "app or network; backing off all routes. Check the data center. {}",
+                request.user.versionedId,
+                body,
+            )
+            userNextRequest[request.user.versionedId] = Instant.now().plus(SITE_CROSS_BACK_OFF_TIME)
+            return HuaweiAccessForbiddenError(
+                "Request forbidden due to site cross: $body",
+                IOException("Site cross"),
+                response.code.toString(),
+            )
+        }
         return when (response.code) {
             429 -> {
                 logger.info(
@@ -228,7 +263,7 @@ class HuaweiRequestGenerator(
                 )
                 nextRequestTime = Instant.now() + BACK_OFF_TIME
                 backOff(request.route, request.user, BACK_OFF_TIME)
-                HuaweiRateLimitError("Rate limit reached..", TooManyRequestsException(), "429")
+                HuaweiRateLimitError("Rate limit reached.", TooManyRequestsException(), "429")
             }
             403 -> {
                 val body = response.body?.string() ?: "no response body"
@@ -318,13 +353,17 @@ class HuaweiRequestGenerator(
     private fun routeReady(user: User, route: Route): Boolean {
         val now = Instant.now()
         val key = routeKey(route, user)
-        return now > nextRequestTime && routeNextRequest[key]?.let { now > it } ?: true
+        return now > nextRequestTime &&
+            (routeNextRequest[key]?.let { now > it } ?: true) &&
+            (userNextRequest[user.versionedId]?.let { now > it } ?: true)
     }
 
     /** Whether requests for this route and user must stop, after a failure or rate limit. */
-    private fun isBlocked(key: String): Boolean {
+    private fun isBlocked(key: String, user: User): Boolean {
         val now = Instant.now()
-        return now <= nextRequestTime || routeFailedUntil[key]?.let { now <= it } ?: false
+        return now <= nextRequestTime ||
+            (routeFailedUntil[key]?.let { now <= it } ?: false) ||
+            (userNextRequest[user.versionedId]?.let { now <= it } ?: false)
     }
 
     private fun routeKey(route: Route, user: User): String = user.versionedId + "#" + route
@@ -334,14 +373,14 @@ class HuaweiRequestGenerator(
         private val BACK_OFF_TIME = Duration.ofMinutes(10L)
         private val USER_BACK_OFF_TIME = Duration.ofHours(12L)
         private val SUCCESS_BACK_OFF_TIME = Duration.ofSeconds(10L)
-        private val CAUGHT_UP_BACK_OFF_TIME = Duration.ofMinutes(30L)
-
-        /** How long after the fact Huawei data may still be synced to the cloud. */
-        private val LATE_SYNC_WINDOW = Duration.ofDays(7L)
+        private val SITE_CROSS_BACK_OFF_TIME = Duration.ofHours(24L)
+        val DEFAULT_CAUGHT_UP_BACK_OFF_TIME: Duration = Duration.ofMinutes(30L)
+        val DEFAULT_LATE_SYNC_WINDOW: Duration = Duration.ofDays(14L)
         private const val USER_MAX_REQUESTS = 1000
         private const val PEEK_BYTES = 64L * 1024L
         private const val NO_COLLECTOR = "no default dataCollector found"
         private const val INVALID_DATA_TYPE = "Invalid dataTypeName"
+        private const val SITE_CROSS = "121001"
         val JSON_FACTORY = JsonFactory()
         val JSON_READER = ObjectMapper(JSON_FACTORY).registerModule(JavaTimeModule()).reader()
     }
