@@ -32,6 +32,18 @@ OPAQUE = re.compile(r"^[A-Za-z0-9_\-+/=]{40,}$")
 def first(d, n):
     return dict(list(d.items())[:n])
 
+def first_per_type(points, n):
+    """The first n points of each dataTypeName, in response order (a sleep fragment response
+    also carries the night's sleep record point, which tests rely on)."""
+    seen = {}
+    kept = []
+    for point in points:
+        t = point.get("dataTypeName")
+        seen[t] = seen.get(t, 0) + 1
+        if seen[t] <= n:
+            kept.append(point)
+    return kept
+
 def scrub(o, key=None):
     if isinstance(o, dict):
         out = {}
@@ -51,7 +63,7 @@ def scrub(o, key=None):
             elif k in ("sectionSummary",):
                 v = v[:1]
             elif k == "samplePoints":
-                v = v[:2]
+                v = first_per_type(v, 2)
             elif k in ("activityRecord", "healthRecords"):
                 v = v[:1]
             out[k] = scrub(v, k)

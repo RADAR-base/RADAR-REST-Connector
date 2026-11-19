@@ -3,6 +3,8 @@ connector.class=org.radarbase.connect.rest.huawei.HuaweiSourceConnector
 tasks.max=4
 huawei.api.client=?
 huawei.api.secret=?
+# Health Kit API host; the default below, or e.g. https://health-api.cloud.huawei.com
+#huawei.api.url=https://hihealthbase-dre.things.dbankcloud.cn
 # For local testing without a rest-source-authorizer webservice, use the file-based
 # repository instead, backed by per-user YAML files under huawei.user.dir - see
 # docker/huawei-user.yml.template and the "Testing locally" section in README.md.

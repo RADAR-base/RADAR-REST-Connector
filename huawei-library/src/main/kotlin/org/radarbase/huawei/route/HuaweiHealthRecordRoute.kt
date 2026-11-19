@@ -47,6 +47,7 @@ class HuaweiHealthRecordRoute(
     override val topic: String,
     /** Associated detail data types to return with each record (`subDataType`). */
     private val subDataTypes: List<String> = emptyList(),
+    apiUrl: String = HuaweiRoute.HUAWEI_API_URL,
     maxIntervalPerRequest: Duration = Duration.ofDays(30L),
     buildRecord: (
         fields: FieldValues,
@@ -54,7 +55,7 @@ class HuaweiHealthRecordRoute(
         endTime: Instant?,
         timeReceived: Instant,
     ) -> SpecificRecord,
-) : HuaweiRoute(userRepository, maxIntervalPerRequest) {
+) : HuaweiRoute(userRepository, apiUrl, maxIntervalPerRequest) {
 
     override val converters: List<HuaweiDataConverter> =
         listOf(HuaweiHealthRecordConverter(topic, buildRecord))
@@ -80,7 +81,7 @@ class HuaweiHealthRecordRoute(
                         )
                     }
                 },
-                baseUrl = HUAWEI_API_BASE_URL_V2,
+                version = "v2",
             ),
             user = user,
             route = this,

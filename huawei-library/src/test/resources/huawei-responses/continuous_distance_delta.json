@@ -2,7 +2,7 @@
   "group": [
     {
       "startTime": 1794960000000,
-      "endTime": 1795046400000,
+      "endTime": 1795132800000,
       "sampleSet": [
         {
           "dataCollectorId": "derived:com.huawei.continuous.distance.delta:com.huawei.hwid:merged",

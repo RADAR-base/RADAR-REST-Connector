@@ -1,0 +1,39 @@
+{
+  "group": [
+    {
+      "startTime": 1794960000000,
+      "endTime": 1795132800000,
+      "sampleSet": [
+        {
+          "dataCollectorId": "derived:com.huawei.sleep.on_off_bed_record:com.huawei.hwid:merged",
+          "samplePoints": [
+            {
+              "startTime": 1795067976000000000,
+              "endTime": 1795067976000000000,
+              "dataTypeName": "com.huawei.sleep.on_off_bed_record",
+              "originalDataCollectorId": "raw:com.huawei.sleep.on_off_bed_record:com.huawei.health:HUAWEI:TBD:308517120:308517120",
+              "value": [
+                {
+                  "fieldName": "onOffBedState",
+                  "integerValue": 2
+                }
+              ]
+            },
+            {
+              "startTime": 1795076823000000000,
+              "endTime": 1795076823000000000,
+              "dataTypeName": "com.huawei.sleep.on_off_bed_record",
+              "originalDataCollectorId": "raw:com.huawei.sleep.on_off_bed_record:com.huawei.health:HUAWEI:TBD:308517120:308517120",
+              "value": [
+                {
+                  "fieldName": "onOffBedState",
+                  "integerValue": 2
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

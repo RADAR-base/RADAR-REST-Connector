@@ -9,13 +9,13 @@
           "samplePoints": [
             {
               "startTime": 1795013359000000000,
-              "endTime": 1795027785000000000,
+              "endTime": 1795038749000000000,
               "dataTypeName": "com.huawei.continuous.body.blood_pressure.statistics",
               "originalDataCollectorId": "opaque-data-collector-id",
               "value": [
                 {
                   "fieldName": "systolic_pressure_avg",
-                  "floatValue": 139.0
+                  "floatValue": 138.0
                 },
                 {
                   "fieldName": "systolic_pressure_max",
@@ -27,27 +27,27 @@
                 },
                 {
                   "fieldName": "systolic_pressure_last",
-                  "floatValue": 136.0
+                  "floatValue": 130.0
                 },
                 {
                   "fieldName": "diastolic_pressure_avg",
-                  "floatValue": 101.0
+                  "floatValue": 99.0
                 },
                 {
                   "fieldName": "diastolic_pressure_max",
-                  "floatValue": 106.0
+                  "floatValue": 107.0
                 },
                 {
                   "fieldName": "diastolic_pressure_min",
-                  "floatValue": 94.0
+                  "floatValue": 81.0
                 },
                 {
                   "fieldName": "diastolic_pressure_last",
-                  "floatValue": 98.0
+                  "floatValue": 81.0
                 },
                 {
                   "fieldName": "sphygmus_avg",
-                  "floatValue": 94.0
+                  "floatValue": 93.0
                 },
                 {
                   "fieldName": "sphygmus_max",
@@ -59,7 +59,74 @@
                 },
                 {
                   "fieldName": "sphygmus_last",
+                  "floatValue": 88.0
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "startTime": 1795046400000,
+      "endTime": 1795132799999,
+      "sampleSet": [
+        {
+          "dataCollectorId": "opaque-data-collector-id",
+          "samplePoints": [
+            {
+              "startTime": 1795049858000000000,
+              "endTime": 1795087338000000000,
+              "dataTypeName": "com.huawei.continuous.body.blood_pressure.statistics",
+              "originalDataCollectorId": "opaque-data-collector-id",
+              "value": [
+                {
+                  "fieldName": "systolic_pressure_avg",
+                  "floatValue": 126.0
+                },
+                {
+                  "fieldName": "systolic_pressure_max",
+                  "floatValue": 146.0
+                },
+                {
+                  "fieldName": "systolic_pressure_min",
+                  "floatValue": 111.0
+                },
+                {
+                  "fieldName": "systolic_pressure_last",
+                  "floatValue": 122.0
+                },
+                {
+                  "fieldName": "diastolic_pressure_avg",
+                  "floatValue": 86.0
+                },
+                {
+                  "fieldName": "diastolic_pressure_max",
                   "floatValue": 102.0
+                },
+                {
+                  "fieldName": "diastolic_pressure_min",
+                  "floatValue": 75.0
+                },
+                {
+                  "fieldName": "diastolic_pressure_last",
+                  "floatValue": 88.0
+                },
+                {
+                  "fieldName": "sphygmus_avg",
+                  "floatValue": 71.0
+                },
+                {
+                  "fieldName": "sphygmus_max",
+                  "floatValue": 93.0
+                },
+                {
+                  "fieldName": "sphygmus_min",
+                  "floatValue": 59.0
+                },
+                {
+                  "fieldName": "sphygmus_last",
+                  "floatValue": 77.0
                 }
               ]
             }

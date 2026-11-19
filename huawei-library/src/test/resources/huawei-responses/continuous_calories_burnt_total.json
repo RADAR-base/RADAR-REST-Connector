@@ -15,7 +15,30 @@
               "value": [
                 {
                   "fieldName": "calories_total",
-                  "floatValue": 303.486
+                  "floatValue": 333.62
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "startTime": 1795046400000,
+      "endTime": 1795132799999,
+      "sampleSet": [
+        {
+          "dataCollectorId": "opaque-data-collector-id",
+          "samplePoints": [
+            {
+              "startTime": 1795046400000000000,
+              "endTime": 1795132799999000000,
+              "dataTypeName": "com.huawei.continuous.calories.burnt.total",
+              "originalDataCollectorId": "opaque-data-collector-id",
+              "value": [
+                {
+                  "fieldName": "calories_total",
+                  "floatValue": 49.045
                 }
               ]
             }

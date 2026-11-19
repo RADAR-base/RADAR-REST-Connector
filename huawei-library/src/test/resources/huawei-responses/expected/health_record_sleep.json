@@ -1,0 +1,20 @@
+[ {
+  "time" : 1.79505594E9,
+  "endTime" : 1.79507682E9,
+  "fallAsleepTime" : 1795055940000,
+  "wakeupTime" : 1795076820000,
+  "lightSleepTime" : 161,
+  "deepSleepTime" : 77,
+  "dreamTime" : 58,
+  "awakeTime" : 52,
+  "allSleepTime" : 296,
+  "wakeupCount" : 1,
+  "deepSleepPart" : 70,
+  "sleepScore" : 70,
+  "sleepLatency" : 0,
+  "sleepEfficiency" : 84,
+  "goBedTime" : 1795055580000,
+  "sleepType" : 1,
+  "prepareSleepTime" : null,
+  "offBedTime" : null
+} ]

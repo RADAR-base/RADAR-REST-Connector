@@ -172,8 +172,8 @@ object HuaweiRouteFactory {
             HuaweiRouteDefinition(
                 "activity_record",
                 "connect_huawei_activity_record",
-            ) { repo, topic ->
-                HuaweiActivityRecordRoute(repo, topic)
+            ) { repo, topic, apiUrl ->
+                HuaweiActivityRecordRoute(repo, topic, apiUrl)
             },
         )
 
@@ -447,18 +447,25 @@ object HuaweiRouteFactory {
                 // Huawei has no separate body fat data type: per the official "Weight" reference,
                 // body fat percentage is part of com.huawei.instantaneous.body_weight, whose daily
                 // statistics carry it as avg/max/min_body_fat_rate (avg/max/min/last there are the
-                // weight itself).
+                // weight itself). Days with a weight but no body fat measurement are skipped.
                 queryDataTypeSuffix = "instantaneous.body_weight",
                 useDailyPolymerize = true,
             ) { f, start, end, received ->
-                HuaweiStatistics.newBuilder().apply {
-                    time = start.toEpoch()
-                    timeReceived = received.toEpoch()
-                    endTime = end?.toEpoch()
-                    avg = f.getDouble("avg_body_fat_rate")
-                    max = f.getDouble("max_body_fat_rate")
-                    min = f.getDouble("min_body_fat_rate")
-                }.build()
+                val avgBodyFat = f.getDouble("avg_body_fat_rate")
+                val maxBodyFat = f.getDouble("max_body_fat_rate")
+                val minBodyFat = f.getDouble("min_body_fat_rate")
+                if (avgBodyFat == null && maxBodyFat == null && minBodyFat == null) {
+                    null
+                } else {
+                    HuaweiStatistics.newBuilder().apply {
+                        time = start.toEpoch()
+                        timeReceived = received.toEpoch()
+                        endTime = end?.toEpoch()
+                        avg = avgBodyFat
+                        max = maxBodyFat
+                        min = minBodyFat
+                    }.build()
+                }
             },
         )
 
@@ -1138,18 +1145,19 @@ object HuaweiRouteFactory {
             startTime: Instant,
             endTime: Instant?,
             timeReceived: Instant,
-        ) -> SpecificRecord,
+        ) -> SpecificRecord?,
     ): HuaweiRouteDefinition = HuaweiRouteDefinition(
         key,
         defaultTopic,
         enabledByDefault,
-    ) { repo, topic ->
+    ) { repo, topic, apiUrl ->
         val rawDataTypeName = VENDOR_PREFIX + queryDataTypeSuffix
         if (useDailyPolymerize) {
             HuaweiDailyPolymerizeRoute(
                 userRepository = repo,
                 dataTypeName = rawDataTypeName,
                 topic = topic,
+                apiUrl = apiUrl,
                 buildRecord = buildRecord,
             )
         } else {
@@ -1157,6 +1165,7 @@ object HuaweiRouteFactory {
                 userRepository = repo,
                 dataTypeName = rawDataTypeName,
                 topic = topic,
+                apiUrl = apiUrl,
                 buildRecord = buildRecord,
             )
         }
@@ -1187,11 +1196,12 @@ object HuaweiRouteFactory {
             endTime: Instant?,
             timeReceived: Instant,
         ) -> SpecificRecord,
-    ): HuaweiRouteDefinition = HuaweiRouteDefinition(key, defaultTopic) { repo, topic ->
+    ): HuaweiRouteDefinition = HuaweiRouteDefinition(key, defaultTopic) { repo, topic, apiUrl ->
         HuaweiHealthRecordRoute(
             userRepository = repo,
             dataTypeName = VENDOR_PREFIX + dataTypeName,
             topic = topic,
+            apiUrl = apiUrl,
             subDataTypes = subDataTypes,
             buildRecord = buildRecord,
         )

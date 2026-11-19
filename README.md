@@ -220,14 +220,16 @@ statistics (steps, distance, calories, heart rate, SpO2, blood pressure, breathi
 sleep stages, and more), health records (ambulatory blood pressure, heart rate alerts,
 hyperthermia, low SpO2 alerts, menstrual cycle, sleep), and daily summaries. It follows the same
 `huawei.api.client`/`huawei.api.secret` and `huawei.user.repository.*` configuration
-conventions as the Fitbit and Oura connectors above, plus one
+conventions as the Fitbit and Oura connectors above, `huawei.api.url` for the Health Kit API host
+(default `https://hihealthbase-dre.things.dbankcloud.cn`), plus one
 `huawei.<data-type>.enabled` / `huawei.<data-type>.topic` pair per Huawei data type — see
 `org.radarbase.huawei.route.HuaweiRouteFactory` for the full list of `<data-type>` keys and their
 default topic names, and `docker/source-huawei.properties.template` for a minimal example.
 
 To inspect raw Huawei API responses for every data type the connector queries, run
 `scripts/huawei-api-probe.sh`. It sends the connector's exact request for each route and saves
-the responses to `huawei-responses/<route>.json`. It can refresh the access token first:
+the responses to `huawei-responses/<route>.json` (set `HUAWEI_API_URL` to query another host). It
+can refresh the access token first:
 
 ```shell
 HUAWEI_CLIENT_ID=<app id> HUAWEI_CLIENT_SECRET=<app secret> \

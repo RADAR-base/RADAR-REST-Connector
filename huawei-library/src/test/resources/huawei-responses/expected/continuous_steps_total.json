@@ -1,6 +1,11 @@
 [ {
   "time" : 1.79496E9,
   "endTime" : 1.795046399999E9,
-  "steps" : 7754,
+  "steps" : 9120,
+  "duration" : null
+}, {
+  "time" : 1.7950464E9,
+  "endTime" : 1.795132799999E9,
+  "steps" : 2286,
   "duration" : null
 } ]

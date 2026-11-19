@@ -9,13 +9,13 @@
           "samplePoints": [
             {
               "startTime": 1795013640000000000,
-              "endTime": 1795030140000000000,
+              "endTime": 1795038840000000000,
               "dataTypeName": "com.huawei.continuous.heart_rate.statistics",
               "originalDataCollectorId": "opaque-data-collector-id",
               "value": [
                 {
                   "fieldName": "avg",
-                  "floatValue": 99.0
+                  "floatValue": 95.0
                 },
                 {
                   "fieldName": "max",
@@ -27,7 +27,42 @@
                 },
                 {
                   "fieldName": "last",
-                  "floatValue": 94.0
+                  "floatValue": 98.0
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "startTime": 1795046400000,
+      "endTime": 1795132799999,
+      "sampleSet": [
+        {
+          "dataCollectorId": "opaque-data-collector-id",
+          "samplePoints": [
+            {
+              "startTime": 1795049640000000000,
+              "endTime": 1795087920000000000,
+              "dataTypeName": "com.huawei.continuous.heart_rate.statistics",
+              "originalDataCollectorId": "opaque-data-collector-id",
+              "value": [
+                {
+                  "fieldName": "avg",
+                  "floatValue": 77.0
+                },
+                {
+                  "fieldName": "max",
+                  "floatValue": 101.0
+                },
+                {
+                  "fieldName": "min",
+                  "floatValue": 54.0
+                },
+                {
+                  "fieldName": "last",
+                  "floatValue": 78.0
                 }
               ]
             }

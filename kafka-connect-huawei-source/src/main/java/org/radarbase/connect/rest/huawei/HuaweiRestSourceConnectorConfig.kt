@@ -28,6 +28,7 @@ import org.apache.kafka.common.config.ConfigException
 import org.apache.kafka.connect.errors.ConnectException
 import org.radarbase.connect.rest.huawei.user.HuaweiServiceUserRepository
 import org.radarbase.connect.rest.huawei.user.HuaweiUserRepository
+import org.radarbase.huawei.route.HuaweiRoute
 import org.radarbase.huawei.route.HuaweiRouteFactory
 import java.net.MalformedURLException
 import java.net.URL
@@ -66,6 +67,8 @@ class HuaweiRestSourceConnectorConfig(
     fun getHuaweiClient(): String = getString(HUAWEI_API_CLIENT_CONFIG)
 
     fun getHuaweiClientSecret(): String = getPassword(HUAWEI_API_SECRET_CONFIG).value()
+
+    fun getHuaweiApiUrl(): String = getString(HUAWEI_API_URL_CONFIG).trim()
 
     fun getUserRepository(reuse: HuaweiUserRepository?): HuaweiUserRepository {
         val configuredClass = getClass(HUAWEI_USER_REPOSITORY_CONFIG)
@@ -171,6 +174,11 @@ class HuaweiRestSourceConnectorConfig(
         private const val HUAWEI_API_SECRET_DOC =
             "Secret for the Huawei API client set in huawei.api.client."
         private const val HUAWEI_API_SECRET_DISPLAY = "Huawei API client secret"
+
+        const val HUAWEI_API_URL_CONFIG = "huawei.api.url"
+        private const val HUAWEI_API_URL_DOC =
+            "Base URL of the Huawei Health Kit API, without the /healthkit/<version> path."
+        private const val HUAWEI_API_URL_DISPLAY = "Huawei API URL"
 
         const val HUAWEI_USER_REPOSITORY_CONFIG = "huawei.user.repository.class"
         private const val HUAWEI_USER_REPOSITORY_DOC =
@@ -299,6 +307,18 @@ class HuaweiRestSourceConnectorConfig(
                     ++order,
                     Width.SHORT,
                     HUAWEI_API_SECRET_DISPLAY,
+                )
+                .define(
+                    HUAWEI_API_URL_CONFIG,
+                    Type.STRING,
+                    HuaweiRoute.HUAWEI_API_URL,
+                    NonEmptyString(),
+                    Importance.MEDIUM,
+                    HUAWEI_API_URL_DOC,
+                    group,
+                    ++order,
+                    Width.LONG,
+                    HUAWEI_API_URL_DISPLAY,
                 )
                 .define(
                     HUAWEI_USER_POLL_INTERVAL_CONFIG,

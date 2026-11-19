@@ -34,5 +34,5 @@ class HuaweiDailyPolymerizeConverter(
         startTime: Instant,
         endTime: Instant?,
         timeReceived: Instant,
-    ) -> SpecificRecord,
-) : HuaweiDataConverter by HuaweiSampleSetConverter(topic, buildRecord)
+    ) -> SpecificRecord?,
+) : HuaweiDataConverter by HuaweiSampleSetConverter(topic, buildRecord = buildRecord)

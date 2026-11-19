@@ -88,7 +88,11 @@ class HuaweiRecordedResponseTest {
 
     private fun convert(key: String, file: File): List<JsonNode> {
         val definition = HuaweiRouteFactory.definitions.single { it.key == key }
-        val route = definition.build(userRepository, definition.defaultTopic)
+        val route = definition.build(
+            userRepository,
+            definition.defaultTopic,
+            HuaweiRoute.HUAWEI_API_URL,
+        )
         return route.converters.single()
             .processRecords(mapper.readTree(file), user)
             .map { result ->

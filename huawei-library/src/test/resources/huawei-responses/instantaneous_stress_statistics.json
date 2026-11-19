@@ -9,7 +9,46 @@
           "samplePoints": [
             {
               "startTime": 1795015781000000000,
-              "endTime": 1795022615000000000,
+              "endTime": 1795038095000000000,
+              "dataTypeName": "com.huawei.instantaneous.stress.statistics",
+              "originalDataCollectorId": "opaque-data-collector-id",
+              "value": [
+                {
+                  "fieldName": "avg",
+                  "integerValue": 44
+                },
+                {
+                  "fieldName": "max",
+                  "integerValue": 56
+                },
+                {
+                  "fieldName": "min",
+                  "integerValue": 23
+                },
+                {
+                  "fieldName": "last",
+                  "integerValue": 49
+                },
+                {
+                  "fieldName": "measure_count",
+                  "integerValue": 9
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "startTime": 1795046400000,
+      "endTime": 1795132799999,
+      "sampleSet": [
+        {
+          "dataCollectorId": "opaque-data-collector-id",
+          "samplePoints": [
+            {
+              "startTime": 1795051059000000000,
+              "endTime": 1795087734000000000,
               "dataTypeName": "com.huawei.instantaneous.stress.statistics",
               "originalDataCollectorId": "opaque-data-collector-id",
               "value": [
@@ -19,19 +58,19 @@
                 },
                 {
                   "fieldName": "max",
-                  "integerValue": 51
+                  "integerValue": 53
                 },
                 {
                   "fieldName": "min",
-                  "integerValue": 24
+                  "integerValue": 22
                 },
                 {
                   "fieldName": "last",
-                  "integerValue": 51
+                  "integerValue": 44
                 },
                 {
                   "fieldName": "measure_count",
-                  "integerValue": 4
+                  "integerValue": 18
                 }
               ]
             }

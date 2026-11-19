@@ -34,8 +34,9 @@ import java.time.Instant
 class HuaweiActivityRecordRoute(
     userRepository: UserRepository,
     override val topic: String = "connect_huawei_activity_record",
+    apiUrl: String = HuaweiRoute.HUAWEI_API_URL,
     maxIntervalPerRequest: Duration = Duration.ofDays(30L),
-) : HuaweiRoute(userRepository, maxIntervalPerRequest) {
+) : HuaweiRoute(userRepository, apiUrl, maxIntervalPerRequest) {
 
     override val converters: List<HuaweiDataConverter> =
         listOf(HuaweiActivityRecordConverter(topic))
@@ -56,7 +57,7 @@ class HuaweiActivityRecordRoute(
                     "startTime" to rangeStart.toEpochMilli().toString(),
                     "endTime" to rangeEnd.toEpochMilli().toString(),
                 ),
-                baseUrl = HUAWEI_API_BASE_URL_V2,
+                version = "v2",
             ),
             user = user,
             route = this,

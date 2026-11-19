@@ -25,7 +25,7 @@ import java.time.Instant
 /**
  * Generic converter for `sampleSet:polymerize` and `sampleSet:dailyPolymerize` responses:
  * iterates every sample point of every sample set in the response and builds one Avro record per
- * point via [buildRecord].
+ * point via [buildRecord]. Points for which [buildRecord] returns `null` are skipped.
  *
  * Huawei wraps sample sets in a `group[]` array (one entry per aggregation bucket or day), each
  * holding `sampleSet[].samplePoints[]`. A bare top-level `sampleSet[]` is also accepted. Sample
@@ -36,36 +36,52 @@ import java.time.Instant
  * they all share the same response envelope and differ only in which Avro record type their field
  * values are mapped onto.
  *
+ * When [dataTypeName] is set, points of any other data type are skipped: a polymerize response
+ * for `com.huawei.continuous.sleep.fragment` also carries the night's
+ * `com.huawei.health.record.sleep` summary point, which is collected through its own route.
+ * Daily statistics responses name the `.statistics` type rather than the requested one, so their
+ * converter leaves it unset.
+ *
  * @author yatharthranjan
  */
 class HuaweiSampleSetConverter(
     private val topic: String,
+    private val dataTypeName: String? = null,
     private val buildRecord: (
         fields: FieldValues,
         startTime: Instant,
         endTime: Instant?,
         timeReceived: Instant,
-    ) -> SpecificRecord,
+    ) -> SpecificRecord?,
 ) : HuaweiDataConverter {
 
     override fun processRecords(root: JsonNode, user: User): Sequence<Result<TopicData>> {
         val timeReceived = Instant.now()
         return root.samplePoints()
-            .mapCatching { point ->
+            .filter { point -> dataTypeName == null || point.isOfType(dataTypeName) }
+            .mapNotNullCatching { point ->
                 val startTime = point.epochInstant("startTime")
                     ?: error("Huawei sample point is missing startTime")
                 val endTime = point.epochInstant("endTime")
                 val fieldValues = FieldValues.from(point.get("value") ?: point.get("fieldValues"))
-                TopicData(
-                    topic = topic,
-                    key = user.observationKey,
-                    offset = startTime.epochSecond,
-                    value = buildRecord(fieldValues, startTime, endTime, timeReceived),
-                )
+                buildRecord(fieldValues, startTime, endTime, timeReceived)?.let { value ->
+                    TopicData(
+                        topic = topic,
+                        key = user.observationKey,
+                        offset = startTime.epochSecond,
+                        value = value,
+                    )
+                }
             }
     }
 
     companion object {
+        /** Points without a `dataTypeName` are kept. */
+        private fun JsonNode.isOfType(dataTypeName: String): Boolean =
+            get("dataTypeName")?.takeIf { it.isTextual }?.asText()
+                ?.let { it == dataTypeName }
+                ?: true
+
         private fun JsonNode.child(vararg names: String): JsonNode? =
             names.firstNotNullOfOrNull { name -> get(name)?.takeIf { it.isArray } }
 

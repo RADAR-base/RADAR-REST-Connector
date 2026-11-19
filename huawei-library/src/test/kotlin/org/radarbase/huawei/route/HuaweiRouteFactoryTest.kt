@@ -25,6 +25,7 @@ import org.radarbase.huawei.user.HuaweiUser
 import org.radarbase.huawei.user.User
 import org.radarbase.huawei.user.UserRepository
 import org.radarcns.connector.huawei.HuaweiHealthRecordDynamicBp
+import java.time.Duration
 import java.time.Instant
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -72,11 +73,35 @@ class HuaweiRouteFactoryTest {
     }
 
     @Test
+    fun `every definition requests the configured API host`() {
+        HuaweiRouteFactory.definitions.forEach { definition ->
+            val route = definition.build(
+                fakeUserRepository,
+                definition.defaultTopic,
+                "https://huawei.example.test/",
+            )
+            val url = route.generateRequests(fakeUser, START, START + Duration.ofDays(2))
+                .first()
+                .request
+                .url
+            assertEquals("huawei.example.test", url.host, definition.key)
+            assertTrue(
+                url.encodedPath.startsWith("/healthkit/v"),
+                "${definition.key}: ${url.encodedPath}",
+            )
+        }
+    }
+
+    @Test
     fun `every definition converts a fixture payload without error`() {
         val failures = mutableListOf<String>()
 
         HuaweiRouteFactory.definitions.forEach { definition ->
-            val route = definition.build(fakeUserRepository, definition.defaultTopic)
+            val route = definition.build(
+                fakeUserRepository,
+                definition.defaultTopic,
+                HuaweiRoute.HUAWEI_API_URL,
+            )
             try {
                 val payload = fixtureFor(route)
                 val records = route.converters.single().processRecords(payload, fakeUser).toList()
@@ -99,13 +124,14 @@ class HuaweiRouteFactoryTest {
     private fun fixtureFor(route: HuaweiRoute) = when (route) {
         is HuaweiActivityRecordRoute -> recordedActivityRecord()
         is HuaweiHealthRecordRoute -> healthRecordFixture()
-        is HuaweiDailyPolymerizeRoute, is HuaweiSampleSetRoute -> sampleSetFixture()
+        is HuaweiSampleSetRoute -> sampleSetFixture(route.dataTypeName)
+        is HuaweiDailyPolymerizeRoute -> sampleSetFixture("com.huawei.test.statistics")
         else -> error("Unknown route type: ${route::class}")
     }
 
     /** Envelope shared by `sampleSet:polymerize` and `sampleSet:dailyPolymerize` responses:
      * millisecond group times, nanosecond sample point times. */
-    private fun sampleSetFixture(): ObjectNode {
+    private fun sampleSetFixture(dataTypeName: String): ObjectNode {
         val root = mapper.createObjectNode()
         val groups = root.putArray("group")
         val group = groups.addObject()
@@ -113,13 +139,13 @@ class HuaweiRouteFactoryTest {
         group.put("endTime", END_MILLIS)
         val sampleSet = group.putArray("sampleSet")
         val collector = sampleSet.addObject()
-        collector.put("dataCollectorId", "derived:com.huawei.test:com.huawei.hwid:merged")
+        collector.put("dataCollectorId", "derived:$dataTypeName:com.huawei.hwid:merged")
         val samplePoints = collector.putArray("samplePoints")
         val point = samplePoints.addObject()
         point.put("startTime", START_NANOS)
         point.put("endTime", END_NANOS)
-        point.put("dataTypeName", "com.huawei.test")
-        point.put("originalDataCollectorId", "raw:com.huawei.test:com.huawei.health:HUAWEI")
+        point.put("dataTypeName", dataTypeName)
+        point.put("originalDataCollectorId", "raw:$dataTypeName:com.huawei.health:HUAWEI")
         point.set<ArrayNode>("value", genericValueArray())
         return root
     }
@@ -171,6 +197,7 @@ class HuaweiRouteFactoryTest {
 
     companion object {
         private const val START_MILLIS = 1704067200000L // 2024-01-01T00:00:00Z
+        private val START: Instant = Instant.ofEpochMilli(START_MILLIS)
         private const val END_MILLIS = 1704070800000L // 2024-01-01T01:00:00Z
         private const val START_NANOS = START_MILLIS * 1_000_000L
         private const val END_NANOS = END_MILLIS * 1_000_000L

@@ -35,6 +35,7 @@
 # Options:
 #   DAYS=30 ./huawei-api-probe.sh                          # window size, max 30 (default 7)
 #   ENDED_DAYS_AGO=400 ./huawei-api-probe.sh               # window ending N days ago (default 0)
+#   HUAWEI_API_URL=https://health-api.cloud.huawei.com ./huawei-api-probe.sh  # API host
 #   ./huawei-api-probe.sh continuous_ecg_detail emotion    # only these routes
 set -euo pipefail
 
@@ -94,8 +95,9 @@ fi
 DAYS="${DAYS:-7}"
 ENDED_DAYS_AGO="${ENDED_DAYS_AGO:-0}"
 OUT_DIR="${OUT_DIR:-huawei-responses}"
-V1=https://health-api.cloud.huawei.com/healthkit/v1
-V2=https://health-api.cloud.huawei.com/healthkit/v2
+HUAWEI_API_URL="${HUAWEI_API_URL:-https://hihealthbase-dre.things.dbankcloud.cn}"
+V1=$HUAWEI_API_URL/healthkit/v1
+V2=$HUAWEI_API_URL/healthkit/v2
 
 # Window: DAYS complete UTC days ending ENDED_DAYS_AGO days ago, [START, END).
 END_S=$(( ($(date -u +%s) / 86400 - ENDED_DAYS_AGO) * 86400 ))

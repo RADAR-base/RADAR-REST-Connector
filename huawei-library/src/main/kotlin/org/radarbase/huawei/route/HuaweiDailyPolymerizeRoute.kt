@@ -47,6 +47,7 @@ class HuaweiDailyPolymerizeRoute(
     userRepository: UserRepository,
     private val dataTypeName: String,
     override val topic: String,
+    apiUrl: String = HuaweiRoute.HUAWEI_API_URL,
     // dailyPolymerize accepts at most 31 days (inclusive) per request.
     maxIntervalPerRequest: Duration = Duration.ofDays(30L),
     buildRecord: (
@@ -54,8 +55,8 @@ class HuaweiDailyPolymerizeRoute(
         startTime: Instant,
         endTime: Instant?,
         timeReceived: Instant,
-    ) -> SpecificRecord,
-) : HuaweiRoute(userRepository, maxIntervalPerRequest) {
+    ) -> SpecificRecord?,
+) : HuaweiRoute(userRepository, apiUrl, maxIntervalPerRequest) {
 
     override val converters: List<HuaweiDataConverter> =
         listOf(HuaweiDailyPolymerizeConverter(topic, buildRecord))
@@ -82,7 +83,7 @@ class HuaweiDailyPolymerizeRoute(
                     user,
                     "sampleSet:dailyPolymerize",
                     buildRequestBody(rangeStart, rangeEnd.minus(Duration.ofDays(1))),
-                    baseUrl = HUAWEI_API_BASE_URL_V2,
+                    version = "v2",
                 ),
                 user = user,
                 route = this,

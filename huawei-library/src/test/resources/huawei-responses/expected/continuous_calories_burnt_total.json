@@ -1,5 +1,9 @@
 [ {
   "time" : 1.79496E9,
   "endTime" : 1.795046399999E9,
-  "caloriesTotal" : 303.486
+  "caloriesTotal" : 333.62
+}, {
+  "time" : 1.7950464E9,
+  "endTime" : 1.795132799999E9,
+  "caloriesTotal" : 49.045
 } ]

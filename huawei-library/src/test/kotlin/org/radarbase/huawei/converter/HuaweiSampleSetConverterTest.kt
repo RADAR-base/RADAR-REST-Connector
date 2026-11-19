@@ -19,6 +19,7 @@ package org.radarbase.huawei.converter
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.radarbase.huawei.user.HuaweiUser
+import org.radarcns.connector.huawei.HuaweiContinuousSleepFragment
 import org.radarcns.connector.huawei.HuaweiContinuousStepsDelta
 import java.time.Instant
 import kotlin.test.Test
@@ -61,6 +62,28 @@ class HuaweiSampleSetConverterTest {
         assertEquals(listOf(1795014300.0, 1795014360.0), values.map { it.time })
         assertEquals(listOf(1795014360.0, 1795014420.0), values.map { it.endTime })
         assertEquals(listOf(60, 41), values.map { it.stepsDelta })
+    }
+
+    @Test
+    fun `skips points of other data types`() {
+        // A recorded sleep fragment response also carries the night's sleep record point.
+        val root = mapper.readTree(
+            checkNotNull(javaClass.getResource("/huawei-responses/continuous_sleep_fragment.json")),
+        )
+        val fragments = HuaweiSampleSetConverter(
+            "topic",
+            "com.huawei.continuous.sleep.fragment",
+        ) { f, start, end, received ->
+            HuaweiContinuousSleepFragment.newBuilder().apply {
+                time = start.toEpochMilli() / 1000.0
+                timeReceived = received.toEpochMilli() / 1000.0
+                endTime = end?.let { it.toEpochMilli() / 1000.0 }
+                sleepState = f.getInt("sleep_state")
+            }.build()
+        }.processRecords(root, user).map { it.getOrThrow().value as HuaweiContinuousSleepFragment }
+            .toList()
+
+        assertEquals(listOf(4, 4), fragments.map { it.sleepState })
     }
 
     @Test

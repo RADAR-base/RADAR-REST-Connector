@@ -6,4 +6,12 @@
   "min" : 71.0,
   "last" : 71.0,
   "count" : null
+}, {
+  "time" : 1.7950464E9,
+  "endTime" : 1.795132799999E9,
+  "avg" : 67.0,
+  "max" : 67.0,
+  "min" : 67.0,
+  "last" : 67.0,
+  "count" : null
 } ]

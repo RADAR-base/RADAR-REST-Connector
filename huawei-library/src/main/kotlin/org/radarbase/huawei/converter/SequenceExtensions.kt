@@ -29,3 +29,12 @@ internal fun <S, T> Sequence<T>.mapCatching(fn: (T) -> S): Sequence<Result<S>> =
         fn(t)
     }
 }
+
+/** Like [mapCatching], but drops elements for which [fn] returns `null`. */
+internal fun <S : Any, T> Sequence<T>.mapNotNullCatching(fn: (T) -> S?): Sequence<Result<S>> =
+    mapNotNull { t ->
+        runCatching { fn(t) }.fold(
+            onSuccess = { it?.let { value -> Result.success(value) } },
+            onFailure = { Result.failure(it) },
+        )
+    }

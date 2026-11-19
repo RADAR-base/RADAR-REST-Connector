@@ -33,12 +33,14 @@ import java.time.Instant
  *
  * Handles OAuth2-authorized request construction (both `GET` with query parameters and `POST`
  * with a JSON body, since the Health Kit Data API mixes both styles across its endpoints) and
- * generic time-range chunking, shared by all concrete route types.
+ * generic time-range chunking, shared by all concrete route types. Requests go to
+ * `<apiUrl>/healthkit/<version>/<path>`.
  *
  * @author yatharthranjan
  */
 abstract class HuaweiRoute(
     private val userRepository: UserRepository,
+    private val apiUrl: String,
     override val maxIntervalPerRequest: Duration = DEFAULT_INTERVAL_PER_REQUEST,
 ) : Route {
     abstract val converters: List<HuaweiDataConverter>
@@ -52,10 +54,10 @@ abstract class HuaweiRoute(
         user: User,
         path: String,
         queryParams: Map<String, String>,
-        baseUrl: String = HUAWEI_API_BASE_URL,
+        version: String = "v1",
     ): Request {
         val accessToken = userRepository.getAccessToken(user)
-        val urlBuilder = "$baseUrl/$path".toHttpUrl().newBuilder()
+        val urlBuilder = apiUrl(version, path).toHttpUrl().newBuilder()
         queryParams.forEach { (key, value) -> urlBuilder.addQueryParameter(key, value) }
         return Request.Builder()
             .url(urlBuilder.build())
@@ -68,15 +70,18 @@ abstract class HuaweiRoute(
         user: User,
         path: String,
         jsonBody: String,
-        baseUrl: String = HUAWEI_API_BASE_URL,
+        version: String = "v1",
     ): Request {
         val accessToken = userRepository.getAccessToken(user)
         return Request.Builder()
-            .url("$baseUrl/$path".toHttpUrl())
+            .url(apiUrl(version, path).toHttpUrl())
             .header("Authorization", "Bearer $accessToken")
             .post(jsonBody.toRequestBody(JSON_MEDIA_TYPE))
             .build()
     }
+
+    private fun apiUrl(version: String, path: String): String =
+        "${apiUrl.trimEnd('/')}/healthkit/$version/$path"
 
     /**
      * Split `[start, end)` into consecutive windows of at most [maxIntervalPerRequest], capped at
@@ -101,8 +106,8 @@ abstract class HuaweiRoute(
     ): Sequence<RestRequest> = generateRequests(user, start, end, Int.MAX_VALUE)
 
     companion object {
-        const val HUAWEI_API_BASE_URL = "https://health-api.cloud.huawei.com/healthkit/v1"
-        const val HUAWEI_API_BASE_URL_V2 = "https://health-api.cloud.huawei.com/healthkit/v2"
+        /** Default Health Kit API host. */
+        const val HUAWEI_API_URL = "https://hihealthbase-dre.things.dbankcloud.cn"
         private val JSON_MEDIA_TYPE = "application/json; charset=utf-8".toMediaType()
         private val DEFAULT_INTERVAL_PER_REQUEST = Duration.ofDays(30L)
     }

@@ -42,19 +42,20 @@ import java.time.Instant
  */
 class HuaweiSampleSetRoute(
     userRepository: UserRepository,
-    private val dataTypeName: String,
+    val dataTypeName: String,
     override val topic: String,
+    apiUrl: String = HuaweiRoute.HUAWEI_API_URL,
     maxIntervalPerRequest: Duration = Duration.ofDays(30L),
     buildRecord: (
         fields: FieldValues,
         startTime: Instant,
         endTime: Instant?,
         timeReceived: Instant,
-    ) -> SpecificRecord,
-) : HuaweiRoute(userRepository, maxIntervalPerRequest) {
+    ) -> SpecificRecord?,
+) : HuaweiRoute(userRepository, apiUrl, maxIntervalPerRequest) {
 
     override val converters: List<HuaweiDataConverter> =
-        listOf(HuaweiSampleSetConverter(topic, buildRecord))
+        listOf(HuaweiSampleSetConverter(topic, dataTypeName, buildRecord))
 
     override fun generateRequests(
         user: User,

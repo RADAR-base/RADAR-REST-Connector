@@ -15,7 +15,30 @@
               "value": [
                 {
                   "fieldName": "distance",
-                  "floatValue": 5415.0
+                  "floatValue": 6160.0
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "startTime": 1795046400000,
+      "endTime": 1795132799999,
+      "sampleSet": [
+        {
+          "dataCollectorId": "opaque-data-collector-id",
+          "samplePoints": [
+            {
+              "startTime": 1795046400000000000,
+              "endTime": 1795132799999000000,
+              "dataTypeName": "com.huawei.continuous.distance.total",
+              "originalDataCollectorId": "opaque-data-collector-id",
+              "value": [
+                {
+                  "fieldName": "distance",
+                  "floatValue": 1362.0
                 }
               ]
             }

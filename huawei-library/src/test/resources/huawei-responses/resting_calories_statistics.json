@@ -19,11 +19,21 @@
                 },
                 {
                   "fieldName": "totalCalories",
-                  "floatValue": 1638.6
+                  "floatValue": 2001.0
                 }
               ]
             }
           ]
+        }
+      ]
+    },
+    {
+      "startTime": 1795046400000,
+      "endTime": 1795132799999,
+      "sampleSet": [
+        {
+          "dataCollectorId": "opaque-data-collector-id",
+          "samplePoints": []
         }
       ]
     }

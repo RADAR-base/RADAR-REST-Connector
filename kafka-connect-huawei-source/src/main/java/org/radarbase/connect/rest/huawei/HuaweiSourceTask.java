@@ -97,11 +97,12 @@ public class HuaweiSourceTask extends SourceTask {
 
   private List<Route> getRoutes(HuaweiRestSourceConnectorConfig config) {
     Map<String, String> enabledTopics = config.enabledTopics();
+    String apiUrl = config.getHuaweiApiUrl();
     List<Route> result = new ArrayList<>();
     for (HuaweiRouteDefinition definition : HuaweiRouteFactory.INSTANCE.getDefinitions()) {
       String topic = enabledTopics.get(definition.getKey());
       if (topic != null) {
-        result.add(definition.getBuild().invoke(userRepository, topic));
+        result.add(definition.getBuild().invoke(userRepository, topic, apiUrl));
       }
     }
     return result;
