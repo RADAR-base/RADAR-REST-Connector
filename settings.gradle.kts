@@ -5,6 +5,7 @@ include(":kafka-connect-oura-source")
 include(":oura-library")
 include(":kafka-connect-huawei-source")
 include(":huawei-library")
+include(":google-health-library")
 
 pluginManagement {
     repositories {
