@@ -26,7 +26,8 @@ COPY kafka-connect-oura-source/build.gradle.kts /code/kafka-connect-oura-source/
 COPY oura-library/build.gradle /code/oura-library/
 
 # Gradle 9 requires the directory of every included project to exist.
-RUN mkdir -p /code/kafka-connect-fitbit-source /code/kafka-connect-rest-source /code/google-health-library
+RUN mkdir -p /code/kafka-connect-fitbit-source /code/kafka-connect-rest-source /code/google-health-library \
+    /code/kafka-connect-huawei-source /code/huawei-library
 
 RUN gradle downloadDependencies copyDependencies
 

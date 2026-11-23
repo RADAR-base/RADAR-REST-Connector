@@ -1,0 +1,74 @@
+{
+  "group": [
+    {
+      "startTime": 1794960000000,
+      "endTime": 1795046399999,
+      "sampleSet": [
+        {
+          "dataCollectorId": "opaque-data-collector-id",
+          "samplePoints": [
+            {
+              "startTime": 1795016220000000000,
+              "endTime": 1795036980000000000,
+              "dataTypeName": "com.huawei.continuous.spo2.statistics",
+              "originalDataCollectorId": "opaque-data-collector-id",
+              "value": [
+                {
+                  "fieldName": "saturation_avg",
+                  "floatValue": 97.0
+                },
+                {
+                  "fieldName": "saturation_max",
+                  "floatValue": 99.0
+                },
+                {
+                  "fieldName": "saturation_min",
+                  "floatValue": 96.0
+                },
+                {
+                  "fieldName": "saturation_last",
+                  "floatValue": 97.0
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "startTime": 1795046400000,
+      "endTime": 1795132799999,
+      "sampleSet": [
+        {
+          "dataCollectorId": "opaque-data-collector-id",
+          "samplePoints": [
+            {
+              "startTime": 1795056000000000000,
+              "endTime": 1795085460000000000,
+              "dataTypeName": "com.huawei.continuous.spo2.statistics",
+              "originalDataCollectorId": "opaque-data-collector-id",
+              "value": [
+                {
+                  "fieldName": "saturation_avg",
+                  "floatValue": 98.0
+                },
+                {
+                  "fieldName": "saturation_max",
+                  "floatValue": 99.0
+                },
+                {
+                  "fieldName": "saturation_min",
+                  "floatValue": 95.0
+                },
+                {
+                  "fieldName": "saturation_last",
+                  "floatValue": 97.0
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,319 @@
+{
+  "activityRecord": [
+    {
+      "id": "sportHealth1795025764000",
+      "name": "sportHealth1795025764000",
+      "desc": "sportHealth1795025764000",
+      "startTime": 1795025764000,
+      "endTime": 1795027250000,
+      "modifyTime": 1795027250000,
+      "activitySummary": {
+        "paceSummary": {
+          "paceMap": {
+            "1.0": 478.0,
+            "2.0": 462.0
+          },
+          "sportHealthPaceMap": {
+            "10000471": 478.0,
+            "20000927": 462.0
+          },
+          "partTimeMap": {
+            "1.0": 478.0,
+            "2.0": 940.0
+          },
+          "avgPace": 484.91802978515625,
+          "bestPace": 322.58
+        },
+        "performanceSummary": {
+          "aerobicTrainingStress": 2.1,
+          "recoveryTime": 780,
+          "vo2Max": 39,
+          "loadPeak": 44,
+          "paceZoneStatistics": {
+            "anaerobic": 225,
+            "lacticAcid": 230,
+            "marathon": 55,
+            "romp": 35,
+            "maxOxygen": 280
+          },
+          "heartRateZoneStatistics": {
+            "mFitnessThreshold": 25,
+            "mAerobicThreshold": 620,
+            "mWarmUpThreshold": 110,
+            "mFatBurnThreshold": 720,
+            "mAnaerobicThreshold": 0
+          },
+          "runningAbility": 0.0,
+          "aerobicLoadPeak": 0,
+          "anaerobicLoadPeak": 0
+        },
+        "dataSummary": [
+          {
+            "dataTypeName": "com.huawei.resting_calories.statistics",
+            "value": [
+              {
+                "fieldName": "totalCalories",
+                "floatValue": 31.0
+              }
+            ]
+          },
+          {
+            "dataTypeName": "com.huawei.continuous.heart_rate.statistics",
+            "value": [
+              {
+                "fieldName": "avg",
+                "floatValue": 151.0
+              },
+              {
+                "fieldName": "max",
+                "floatValue": 170.0
+              },
+              {
+                "fieldName": "min",
+                "floatValue": 112.0
+              }
+            ]
+          },
+          {
+            "dataTypeName": "com.huawei.continuous.distance.total",
+            "value": [
+              {
+                "fieldName": "distance",
+                "floatValue": 3050.0
+              }
+            ]
+          },
+          {
+            "dataTypeName": "com.huawei.continuous.steps.rate.statistics",
+            "value": [
+              {
+                "fieldName": "avg",
+                "floatValue": 137.0
+              },
+              {
+                "fieldName": "max",
+                "floatValue": 160.0
+              },
+              {
+                "fieldName": "min",
+                "floatValue": 0.0
+              }
+            ]
+          },
+          {
+            "dataTypeName": "com.huawei.continuous.altitude.statistics",
+            "value": [
+              {
+                "fieldName": "max",
+                "floatValue": 63.1
+              },
+              {
+                "fieldName": "min",
+                "floatValue": 48.2
+              },
+              {
+                "fieldName": "ascent_total",
+                "floatValue": 23.9
+              },
+              {
+                "fieldName": "descent_total",
+                "floatValue": 23.9
+              }
+            ]
+          },
+          {
+            "dataTypeName": "com.huawei.continuous.calories.burnt.total",
+            "value": [
+              {
+                "fieldName": "calories_total",
+                "floatValue": 165.0
+              }
+            ]
+          },
+          {
+            "dataTypeName": "com.huawei.continuous.steps.total",
+            "value": [
+              {
+                "fieldName": "steps",
+                "integerValue": 3397
+              },
+              {
+                "fieldName": "duration",
+                "integerValue": 24
+              }
+            ]
+          },
+          {
+            "dataTypeName": "com.huawei.continuous.exercise_heart_rate.statistics",
+            "value": [
+              {
+                "fieldName": "avg",
+                "floatValue": 151.0
+              },
+              {
+                "fieldName": "max",
+                "floatValue": 170.0
+              },
+              {
+                "fieldName": "min",
+                "floatValue": 112.0
+              }
+            ]
+          },
+          {
+            "dataTypeName": "com.huawei.weather",
+            "value": [
+              {
+                "fieldName": "weather",
+                "integerValue": -1
+              },
+              {
+                "fieldName": "temperature",
+                "integerValue": 0
+              },
+              {
+                "fieldName": "apparentTemperature",
+                "integerValue": 0
+              }
+            ]
+          },
+          {
+            "dataTypeName": "com.huawei.analog_power.statistics",
+            "value": [
+              {
+                "fieldName": "avgAnalogPower",
+                "integerValue": 0
+              }
+            ]
+          },
+          {
+            "dataTypeName": "com.huawei.continuous.speed.statistics",
+            "value": [
+              {
+                "fieldName": "avg",
+                "floatValue": 2.062
+              }
+            ]
+          },
+          {
+            "dataTypeName": "com.huawei.steps.stride.statistics",
+            "value": [
+              {
+                "fieldName": "avg",
+                "floatValue": 90.0
+              }
+            ]
+          }
+        ],
+        "sectionSummary": [
+          {
+            "sectionNum": 1,
+            "sectionTime": 478,
+            "startTime": 1795025764000,
+            "endTime": 1795026242000,
+            "sectionDataList": [
+              {
+                "dataTypeName": "com.huawei.continuous.distance.total",
+                "value": [
+                  {
+                    "fieldName": "distance",
+                    "floatValue": 1000.0
+                  }
+                ]
+              },
+              {
+                "dataTypeName": "com.huawei.continuous.exercise_heart_rate.statistics",
+                "value": [
+                  {
+                    "fieldName": "avg",
+                    "floatValue": 146.0
+                  }
+                ]
+              },
+              {
+                "dataTypeName": "com.huawei.continuous.run.posture.statistics",
+                "value": [
+                  {
+                    "fieldName": "avg_ground_contact_time",
+                    "integerValue": 0
+                  },
+                  {
+                    "fieldName": "avg_ground_impact_acceleration",
+                    "integerValue": 0
+                  },
+                  {
+                    "fieldName": "avg_swing_angle",
+                    "integerValue": 0
+                  },
+                  {
+                    "fieldName": "avg_eversion_excursion",
+                    "integerValue": 0
+                  }
+                ]
+              },
+              {
+                "dataTypeName": "com.huawei.continuous.steps.rate.statistics",
+                "value": [
+                  {
+                    "fieldName": "avg",
+                    "floatValue": 138.0
+                  }
+                ]
+              },
+              {
+                "dataTypeName": "com.huawei.continuous.altitude.statistics",
+                "value": [
+                  {
+                    "fieldName": "ascent_total",
+                    "floatValue": 1.0
+                  },
+                  {
+                    "fieldName": "descent_total",
+                    "floatValue": 12.4
+                  }
+                ]
+              },
+              {
+                "dataTypeName": "com.huawei.continuous.speed.statistics",
+                "value": [
+                  {
+                    "fieldName": "avg",
+                    "floatValue": 2.092
+                  }
+                ]
+              },
+              {
+                "dataTypeName": "com.huawei.steps.stride.statistics",
+                "value": [
+                  {
+                    "fieldName": "avg",
+                    "floatValue": 0.9
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "timeZone": "+0000",
+      "deviceInfo": {
+        "uniqueId": "device-unique-id",
+        "devType": "Smart watch",
+        "modelNum": "TBD",
+        "manufacturer": "HUAWEI",
+        "deviceCode": 308517120
+      },
+      "appInfo": {
+        "appPackageName": "com.huawei.health",
+        "clientId": "client-id"
+      },
+      "activityType": 56,
+      "activeTime": 1479000,
+      "sourceType": 1,
+      "abnormal": 0,
+      "duplicate": 0,
+      "coordinate": "WGS84"
+    }
+  ],
+  "deletedActivityRecord": []
+}

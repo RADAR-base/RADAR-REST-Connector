@@ -1,0 +1,73 @@
+{
+  "healthRecords": [
+    {
+      "startTime": 1795034746000000000,
+      "endTime": 1795034776000000000,
+      "dataTypeName": "com.huawei.continuous.ecg_record",
+      "originalDataCollectorId": "opaque-data-collector-id",
+      "value": [
+        {
+          "fieldName": "ecg_type",
+          "integerValue": 1
+        },
+        {
+          "fieldName": "avg_heart_rate",
+          "floatValue": 71.0
+        },
+        {
+          "fieldName": "ecg_arrhythmia_type",
+          "longValue": 1
+        },
+        {
+          "fieldName": "user_symptom",
+          "longValue": 0
+        },
+        {
+          "fieldName": "sampling_frequency",
+          "integerValue": 500
+        },
+        {
+          "fieldName": "ecg_algorithm_version",
+          "stringValue": "V1.0.0.24"
+        },
+        {
+          "fieldName": "ecg_data_sources",
+          "stringValue": "HUAWEI"
+        },
+        {
+          "fieldName": "ecg_data_length",
+          "integerValue": 60000
+        },
+        {
+          "fieldName": "package_name",
+          "stringValue": "hw.health.ecganalysis"
+        }
+      ],
+      "id": "health-record-id",
+      "subData": {
+        "com.huawei.continuous.ecg_detail": {
+          "startTime": 1795034746000000000,
+          "endTime": 1795034776000000000,
+          "dataCollectorId": "opaque-data-collector-id",
+          "samplePoints": [
+            {
+              "startTime": 1795034746000000000,
+              "endTime": 1795034776000000000,
+              "dataTypeName": "com.huawei.continuous.ecg_detail",
+              "value": [
+                {
+                  "fieldName": "ecg_type",
+                  "integerValue": 1
+                },
+                {
+                  "fieldName": "voltage_datas",
+                  "stringValue": "[-621258.375000,-606141.437500,-596807.750000,-596147.937500,-597200.187500]"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

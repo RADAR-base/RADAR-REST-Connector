@@ -1,0 +1,41 @@
+{
+  "group": [
+    {
+      "startTime": 1794960000000,
+      "endTime": 1795046399999,
+      "sampleSet": [
+        {
+          "dataCollectorId": "opaque-data-collector-id",
+          "samplePoints": [
+            {
+              "startTime": 1794960000000000000,
+              "endTime": 1795046399999000000,
+              "dataTypeName": "com.huawei.resting_calories.statistics",
+              "originalDataCollectorId": "opaque-data-collector-id",
+              "value": [
+                {
+                  "fieldName": "predictedCalories",
+                  "floatValue": 2001.0
+                },
+                {
+                  "fieldName": "totalCalories",
+                  "floatValue": 2001.0
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "startTime": 1795046400000,
+      "endTime": 1795132799999,
+      "sampleSet": [
+        {
+          "dataCollectorId": "opaque-data-collector-id",
+          "samplePoints": []
+        }
+      ]
+    }
+  ]
+}

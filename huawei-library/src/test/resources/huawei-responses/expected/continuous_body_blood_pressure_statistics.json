@@ -1,0 +1,27 @@
+[ {
+  "time" : 1.795013359E9,
+  "endTime" : 1.795038749E9,
+  "systolicPressureAvg" : 138.0,
+  "systolicPressureMax" : 155.0,
+  "systolicPressureMin" : 125.0,
+  "diastolicPressureAvg" : 99.0,
+  "diastolicPressureMax" : 107.0,
+  "diastolicPressureMin" : 81.0,
+  "sphygmusAvg" : 93.0,
+  "sphygmusMax" : 106.0,
+  "sphygmusMin" : 85.0,
+  "sphygmusLast" : 88.0
+}, {
+  "time" : 1.795049858E9,
+  "endTime" : 1.795087338E9,
+  "systolicPressureAvg" : 126.0,
+  "systolicPressureMax" : 146.0,
+  "systolicPressureMin" : 111.0,
+  "diastolicPressureAvg" : 86.0,
+  "diastolicPressureMax" : 102.0,
+  "diastolicPressureMin" : 75.0,
+  "sphygmusAvg" : 71.0,
+  "sphygmusMax" : 93.0,
+  "sphygmusMin" : 59.0,
+  "sphygmusLast" : 77.0
+} ]

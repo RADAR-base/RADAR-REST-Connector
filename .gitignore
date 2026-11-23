@@ -9,3 +9,7 @@ docker/source-fitbit.properties
 docker/source-oura.properties
 bin/
 .DS_Store
+# Output of scripts/huawei-api-probe.sh (contains health data)
+huawei-responses/
+# Trimmed recorded responses used as converter test fixtures
+!huawei-library/src/test/resources/huawei-responses/

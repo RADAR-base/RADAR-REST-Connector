@@ -1,0 +1,90 @@
+{
+  "group": [
+    {
+      "startTime": 1794960000000,
+      "endTime": 1795046399999,
+      "sampleSet": [
+        {
+          "dataCollectorId": "opaque-data-collector-id",
+          "samplePoints": [
+            {
+              "startTime": 1794960000000000000,
+              "endTime": 1795046399999000000,
+              "dataTypeName": "com.huawei.continuous.exercise_intensity.v2.statistics",
+              "originalDataCollectorId": "opaque-data-collector-id",
+              "value": [
+                {
+                  "fieldName": "totalIntensity",
+                  "integerValue": 33
+                },
+                {
+                  "fieldName": "intensity_map",
+                  "mapValue": [
+                    {
+                      "key": "1",
+                      "value": {
+                        "integerValue": 12
+                      }
+                    },
+                    {
+                      "key": "2",
+                      "value": {
+                        "integerValue": 22
+                      }
+                    },
+                    {
+                      "key": "6",
+                      "value": {
+                        "integerValue": 2
+                      }
+                    },
+                    {
+                      "key": "8",
+                      "value": {
+                        "integerValue": 7
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "startTime": 1795046400000,
+      "endTime": 1795132799999,
+      "sampleSet": [
+        {
+          "dataCollectorId": "opaque-data-collector-id",
+          "samplePoints": [
+            {
+              "startTime": 1795046400000000000,
+              "endTime": 1795132799999000000,
+              "dataTypeName": "com.huawei.continuous.exercise_intensity.v2.statistics",
+              "originalDataCollectorId": "opaque-data-collector-id",
+              "value": [
+                {
+                  "fieldName": "totalIntensity",
+                  "integerValue": 1
+                },
+                {
+                  "fieldName": "intensity_map",
+                  "mapValue": [
+                    {
+                      "key": "1",
+                      "value": {
+                        "integerValue": 1
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

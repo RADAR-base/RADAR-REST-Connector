@@ -1,0 +1,17 @@
+[ {
+  "time" : 1.79501364E9,
+  "endTime" : 1.79503884E9,
+  "avg" : 31.1,
+  "max" : 33.7,
+  "min" : 22.9,
+  "last" : null,
+  "count" : null
+}, {
+  "time" : 1.79504994E9,
+  "endTime" : 1.7950869E9,
+  "avg" : 32.9,
+  "max" : 35.7,
+  "min" : 26.8,
+  "last" : null,
+  "count" : null
+} ]

@@ -1,0 +1,66 @@
+{
+  "group": [
+    {
+      "startTime": 1794960000000,
+      "endTime": 1795046399999,
+      "sampleSet": [
+        {
+          "dataCollectorId": "opaque-data-collector-id",
+          "samplePoints": [
+            {
+              "startTime": 1795013640000000000,
+              "endTime": 1795038840000000000,
+              "dataTypeName": "com.huawei.continuous.skin.temperature.statistics",
+              "originalDataCollectorId": "opaque-data-collector-id",
+              "value": [
+                {
+                  "fieldName": "avg",
+                  "floatValue": 31.1
+                },
+                {
+                  "fieldName": "max",
+                  "floatValue": 33.7
+                },
+                {
+                  "fieldName": "min",
+                  "floatValue": 22.9
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "startTime": 1795046400000,
+      "endTime": 1795132799999,
+      "sampleSet": [
+        {
+          "dataCollectorId": "opaque-data-collector-id",
+          "samplePoints": [
+            {
+              "startTime": 1795049940000000000,
+              "endTime": 1795086900000000000,
+              "dataTypeName": "com.huawei.continuous.skin.temperature.statistics",
+              "originalDataCollectorId": "opaque-data-collector-id",
+              "value": [
+                {
+                  "fieldName": "avg",
+                  "floatValue": 32.9
+                },
+                {
+                  "fieldName": "max",
+                  "floatValue": 35.7
+                },
+                {
+                  "fieldName": "min",
+                  "floatValue": 26.8
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

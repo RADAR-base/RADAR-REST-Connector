@@ -1,0 +1,70 @@
+{
+  "healthRecords": [
+    {
+      "startTime": 1795055940000000000,
+      "endTime": 1795076820000000000,
+      "dataTypeName": "com.huawei.health.record.sleep",
+      "originalDataCollectorId": "opaque-data-collector-id",
+      "value": [
+        {
+          "fieldName": "fall_asleep_time",
+          "longValue": 1795055940000
+        },
+        {
+          "fieldName": "wakeup_time",
+          "longValue": 1795076820000
+        },
+        {
+          "fieldName": "light_sleep_time",
+          "integerValue": 161
+        },
+        {
+          "fieldName": "deep_sleep_time",
+          "integerValue": 77
+        },
+        {
+          "fieldName": "dream_time",
+          "integerValue": 58
+        },
+        {
+          "fieldName": "awake_time",
+          "integerValue": 52
+        },
+        {
+          "fieldName": "all_sleep_time",
+          "integerValue": 296
+        },
+        {
+          "fieldName": "wakeup_count",
+          "integerValue": 1
+        },
+        {
+          "fieldName": "deep_sleep_part",
+          "integerValue": 70
+        },
+        {
+          "fieldName": "sleep_score",
+          "integerValue": 70
+        },
+        {
+          "fieldName": "sleep_latency",
+          "integerValue": 0
+        },
+        {
+          "fieldName": "go_bed_time",
+          "longValue": 1795055580000
+        },
+        {
+          "fieldName": "sleep_efficiency",
+          "integerValue": 84
+        },
+        {
+          "fieldName": "sleep_type",
+          "integerValue": 1
+        }
+      ],
+      "id": "health-record-id",
+      "timeZone": "+0000"
+    }
+  ]
+}

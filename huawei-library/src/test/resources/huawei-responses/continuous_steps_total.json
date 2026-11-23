@@ -1,0 +1,50 @@
+{
+  "group": [
+    {
+      "startTime": 1794960000000,
+      "endTime": 1795046399999,
+      "sampleSet": [
+        {
+          "dataCollectorId": "opaque-data-collector-id",
+          "samplePoints": [
+            {
+              "startTime": 1794960000000000000,
+              "endTime": 1795046399999000000,
+              "dataTypeName": "com.huawei.continuous.steps.total",
+              "originalDataCollectorId": "opaque-data-collector-id",
+              "value": [
+                {
+                  "fieldName": "steps",
+                  "integerValue": 9120
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "startTime": 1795046400000,
+      "endTime": 1795132799999,
+      "sampleSet": [
+        {
+          "dataCollectorId": "opaque-data-collector-id",
+          "samplePoints": [
+            {
+              "startTime": 1795046400000000000,
+              "endTime": 1795132799999000000,
+              "dataTypeName": "com.huawei.continuous.steps.total",
+              "originalDataCollectorId": "opaque-data-collector-id",
+              "value": [
+                {
+                  "fieldName": "steps",
+                  "integerValue": 2286
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

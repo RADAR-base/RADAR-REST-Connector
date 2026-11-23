@@ -16,8 +16,13 @@ env:
     },{
     'name': 'kafka-connect-oura-source',
     'build_file': 'kafka-connect-oura-source/Dockerfile',
-    'authors': 'Pauline Conde <pauline.conde@kcl.ac.uk>, Yatharth Ranjan <yatharth.ranjan@kcl.ac.uk>',
+    'authors': 'Pauline Conde <pauline.conde@kcl.ac.uk>, Yatharth Ranjan <yatharth.ranjan@kcl.ac.uk>, Yatharth Ranjan <yatharthranjan@onsentia.com>',
     'description': 'RADAR-base Oura connector application'
+    },{
+    'name': 'kafka-connect-huawei-source',
+    'build_file': 'kafka-connect-huawei-source/Dockerfile',
+    'authors': 'Yatharth Ranjan <yatharth.ranjan@kcl.ac.uk>, Yatharth Ranjan <yatharthranjan@onsentia.com>',
+    'description': 'RADAR-base Huawei Health Kit connector application'
     }]
 
 jobs:
