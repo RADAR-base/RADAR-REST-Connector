@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM --platform=$BUILDPLATFORM gradle:8.14-jdk17 AS builder
+FROM --platform=$BUILDPLATFORM gradle:9.6.0-jdk17 AS builder
 
 RUN mkdir /code
 WORKDIR /code
@@ -24,6 +24,10 @@ COPY ./gradle/libs.versions.toml /code/gradle/
 COPY ./build.gradle.kts ./settings.gradle.kts ./gradle.properties /code/
 COPY kafka-connect-huawei-source/build.gradle.kts /code/kafka-connect-huawei-source/
 COPY huawei-library/build.gradle /code/huawei-library/
+
+# Gradle 9 requires the directory of every included project to exist.
+RUN mkdir -p /code/kafka-connect-fitbit-source /code/kafka-connect-rest-source /code/google-health-library \
+    /code/kafka-connect-oura-source /code/oura-library
 
 RUN gradle downloadDependencies copyDependencies
 
